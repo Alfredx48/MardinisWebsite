@@ -1,8 +1,13 @@
 import React from 'react'
+import LoginForm from './LoginForm'
+import SignUpForm from './SignUpForm'
 
 function HomePage() {
   return (
-    <div>HomePage</div>
+    <div>
+      <LoginForm />
+      <SignUpForm />
+    </div>
   )
 }
 
