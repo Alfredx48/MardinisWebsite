@@ -37,7 +37,7 @@ function HomePage() {
 			return <SignUpForm handleChange={handleChange} />;
 		}
 	};
-  return <div>{handleRender}</div>;
+  return <div>{handleRender()}</div>;
 }
 
 export default HomePage;
