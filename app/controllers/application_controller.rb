@@ -2,7 +2,7 @@ class ApplicationController < ActionController::API
   include ActionController::Cookies
   rescue_from ActiveRecord::RecordInvalid, with: :rescue_invalid
   rescue_from ActiveRecord::RecordNotFound, with: :rescue_not_found
-  before_action :authorized
+  before_action :authorize
 
   def current_user
     @current_user = User.find_by(id: session[:user_id])
@@ -10,7 +10,7 @@ class ApplicationController < ActionController::API
 
   private
 
-  def authorized
+  def authorize
     render json: { errors: ["Not Authorized"] }, status: :unauthorized unless @current_user
   end
 
