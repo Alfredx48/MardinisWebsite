@@ -4,9 +4,9 @@ class Api::SessionsController < ApplicationController
     if user&.authenticate(params[:password])
       session[:user_id] = user.id
       render json :user, status: :created
+    else
+      render json: { errors: ["Invalid Email or Password"] }, status: :unauthorized
     end
-  else
-    render json: { errors: ["Invalid Email or Password"] }, status: :unauthorized
   end
 
   def destroy
