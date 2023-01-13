@@ -1,8 +1,12 @@
 class Api::UsersController < ApplicationController
-  skip_before_action :authorize, only: :create
+  skip_before_action :authorize, only: [:create, :show]
+
+  def index
+    render json: User.all
+  end
 
   def show
-    render json: @current_user
+    render json: current_user
   end
 
   def create
