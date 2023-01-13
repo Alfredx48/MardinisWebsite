@@ -7,12 +7,17 @@ function LoginForm({
 	handleChange,
 	errors,
 	setErrors,
-  setCurrentUser
+	setCurrentUser,
+	handleBlur,
+	handleFocus,
+	active
 }) {
 
-	const navigate = useNavigate()
 
-  function handleSubmit(e) {
+
+	const navigate = useNavigate();
+
+	function handleSubmit(e) {
 		e.preventDefault();
 		const userObj = {
 			email: email,
@@ -29,50 +34,45 @@ function LoginForm({
 			if (r.ok) {
 				r.json()
 					.then((user) => {
-						console.log(user)
-						setCurrentUser(user)
-						setErrors([])
+						console.log(user);
+						setCurrentUser(user);
+						setErrors([]);
 					})
 					.then(navigate("/"));
-       
 			} else {
 				r.json().then((err) => setErrors(err.errors));
 			}
 		});
-  }
-  
-  function handleLogOut() {
-		fetch("/api/logout", {
-			method: "DELETE",
-		})
-			.then(() => setCurrentUser([]))
-			.then(navigate('/'));
 	}
-  
+
 	return (
 		<div className="login-form-div">
-			<form className="login-form" onSubmit={handleSubmit} >
+			<form className="login-form" onSubmit={handleSubmit}>
 				<label>Email: </label>
 				<input
-					className="login-input"
+					className={`input ${active ? "" : "pulse"}`}
+					onFocus={handleFocus}
+					onBlur={handleBlur}
 					type="text"
-          id="email"
-          name="email"
+					id="email"
+					name="email"
 					value={email}
 					onChange={(e) => handleChange(e)}
 				/>
 				<label>Password: </label>
 				<input
-					className="login-input"
-          type="password"
-          name="password"
+					className={`input ${active ? "" : "pulse"}`}
+					onFocus={handleFocus}
+					onBlur={handleBlur}
+					type="password"
+					name="password"
 					id="password"
 					value={password}
 					onChange={(e) => handleChange(e)}
 				/>
 				<button className="login-button" type="submit" value="Login">
 					Login
-        </button>
+				</button>
 			</form>
 		</div>
 	);

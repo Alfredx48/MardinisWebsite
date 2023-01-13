@@ -8,6 +8,7 @@ function LoginPage({ currentUser, setCurrentUser }) {
 	const navigate = useNavigate();
 	const [errors, setErrors] = useState([]);
 	const [display, setDisplay] = useState("login");
+	const [active, setActive] = useState(false);
 	const [formData, setFormData] = useState({
 		email: "",
 		password: "",
@@ -49,10 +50,21 @@ function LoginPage({ currentUser, setCurrentUser }) {
 		}));
 	};
 
+	const handleFocus = () => {
+		setActive(true);
+	};
+
+	const handleBlur = () => {
+		setActive(false);
+	};
+
 	const handleRender = () => {
 		if (display === "login") {
 			return (
 				<LoginForm
+					active={active}
+					handleBlur={handleBlur}
+					handleFocus={handleFocus}
 					email={formData.email}
 					password={formData.password}
 					handleChange={handleChange}
@@ -65,6 +77,9 @@ function LoginPage({ currentUser, setCurrentUser }) {
 		} else if (display === "signup") {
 			return (
 				<SignUpForm
+					active={active}
+					handleBlur={handleBlur}
+					handleFocus={handleFocus}
 					formData={formData}
 					errors={errors}
 					setErrors={setErrors}
@@ -115,32 +130,13 @@ function LoginPage({ currentUser, setCurrentUser }) {
 				<br />
 				{handleRender()}
 				<br />
-				<motion.button
-				whileHover={{
-					animate: { scale: [1, 1.1, 1] },
-					transition: { duration: 2, ease: "easeInOut", loop: Infinity, repeatDelay: 1 }
-				}}
-				whileTap={{ scale: 0.95 }}
-					className="button"
-					onClick={handleNew}
-				>
+				<button className="button" onClick={handleNew}>
 					Create New User
-				</motion.button>
+				</button>
 				<br />
-				<motion.button
-					animate={{ scale: [1, 1.1, 1] }}
-					transition={{
-						duration: 2,
-						ease: "easeInOut",
-						loop: Infinity,
-						repeatDelay: 1,
-					}}
-					whileTap={{ scale: 0.95 }}
-					className="button"
-					onClick={handleLog}
-				>
+				<button className="button" onClick={handleLog}>
 					Login to Your Account
-				</motion.button>
+				</button>
 			</motion.div>
 		</div>
 	);

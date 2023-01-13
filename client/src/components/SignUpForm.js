@@ -6,6 +6,9 @@ function SignUpForm({
 	setCurrentUser,
 	setErrors,
 	navigate,
+	handleBlur,
+	handleFocus,
+	active
 }) {
 	function handleSubmit(e) {
 		e.preventDefault();
@@ -28,10 +31,10 @@ function SignUpForm({
 			if (r.ok) {
 				r.json()
 					.then((user) => {
-						setCurrentUser(user)
-						setErrors([])
+						setCurrentUser(user);
+						setErrors([]);
 					})
-				.then(navigate("/"));
+					.then(navigate("/"));
 			} else {
 				r.json().then((err) => setErrors(err.errors));
 			}
@@ -45,7 +48,9 @@ function SignUpForm({
 					Name:
 				</label>
 				<input
-					className="login-input"
+					className={`input ${active ? "" : "pulse"}`}
+					onFocus={handleFocus}
+					onBlur={handleBlur}
 					type="text"
 					name="name"
 					value={formData.name}
@@ -55,7 +60,9 @@ function SignUpForm({
 					Address:
 				</label>
 				<input
-					className="login-input"
+					className={`input ${active ? "" : "pulse"}`}
+					onFocus={handleFocus}
+					onBlur={handleBlur}
 					type="text"
 					name="address"
 					value={formData.address}
@@ -65,7 +72,9 @@ function SignUpForm({
 					Email:
 				</label>
 				<input
-					className="login-input"
+					className={`input ${active ? "" : "pulse"}`}
+					onFocus={handleFocus}
+					onBlur={handleBlur}
 					type="text"
 					name="email"
 					value={formData.email}
@@ -75,7 +84,9 @@ function SignUpForm({
 					Phone Number:
 				</label>
 				<input
-					className="login-input"
+					className={`input ${active ? "" : "pulse"}`}
+					onFocus={handleFocus}
+					onBlur={handleBlur}
 					type="integer"
 					name="phone"
 					value={formData.phone}
@@ -85,7 +96,9 @@ function SignUpForm({
 					Password:
 				</label>
 				<input
-					className="login-input"
+					className={`input ${active ? "" : "pulse"}`}
+					onFocus={handleFocus}
+					onBlur={handleBlur}
 					type="password"
 					name="password"
 					value={formData.password}
@@ -95,7 +108,9 @@ function SignUpForm({
 					Confirm Password:
 				</label>
 				<input
-					className="login-input"
+					className={`input ${active ? "" : "pulse"}`}
+					onFocus={handleFocus}
+					onBlur={handleBlur}
 					type="password"
 					id="password_confirmation"
 					name="passwordConfirmation"

@@ -208,20 +208,22 @@ img {
   animation: pulse 1s infinite;
 }
 
-input {
-	transition: transform 0.5s ease-in-out;
-	cursor: pointer;
+.input {
+  transition: transform 0.5s ease-in-out;
+	border: 1px solid #dbdbdb; 
+  border-radius: 4px; 
+  box-sizing: border-box; 
+  font-size: 14px; 
+  padding: 8px; 
+  width: 100%; 
 }
 
-input:hover {
-	cursor: pointer;
-	transform: scale(1.1);
-  animation: pulse 1s infinite;
-
+.pulse:not(.active) {
+  transform: scale(1.1);
+  animation: pulse 1.5s infinite;
 }
-
 @keyframes pulse {
-  0% {
+  1% {
     transform: scale(1);
   }
   50% {
