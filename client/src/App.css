@@ -148,6 +148,7 @@ img {
 	padding: 12px 20px;
 	width: 100%;
 	font-family: playfair display;
+	transition: transform 0.5s ease-in-out;
 
 }
 
@@ -163,6 +164,7 @@ img {
 	margin: 0 auto;
 	width: 400px;
 	font-family: playfair display;
+	transition: transform 0.5s ease-in-out;
 
 }
 .error-wrapper {
@@ -195,9 +197,37 @@ img {
 .login-button:hover {
 	background-color: firebrick;
 	cursor: pointer;
+	transform: scale(1.1);
+  animation: pulse 1s infinite;
 }
 
 .button:hover {
 	background-color: firebrick;
 	cursor: pointer;
+	transform: scale(1.1);
+  animation: pulse 1s infinite;
+}
+
+input {
+	transition: transform 0.5s ease-in-out;
+	cursor: pointer;
+}
+
+input:hover {
+	cursor: pointer;
+	transform: scale(1.1);
+  animation: pulse 1s infinite;
+
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }

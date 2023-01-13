@@ -80,7 +80,10 @@ function LoginPage({ currentUser, setCurrentUser }) {
 			<motion.div
 				initial={{ x: "-100%", opacity: 0 }}
 				animate={{ x: 0, opacity: 1 }}
-				transition={{ type: "tween", duration: 0.5, ease: "easeOut" }}
+				// transition={{ type: "tween", duration: 0.5, ease: "easeOut" }}
+				transition={{ type: "spring", stiffness: 300, damping: 20 }}
+				// transition={{ type: 'spring', restSpeed: 0.5 }}
+
 				exit={{ x: "-100%", opacity: 0 }}
 			>
 				<div className="error-wrapper">
@@ -109,16 +112,35 @@ function LoginPage({ currentUser, setCurrentUser }) {
 							  ))}
 					</div>
 				</div>
-				<br/>
+				<br />
 				{handleRender()}
 				<br />
-				<button className="button" onClick={handleNew}>
+				<motion.button
+				whileHover={{
+					animate: { scale: [1, 1.1, 1] },
+					transition: { duration: 2, ease: "easeInOut", loop: Infinity, repeatDelay: 1 }
+				}}
+				whileTap={{ scale: 0.95 }}
+					className="button"
+					onClick={handleNew}
+				>
 					Create New User
-				</button>
+				</motion.button>
 				<br />
-				<button className="button" onClick={handleLog}>
+				<motion.button
+					animate={{ scale: [1, 1.1, 1] }}
+					transition={{
+						duration: 2,
+						ease: "easeInOut",
+						loop: Infinity,
+						repeatDelay: 1,
+					}}
+					whileTap={{ scale: 0.95 }}
+					className="button"
+					onClick={handleLog}
+				>
 					Login to Your Account
-				</button>
+				</motion.button>
 			</motion.div>
 		</div>
 	);
