@@ -23,10 +23,10 @@ function CartItems({ cartItem, setCart }) {
 }
 	return (
 		<div>
-			<h1>
+			<h3>
 				{cartItem.item_name} <span> x {cartItem.quantity}</span>{" "}
 				<span> {cartItem.item_total}</span>
-			</h1>
+			</h3>
 			<p>{cartItem.price}</p>
 			<p>{cartItem.special_request}</p>
 			<button onClick={() => removeItem(cartItem.id)}> Remove Item</button>

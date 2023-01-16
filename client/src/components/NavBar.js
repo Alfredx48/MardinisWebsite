@@ -10,6 +10,8 @@ function NavBar({setCurrentUser , currentUser}) {
 		})
 			.then(() => setCurrentUser(""))
 			.then(navigate('/'));
+		localStorage.removeItem("cartId")
+		window.location.reload()
 	}
 
 
