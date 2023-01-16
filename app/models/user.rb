@@ -1,5 +1,5 @@
 class User < ApplicationRecord
-  has_many :orders. dependent: :destroy
+  has_many :orders, dependent: :destroy
   has_many :carts, dependent: :destroy
   has_many :cart_items, through: :carts
   has_secure_password
@@ -8,7 +8,6 @@ class User < ApplicationRecord
   validates :name, presence: true
   validates :address, presence: true
   validates :phone, presence: true
-
 
   # def self.from_omniauth(auth)
   #   where(email: auth.info.email).first_or_initialize do |user|
