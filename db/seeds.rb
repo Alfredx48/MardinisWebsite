@@ -5,7 +5,7 @@ MenuItem.destroy_all
 Restaurant.destroy_all
 
 #Admin
-User.create!(name: "Alfred", email: "hello@alfred.com", password: "123", password_confirmation: "123", address: "123 hello way", phone: "(123)456-7890", admin: true)
+a = User.create!(name: "Alfred", email: "hello@alfred.com", password: "123456", password_confirmation: "123456", address: "123 hello way", phone: "(123)456-7890", admin: true)
 
 #Users
 
@@ -29,9 +29,23 @@ MenuItem.create!([
   { restaurant: r, name: "Vegetarian Combo Plate", description: "Hummus, tabboleh, cabbage, baba ganoush, house salad, two dolmas and two falafels.", price: 18.75, image: "https://img.cdn4dd.com/p/fit=cover,width=600,format=auto,quality=50/media/photos/f54fca12-8ab9-4c19-a263-dc7c0a03a901-retina-large.jpg" },
   { restaurant: r, name: "Combo Kabob Plate", description: "Plate come with side of hummus, house salad, rice & pita bread.", price: 20.75, image: "https://img.cdn4dd.com/p/fit=cover,width=600,format=auto,quality=50/media/photos/c6ac08ec-40b0-49f2-a2a7-17af618213e6-retina-large.jpg" },
   { restaurant: r, name: "Chicken Kabob Plate", description: "Plate come with side of hummus, house salad, rice & pita bread.", price: 20.75, image: "https://s3-media0.fl.yelpcdn.com/bphoto/Y7pf5ye79pac1cFi97ySXA/348s.jpg" },
-  { restaurant: r, name: "Falafel Plate Plate", description: "Plate come with side of hummus, house salad, rice & pita bread.", price: 17.75, image: "https://img.cdn4dd.com/p/fit=cover,width=150,height=150,format=auto,quality=50/media/photos/a23e54e5-7c29-4c40-9086-618651843e3b-retina-large.jpg" },
+  { restaurant: r, name: "Falafel Plate", description: "Plate come with side of hummus, house salad, rice & pita bread.", price: 17.75, image: "https://img.cdn4dd.com/p/fit=cover,width=150,height=150,format=auto,quality=50/media/photos/a23e54e5-7c29-4c40-9086-618651843e3b-retina-large.jpg" },
   { restaurant: r, name: "Combo Shawerma Plate", description: "Plate come with side of hummus, house salad, rice & pita bread.", price: 20.75, image: "https://s3-media0.fl.yelpcdn.com/bphoto/Z5nSpVISVnET1Pk6u8cWKQ/348s.jpg" },
   { restaurant: r, name: "Beef Kabob Plate", description: "Plate come with side of hummus, house salad, rice & pita bread.", price: 20.75, image: "https://img.cdn4dd.com/p/fit=cover,width=600,format=auto,quality=50/media/photosV2/2c275272-98e5-4757-94e6-3ad790ffb5d0-retina-large.JPG" },
   { restaurant: r, name: "Kufta Kabob Plate", description: "Plate come with side of hummus, house salad, rice & pita bread.", price: 20.75, image: "https://img.cdn4dd.com/p/fit=cover,width=600,format=auto,quality=50/media/photosV2/80e47ea7-5e75-48e4-b2d9-71d0167a4964-retina-large.JPG" },
   { restaurant: r, name: "Lam Kabob Plate", description: "Plate come with side of hummus, house salad, rice & pita bread.", price: 22.75, image: "https://s3-media0.fl.yelpcdn.com/bphoto/-zioqQjQ3eH_snUOE1HJtg/348s.jpg" },
 ])
+
+c = Cart.create(user_id: a.id)
+c1 = Cart.create()
+
+CartItem.create!(cart: c, menu_item: MenuItem.all.sample, quantity: rand(1..15))
+CartItem.create!(cart: c1, menu_item: MenuItem.all.sample, quantity: rand(1..15))
+CartItem.create!(cart: c, menu_item: MenuItem.all.sample, quantity: rand(1..15))
+CartItem.create!(cart: c1, menu_item: MenuItem.all.sample, quantity: rand(1..15))
+CartItem.create!(cart: c, menu_item: MenuItem.all.sample, quantity: rand(1..15))
+CartItem.create!(cart: c1, menu_item: MenuItem.all.sample, quantity: rand(1..15))
+CartItem.create!(cart: c, menu_item: MenuItem.all.sample, quantity: rand(1..15))
+CartItem.create!(cart: c1, menu_item: MenuItem.all.sample, quantity: rand(1..15))
+CartItem.create!(cart: c, menu_item: MenuItem.all.sample, quantity: rand(1..15))
+CartItem.create!(cart: c1, menu_item: MenuItem.all.sample, quantity: rand(1..15))

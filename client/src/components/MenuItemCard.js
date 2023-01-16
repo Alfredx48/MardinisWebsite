@@ -1,40 +1,65 @@
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Quantity from "./Quantity";
+// import { motion } from "framer-motion";
 
-function MenuItemCard({ mItems }) {
-	const mappedMenuItems = () =>
-		mItems.menu_items.map((dish) => {
-			return (
-				<div key={dish.id}>
-					<img src={dish.image} alt={dish.name} />
-					<h1 key={dish.id}>{dish.name}</h1>
-					<p>{dish.description}</p>
-					<p>{dish.price}</p>
-				</div>
-			);
-		});
+function MenuItemCard({ mItem, setCartId }) {
+	const navigate = useNavigate();
+	const [quantity, setQuantity] = useState(1);
+
+	const handleAddToCart = (mItem) => {
+		let cart_item = {
+			menu_item_id: mItem.id,
+			quantity: quantity,
+			special_request: "",
+		};
+		fetch("/api/carts", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(cart_item),
+		})
+			.then((response) => response.json())
+			.then((cart) => {
+				console.log(cart.cart_id);
+				setCartId(cart.cart_id);
+				localStorage.setItem("cartId", cart.cart_id);
+				navigate(`/cart`);
+				console.log(cart);
+				// update the cart with the added item
+			})
+			.catch((error) => {
+				console.log(error);
+			});
+	};
+
 	return (
-		<div className="dish-card">
-			{" "}
-			{mappedMenuItems().map((card, index) => (
-				<motion.div
-					className="dishes"
-					key={Math.random() * 1000000}
-					initial={{ y: -50 }}
-					animate={{ y: 0 }}
-					exit={{ y: 50 }}
-          // transition={{ delay: index * 0.1, duration: 0.5 }}
-          transition={{ type: "spring", stiffness: 400, damping: 10 }}
-          // transition={{
-          //   delay: 0.5,
-          //   x: { duration: 1 },
-          //   default: { ease: "linear" }
-          // }}
-          whileHover={{ scale: 1.2 }}
-				>
-					{card}
-				</motion.div>
-			))}
+		<div>
+			<div key={mItem.id}>
+				<img src={mItem.image} alt={mItem.name} />
+				<h1 key={mItem.id}>{mItem.name}</h1>
+				<p>{mItem.description}</p>
+				<p>{mItem.formatted_price}</p>
+				<Quantity quantity={quantity} setQuantity={setQuantity} />
+				{/* <button onClick={noNegQuant}>-</button>
+				<input
+					// type="number"
+					min="1"
+					max="100"
+					value={quantity}
+					onChange={(e) => {
+						setQuantity(e.target.value);
+					}}
+					onInput={(e) => {
+						if (e.target.value < 0) e.target.value = quantity;
+						if (e.target.value > 100) e.target.value = 100;
+					}}
+				/>
+				{/* <span>{quantity}</span> */}
+			
+			{/* <button onClick={noQuantOver}>+</button>  */}
+				<br />
+				<button onClick={() => handleAddToCart(mItem)}>Add To Cart</button>
+			</div>
 		</div>
 	);
 }

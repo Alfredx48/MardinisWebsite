@@ -10,10 +10,36 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2023_01_10_235205) do
+ActiveRecord::Schema.define(version: 2023_01_13_184205) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "cart_items", force: :cascade do |t|
+    t.integer "quantity"
+    t.text "special_request"
+    t.bigint "cart_id", null: false
+    t.bigint "menu_item_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["cart_id"], name: "index_cart_items_on_cart_id"
+    t.index ["menu_item_id"], name: "index_cart_items_on_menu_item_id"
+  end
+
+  create_table "carts", force: :cascade do |t|
+    t.integer "user_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "ingredient_items", force: :cascade do |t|
+    t.bigint "ingredient_id", null: false
+    t.bigint "menu_item_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["ingredient_id"], name: "index_ingredient_items_on_ingredient_id"
+    t.index ["menu_item_id"], name: "index_ingredient_items_on_menu_item_id"
+  end
 
   create_table "ingredients", force: :cascade do |t|
     t.string "name"
@@ -81,6 +107,10 @@ ActiveRecord::Schema.define(version: 2023_01_10_235205) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
+  add_foreign_key "cart_items", "carts"
+  add_foreign_key "cart_items", "menu_items"
+  add_foreign_key "ingredient_items", "ingredients"
+  add_foreign_key "ingredient_items", "menu_items"
   add_foreign_key "menu_items", "restaurants"
   add_foreign_key "order_items", "ingredients"
   add_foreign_key "order_items", "menu_items"

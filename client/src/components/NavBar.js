@@ -28,7 +28,8 @@ return (
 			{ !currentUser ? <Link className="nav-link" to="/login">
 				Login
       </Link> :
-      <button className="nav-link" onClick={handleLogOut}>Log Out</button>}
+			<button className="nav-link" onClick={handleLogOut}>Log Out</button>}
+		<Link className="nav-link" to="/cart"> Cart </Link>
 		</div>
 	);
 }
