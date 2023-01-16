@@ -7,6 +7,7 @@ class CreateOrders < ActiveRecord::Migration[6.1]
       t.datetime :placed_at
       t.datetime :completed_at
       t.integer :user
+      t.belongs_to :restaurant, null: false, foreign_key: true
       t.timestamps
     end
   end
