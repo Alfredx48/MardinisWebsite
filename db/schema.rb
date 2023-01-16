@@ -80,15 +80,15 @@ ActiveRecord::Schema.define(version: 2023_01_13_184205) do
     t.string "custom_request"
     t.datetime "placed_at"
     t.datetime "completed_at"
-    t.bigint "user_id", null: false
+    t.integer "user"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["user_id"], name: "index_orders_on_user_id"
   end
 
   create_table "restaurants", force: :cascade do |t|
     t.string "name"
-    t.string "hours_of_operation"
+    t.string "hours
+    _of_operation"
     t.text "description"
     t.string "address"
     t.string "phone"
@@ -115,5 +115,4 @@ ActiveRecord::Schema.define(version: 2023_01_13_184205) do
   add_foreign_key "order_items", "ingredients"
   add_foreign_key "order_items", "menu_items"
   add_foreign_key "order_items", "orders"
-  add_foreign_key "orders", "users"
 end
