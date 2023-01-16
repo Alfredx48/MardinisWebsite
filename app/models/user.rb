@@ -1,6 +1,6 @@
 class User < ApplicationRecord
-  has_many :orders
-  has_many :carts
+  has_many :orders. dependent: :destroy
+  has_many :carts, dependent: :destroy
   has_many :cart_items, through: :carts
   has_secure_password
   validates :email, presence: true, uniqueness: true
