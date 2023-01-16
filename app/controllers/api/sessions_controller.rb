@@ -14,6 +14,7 @@ class Api::SessionsController < ApplicationController
   def destroy
     reset_session
     session.delete :user_id
+    session.delete(:cart_id)
     head :no_content
   end
 

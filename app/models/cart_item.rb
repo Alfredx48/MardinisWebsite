@@ -1,6 +1,6 @@
 class CartItem < ApplicationRecord
   belongs_to :cart
-  belongs_to :menu_item
+  belongs_to :menu_item, dependent: destroy
   # validates :quantity, presence: true
   # validates :menu_item, presence: true
 
