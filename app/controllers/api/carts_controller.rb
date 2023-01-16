@@ -23,4 +23,11 @@ class Api::CartsController < ApplicationController
     session.delete(:cart_id)
     render json: { message: "Cart has been cleared." }
   end
+
+  def remove_item
+    cart = current_cart
+    cart_item = cart.cart_items.find(params[:item_id])
+    cart_item.destroy
+    render json: { message: "Item removed from cart." }
+  end
 end

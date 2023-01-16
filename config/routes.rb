@@ -13,6 +13,8 @@ Rails.application.routes.draw do
     post "/signup", to: "users#create"
     post "/login", to: "sessions#create"
     delete "/logout", to: "sessions#destroy"
+
+    delete "/remove_item", to: "carts#remove_item"
   end
   # get "*path",
   #     to: "fallback#index",
