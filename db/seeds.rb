@@ -36,7 +36,7 @@ MenuItem.create!([
   { restaurant: r, name: "Lam Kabob Plate", description: "Plate come with side of hummus, house salad, rice & pita bread.", price: 22.75, image: "https://s3-media0.fl.yelpcdn.com/bphoto/-zioqQjQ3eH_snUOE1HJtg/348s.jpg" },
 ])
 
-# c = Cart.create(user_id: a.id)
+c = Cart.create(user_id: a.id)
 # c1 = Cart.create()
 
 # CartItem.create!(cart: c, menu_item: MenuItem.all.sample, quantity: rand(1..15))

@@ -1,8 +1,7 @@
 class CartItem < ApplicationRecord
   belongs_to :cart
   belongs_to :menu_item
-  # validates :quantity, presence: true
-  # validates :menu_item, presence: true
+
 
   def item_name
     dish = self.menu_item.name
