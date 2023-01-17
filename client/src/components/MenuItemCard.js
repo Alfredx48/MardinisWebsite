@@ -13,7 +13,7 @@ function MenuItemCard({ mItem, setCartId }) {
 			special_request: "",
 		};
 		if (quantity < 1) {
-			alert("quantity cant be less than 0");
+			alert("quantity cant be 0");
 			return;
 		}
 		if (quantity > 100) {
