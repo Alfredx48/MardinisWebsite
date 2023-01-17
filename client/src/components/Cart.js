@@ -9,14 +9,18 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart }) {
 	})
 	const navigate = useNavigate();
 	const calculateTotals = (cart) => {
-		let cart_total = 0;
-		let cart_items = 0;
-		if (cart && cart.cart_items && cart.cart_items.length > 0) {
-			cart.cart_items.forEach((item) => {
-				cart_total += parseFloat(item.item_total.replace("$", "").replace(",", ""))
-				cart_items += item.quantity;
-			});
-		}
+    let cart_total = 0;
+    let cart_items = 0;
+    if(!cart){
+        return {}
+    }
+    if(!cart.cart_items || cart.cart_items.length === 0){
+        return {}
+    }
+		cart.cart_items.forEach((item) => {
+			cart_total += item.item_total
+			cart_items += item.quantity;
+		});
 		return { cart_total: formatter.format(cart_total), cart_items };
 	};
 	
@@ -61,6 +65,7 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart }) {
 		if (cart.cart_items && cart.cart_items.length > 0) {
 			return cart.cart_items.map((cartItem, idx) => (
 				<CartItems
+					formatter={formatter}
 					setCart={setCart}
 					cartId={cartId}
 					key={idx}

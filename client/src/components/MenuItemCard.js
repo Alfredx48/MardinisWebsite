@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Quantity from "./Quantity";
-// import { motion } from "framer-motion";
 
 function MenuItemCard({ mItem, setCartId }) {
 	const navigate = useNavigate();
@@ -13,6 +12,14 @@ function MenuItemCard({ mItem, setCartId }) {
 			quantity: quantity,
 			special_request: "",
 		};
+		if (quantity < 1) {
+			alert("quantity cant be less than 0");
+			return;
+		}
+		if (quantity > 100) {
+			alert("quantity cant be more than 100");
+			return;
+		}
 		fetch("/api/carts", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
@@ -54,8 +61,8 @@ function MenuItemCard({ mItem, setCartId }) {
 					}}
 				/>
 				{/* <span>{quantity}</span> */}
-			
-			{/* <button onClick={noQuantOver}>+</button>  */}
+
+				{/* <button onClick={noQuantOver}>+</button>  */}
 				<br />
 				<button onClick={() => handleAddToCart(mItem)}>Add To Cart</button>
 			</div>

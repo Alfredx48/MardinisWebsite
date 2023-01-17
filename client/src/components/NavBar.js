@@ -19,9 +19,7 @@ function NavBar({setCurrentUser , currentUser, setCartId}) {
 return (
     <div className="nav-bar">
 		{/* {!currentUser ? null : `Welcome ${currentUser.name}` }	 */}
-			<Link className="nav-link" to="/">
-				Home
-			</Link>
+		 
 			<Link className="nav-link" to="/about">
 				About
 			</Link>

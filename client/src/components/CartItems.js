@@ -1,7 +1,7 @@
 import React from "react";
 import Quantity from "./Quantity";
 
-function CartItems({ cartItem, setCart }) {
+function CartItems({ cartItem, setCart, formatter }) {
   async function removeItem(cartItemId) {
     try {
         const response = await fetch(`/api/cart_items/${cartItemId}`, {
@@ -25,9 +25,8 @@ function CartItems({ cartItem, setCart }) {
 		<div>
 			<h3>
 				{cartItem.item_name} <span> x {cartItem.quantity}</span>{" "}
-				<span> {cartItem.item_total}</span>
+				<span>  {formatter.format(cartItem.item_total)}</span>
 			</h3>
-			<p>{cartItem.price}</p>
 			<p>{cartItem.special_request}</p>
 			<button onClick={() => removeItem(cartItem.id)}> Remove Item</button>
 			<Quantity />

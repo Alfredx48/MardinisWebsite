@@ -16,7 +16,7 @@ class CartItem < ApplicationRecord
     if quantity < 1
       return price
     else total = price * quantity     end
-    ActionController::Base.helpers.number_to_currency(total)
+    # ActionController::Base.helpers.number_to_currency(total)
   end
 
   def cart_total

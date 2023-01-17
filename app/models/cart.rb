@@ -4,7 +4,7 @@ class Cart < ApplicationRecord
 
   def total_cost
     total = self.cart_items.map { |i| i.quantity * i.menu_item.price }.sum
-    ActionController::Base.helpers.number_to_currency(total)
+    # ActionController::Base.helpers.number_to_currency(total)
   end
 
 
