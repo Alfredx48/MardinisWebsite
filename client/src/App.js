@@ -1,7 +1,7 @@
 import "./App.css";
 import { useEffect, useState } from "react";
 import HomePage from "./components/HomePage";
-import { Routes, Route} from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import AboutPage from "./components/AboutPage";
 import NavBar from "./components/NavBar";
 import LoginPage from "./components/LoginPage";
@@ -9,11 +9,10 @@ import MenuItems from "./components/MenuItems";
 import Cart from "./components/Cart";
 
 function App() {
-
 	const [currentUser, setCurrentUser] = useState({});
 	const [restaurant, setRestaurant] = useState([]);
 	const [cartId, setCartId] = useState([]);
-
+	const [cart, setCart] = useState([]);
 
 	useEffect(() => {
 		fetch("/api/me").then((r) => {
@@ -32,7 +31,11 @@ function App() {
 	}, []);
 	return (
 		<div className="App">
-			<NavBar currentUser={currentUser} setCurrentUser={setCurrentUser} />
+			<NavBar
+				setCartId={setCartId}
+				currentUser={currentUser}
+				setCurrentUser={setCurrentUser}
+			/>
 			<Routes>
 				<Route
 					path="/"
@@ -56,14 +59,21 @@ function App() {
 				<Route
 					path="/order-now"
 					element={restaurant.map((rest, idx) => (
-						<MenuItems
-							key={idx}
-							rest={rest}
-							restaurant={restaurant}
-						/>
+						<MenuItems key={idx} rest={rest} restaurant={restaurant} />
 					))}
 				/>
-				<Route path="/cart" element={<Cart currentUser={currentUser} cartId={cartId} setCartId={setCartId} />} />
+				<Route
+					path="/cart"
+					element={
+						<Cart
+							cart={cart}
+							setCart={setCart}
+							currentUser={currentUser}
+							cartId={cartId}
+							setCartId={setCartId}
+						/>
+					}
+				/>
 			</Routes>
 		</div>
 	);
