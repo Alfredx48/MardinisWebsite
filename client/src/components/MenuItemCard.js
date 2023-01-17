@@ -20,12 +20,11 @@ function MenuItemCard({ mItem, setCartId }) {
 		})
 			.then((response) => response.json())
 			.then((cart) => {
-				console.log(cart.cart_id);
+				// console.log(cart.cart_id);
 				setCartId(cart.cart_id);
 				localStorage.setItem("cartId", cart.cart_id);
 				navigate(`/cart`);
 				console.log(cart);
-				// update the cart with the added item
 			})
 			.catch((error) => {
 				console.log(error);

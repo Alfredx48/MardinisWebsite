@@ -11,17 +11,22 @@ class Api::CartsController < ApplicationController
   end
 
   def create
-    if !current_user
-      cart = current_cart || Cart.create
-      cart_item = cart.cart_items.create(cart_items_params)
-      session[:cart_id] = cart.id
-      session[:expiration_time] = Time.now + 10.minutes
-    else
-      cart = current_user.carts.first || current_user.carts.create
-      cart_item = cart.cart_items.create(cart_items_params)
+    cart = nil
+    if current_user
+      cart = current_user.carts.first_or_create
+    elsif session[:cart_id] 
+      cart = Cart.find_by(id: session[:cart_id])
     end
+    
+    if !cart
+      cart = Cart.create
+      session[:cart_id] = cart.id
+    end
+    
+    cart_item = cart.cart_items.create(cart_items_params)
     render json: { cart_id: cart.id, cart: cart, menu_items: cart.menu_items, cart_items: cart.cart_items }
   end
+
   def destroy
     cart = current_cart
     cart.cart_items.destroy_all

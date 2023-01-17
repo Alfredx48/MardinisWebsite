@@ -28,10 +28,8 @@ ActiveRecord::Schema.define(version: 2023_01_13_184205) do
 
   create_table "carts", force: :cascade do |t|
     t.integer "user_id"
-    t.bigint "restaurant_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["restaurant_id"], name: "index_carts_on_restaurant_id"
   end
 
   create_table "ingredient_items", force: :cascade do |t|
@@ -112,7 +110,6 @@ ActiveRecord::Schema.define(version: 2023_01_13_184205) do
 
   add_foreign_key "cart_items", "carts"
   add_foreign_key "cart_items", "menu_items"
-  add_foreign_key "carts", "restaurants"
   add_foreign_key "ingredient_items", "ingredients"
   add_foreign_key "ingredient_items", "menu_items"
   add_foreign_key "menu_items", "restaurants"

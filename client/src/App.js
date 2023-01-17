@@ -63,7 +63,7 @@ function App() {
 						/>
 					))}
 				/>
-				<Route path="/cart" element={<Cart cartId={cartId} setCartId={setCartId} />} />
+				<Route path="/cart" element={<Cart currentUser={currentUser} cartId={cartId} setCartId={setCartId} />} />
 			</Routes>
 		</div>
 	);

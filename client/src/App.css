@@ -9,6 +9,28 @@ img {
 	max-height: 150px;
 }
 
+.quantity-div input {
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  border: 1px solid gray;
+  border-radius: 5px;
+  font-size: 20px;
+}
+
+.quantity-div button {
+  width: 40px;
+  height: 20px;
+  font-size: 20px;
+  border: none;
+  background-color: transparent;
+}
+
+.quantity-div button:hover {
+	color: red;
+	cursor: pointer;
+}
+
 
 .dishes{
   background-color: #FFFFFF;
@@ -95,8 +117,8 @@ img {
 	font-family: playfair display;
 }
 
-/* 
-@media screen and (max-width: 768px) {
+
+/* @media screen and (max-width: 768px) {
 	.nav-bar {
 			flex-direction: column;
 			flex-direction: row;
