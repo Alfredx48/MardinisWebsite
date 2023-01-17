@@ -80,7 +80,7 @@ ActiveRecord::Schema.define(version: 2023_01_13_184205) do
     t.string "custom_request"
     t.datetime "placed_at"
     t.datetime "completed_at"
-    t.integer "user"
+    t.integer "user_id"
     t.bigint "restaurant_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
