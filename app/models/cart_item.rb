@@ -13,11 +13,14 @@ class CartItem < ApplicationRecord
 
   def item_total
     quantity = self.quantity
+    if quantity.nil? 
+        return nil
+    end
     if quantity < 1
-      return price
+        return price
     else total = price * quantity     end
-    # ActionController::Base.helpers.number_to_currency(total)
-  end
+    total
+end
 
   def cart_total
     self.cart.total_cost

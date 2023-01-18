@@ -67,7 +67,7 @@ function App() {
 				<Route
 					path="/order-now"
 					element={restaurant.map((rest, idx) => (
-						<MenuItems key={idx} rest={rest} restaurant={restaurant} />
+						<MenuItems key={idx} rest={rest} restaurant={restaurant} setCartId={setCartId} />
 					))}
 				/>
 				<Route

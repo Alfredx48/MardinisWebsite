@@ -1,23 +1,19 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {useState} from "react";
 import Quantity from "./Quantity";
 
-function MenuItemCard({ mItem, setCartId }) {
-	const navigate = useNavigate();
+function MenuItemCard({ mItem, setCartId}) {
 	const [quantity, setQuantity] = useState(1);
 
 	const handleAddToCart = (mItem) => {
 		let cart_item = {
 			menu_item_id: mItem.id,
-			quantity: quantity,
+			quantity: parseInt(quantity),
 			special_request: "",
 		};
-		if (quantity < 1) {
-			alert("Quantity cant be 0");
-			return;
-		}
-		if (quantity > 100) {
-			alert("Quantity cant be more than 100");
+		if (isNaN(quantity) || quantity < 1 || quantity > 100) {
+			alert(
+				"Invalid quantity, please enter a valid quantity between 1 and 100"
+			);
 			return;
 		}
 		fetch("/api/carts", {
@@ -27,17 +23,15 @@ function MenuItemCard({ mItem, setCartId }) {
 		})
 			.then((response) => response.json())
 			.then((cart) => {
-				// console.log(cart.cart_id);
 				setCartId(cart.cart_id);
 				localStorage.setItem("cartId", cart.cart_id);
-				// navigate(`/cart`);
 				console.log(cart);
 			})
 			.catch((error) => {
 				console.log(error);
 			});
 	};
-	
+
 
 	return (
 		<div>
@@ -46,25 +40,8 @@ function MenuItemCard({ mItem, setCartId }) {
 				<h1 key={mItem.id}>{mItem.name}</h1>
 				<p>{mItem.description}</p>
 				<p>{mItem.formatted_price}</p>
-				<Quantity quantity={quantity} setQuantity={setQuantity} />
-				{/* <button onClick={noNegQuant}>-</button>
-				<input
-					// type="number"
-					min="1"
-					max="100"
-					value={quantity}
-					onChange={(e) => {
-						setQuantity(e.target.value);
-					}}
-					onInput={(e) => {
-						if (e.target.value < 0) e.target.value = quantity;
-						if (e.target.value > 100) e.target.value = 100;
-					}}
-				/>
-				{/* <span>{quantity}</span> */}
-
-				{/* <button onClick={noQuantOver}>+</button>  */}
 				<br />
+				<Quantity quantity={quantity} setQuantity={setQuantity} />
 				<button onClick={() => handleAddToCart(mItem)}>Add To Cart</button>
 			</div>
 		</div>

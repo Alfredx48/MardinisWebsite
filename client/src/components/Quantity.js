@@ -1,6 +1,7 @@
 import React from "react";
 
-function Quantity({ quantity, setQuantity }) {
+function Quantity({quantity, setQuantity}) {
+
 	const noNegQuant = () => {
 		if (quantity > 1) {
 			setQuantity(quantity - 1);

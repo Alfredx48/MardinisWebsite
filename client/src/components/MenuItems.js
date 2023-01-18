@@ -1,24 +1,14 @@
-import { useState } from "react";
 import MenuItemCard from "./MenuItemCard";
 import { AnimatePresence, motion } from "framer-motion";
-import Cart from "./Cart";
 
-function MenuItems({ rest }) {
-	const [cartId, setCartId] = useState([]);
-
+function MenuItems({ rest, setCartId }) {
 	const menuItems = () => {
-		return rest.menu_items.map((mItem, idx) => (
-			<MenuItemCard
-				setCartId={setCartId}
-				key={mItem.id}
-				mItem={mItem}
-				idx={idx}
-			/>
+		return rest.menu_items.map((mItem) => (
+			<MenuItemCard setCartId={setCartId} key={mItem.id} mItem={mItem} />
 		));
 	};
 	return (
 		<div>
-			{cartId ? null : <Cart cartId={cartId} setCartId={setCartId} />}
 			<AnimatePresence>
 				<div className="dish-card">
 					{menuItems().map((card, index) => (
