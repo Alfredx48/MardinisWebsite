@@ -11,4 +11,5 @@ class Cart < ApplicationRecord
   def total_items
     items = self.cart_items.sum(:quantity)
   end
+
 end

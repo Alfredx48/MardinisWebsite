@@ -8,7 +8,7 @@ function SignUpForm({
 	navigate,
 	handleBlur,
 	handleFocus,
-	active
+	active,
 }) {
 	function handleSubmit(e) {
 		e.preventDefault();
@@ -42,82 +42,101 @@ function SignUpForm({
 	}
 
 	return (
-		<div className="New-user-card">
-			<form className="login-form" onSubmit={handleSubmit}>
-				<label className="login-label" htmlFor="name">
-					Name:
-				</label>
-				<input
-					className={`input ${active ? "" : "pulse"}`}
-					onFocus={handleFocus}
-					onBlur={handleBlur}
-					type="text"
-					name="name"
-					value={formData.name}
-					onChange={(e) => handleChange(e)}
-				/>
-				<label className="login-label" htmlFor="address">
-					Address:
-				</label>
-				<input
-					className={`input ${active ? "" : "pulse"}`}
-					onFocus={handleFocus}
-					onBlur={handleBlur}
-					type="text"
-					name="address"
-					value={formData.address}
-					onChange={(e) => handleChange(e)}
-				/>
-				<label className="login-label" htmlFor="email">
-					Email:
-				</label>
-				<input
-					className={`input ${active ? "" : "pulse"}`}
-					onFocus={handleFocus}
-					onBlur={handleBlur}
-					type="text"
-					name="email"
-					value={formData.email}
-					onChange={(e) => handleChange(e)}
-				/>
-				<label className="login-label" htmlFor="phone">
-					Phone Number:
-				</label>
-				<input
-					className={`input ${active ? "" : "pulse"}`}
-					onFocus={handleFocus}
-					onBlur={handleBlur}
-					type="integer"
-					name="phone"
-					value={formData.phone}
-					onChange={(e) => handleChange(e)}
-				/>
-				<label className="login-label" htmlFor="password">
-					Password:
-				</label>
-				<input
-					className={`input ${active ? "" : "pulse"}`}
-					onFocus={handleFocus}
-					onBlur={handleBlur}
-					type="password"
-					name="password"
-					value={formData.password}
-					onChange={(e) => handleChange(e)}
-				/>
-				<label className="login-label" htmlFor="password_confirmation">
-					Confirm Password:
-				</label>
-				<input
-					className={`input ${active ? "" : "pulse"}`}
-					onFocus={handleFocus}
-					onBlur={handleBlur}
-					type="password"
-					id="password_confirmation"
-					name="passwordConfirmation"
-					value={formData.passwordConfirmation}
-					onChange={(e) => handleChange(e)}
-				/>
-				<input className="login-button" type="submit" />
+		<div className="signup-form-div">
+			<form className="signup-form" onSubmit={handleSubmit}>
+				<div className="form-row">
+					<div className="form-col">
+						<label className="signup-label" htmlFor="name">
+							Name:
+						</label>
+						<input
+							// className={`input ${active ? "" : "pulse"}`}
+							className="signup-input"
+							onFocus={handleFocus}
+							onBlur={handleBlur}
+							type="text"
+							name="name"
+							value={formData.name}
+							onChange={(e) => handleChange(e)}
+						/>
+					</div>
+					<div className="form-col">
+						<label className="signup-label" htmlFor="email">
+							Email:
+						</label>
+						<input
+							// className={`input ${active ? "" : "pulse"}`}
+							className="signup-input"
+							onFocus={handleFocus}
+							onBlur={handleBlur}
+							type="text"
+							name="email"
+							value={formData.email}
+							onChange={(e) => handleChange(e)}
+						/>
+					</div>
+				</div>
+				<div className="form-row">
+					<div className="form-col">
+						<label className="signup-label" htmlFor="address">
+							Address:
+						</label>
+						<input
+							// className={`input ${active ? "" : "pulse"}`}
+							className="signup-input"
+							onFocus={handleFocus}
+							onBlur={handleBlur}
+							type="text"
+							name="address"
+							value={formData.address}
+							onChange={(e) => handleChange(e)}
+						/>
+					</div>
+					<div className="form-col">
+						<label className="signup-label" htmlFor="phone">
+							Phone Number:
+						</label>
+						<input
+							// className={`input ${active ? "" : "pulse"}`}
+							className="signup-input"
+							onFocus={handleFocus}
+							onBlur={handleBlur}
+							type="integer"
+							name="phone"
+							value={formData.phone}
+							onChange={(e) => handleChange(e)}
+						/>
+					</div>
+				</div>
+				<div className="form-row">
+					<div className="form-col">
+						<label className="signup-label" htmlFor="password">
+							Password:
+						</label>
+						<input
+							className="signup-input"
+							type="password"
+							name="password"
+							value={formData.password}
+							onChange={(e) => handleChange(e)}
+						/>
+					</div>
+					<div className="form-col">
+						<label className="signup-label" htmlFor="passwordConfirmation">
+							Confirm Password:
+						</label>
+						<input
+							className="signup-input"
+							type="password"
+							name="passwordConfirmation"
+							value={formData.passwordConfirmation}
+							onChange={(e) => handleChange(e)}
+						/>
+					</div>
+				</div>
+				<button className="signup-button" type="submit" value="Create User">
+					Create User
+				</button>
 			</form>
 		</div>
 	);

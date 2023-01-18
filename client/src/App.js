@@ -7,6 +7,7 @@ import NavBar from "./components/NavBar";
 import LoginPage from "./components/LoginPage";
 import MenuItems from "./components/MenuItems";
 import Cart from "./components/Cart";
+import Logout from "./components/Logout";
 
 function App() {
 	const [currentUser, setCurrentUser] = useState({});
@@ -32,10 +33,17 @@ function App() {
 	return (
 		<div className="App">
 			<NavBar
+				setCart={setCart}
 				setCartId={setCartId}
 				currentUser={currentUser}
 				setCurrentUser={setCurrentUser}
 			/>
+			{!currentUser ? null : <Logout
+				setCart={setCart}
+				setCartId={setCartId}
+				currentUser={currentUser}
+				setCurrentUser={setCurrentUser}
+			/>}
 			<Routes>
 				<Route
 					path="/"

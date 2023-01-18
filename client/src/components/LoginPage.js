@@ -58,38 +58,6 @@ function LoginPage({ currentUser, setCurrentUser }) {
 		setActive(false);
 	};
 
-	const handleRender = () => {
-		if (display === "login") {
-			return (
-				<LoginForm
-					active={active}
-					handleBlur={handleBlur}
-					handleFocus={handleFocus}
-					email={formData.email}
-					password={formData.password}
-					handleChange={handleChange}
-					errors={errors}
-					setErrors={setErrors}
-					setCurrentUser={setCurrentUser}
-					navigate={navigate}
-				/>
-			);
-		} else if (display === "signup") {
-			return (
-				<SignUpForm
-					active={active}
-					handleBlur={handleBlur}
-					handleFocus={handleFocus}
-					formData={formData}
-					errors={errors}
-					setErrors={setErrors}
-					handleChange={handleChange}
-					setCurrentUser={setCurrentUser}
-					navigate={navigate}
-				/>
-			);
-		}
-	};
 	return (
 		<div className="login-card">
 			<motion.div
@@ -127,16 +95,38 @@ function LoginPage({ currentUser, setCurrentUser }) {
 							  ))}
 					</div>
 				</div>
-				<br />
-				{handleRender()}
-				<br />
-				<button className="button" onClick={handleNew}>
-					Create New User
-				</button>
-				<br />
-				<button className="button" onClick={handleLog}>
-					Login to Your Account
-				</button>
+				{display  === "login" ? (
+					<LoginForm
+						active={active}
+						handleBlur={handleBlur}
+						handleFocus={handleFocus}
+						email={formData.email}
+						password={formData.password}
+						handleChange={handleChange}
+						errors={errors}
+						setErrors={setErrors}
+						setCurrentUser={setCurrentUser}
+						navigate={navigate}
+					/>
+				) : null}
+
+				{display === "signup" ? (
+					<SignUpForm
+					active={active}
+					handleBlur={handleBlur}
+					handleFocus={handleFocus}
+					formData={formData}
+					errors={errors}
+					setErrors={setErrors}
+					handleChange={handleChange}
+					setCurrentUser={setCurrentUser}
+					navigate={navigate}
+					/>
+					) : null}
+					<br />
+	{display === "login" ? 	<button className="button" onClick={handleNew}> Creat Account ?
+				</button> : <button className="button" onClick={handleLog}> Login ?
+				</button>}
 			</motion.div>
 		</div>
 	);

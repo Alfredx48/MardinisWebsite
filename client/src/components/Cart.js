@@ -3,27 +3,27 @@ import { useNavigate } from "react-router-dom";
 import CartItems from "./CartItems";
 
 function Cart({ cartId, setCartId, currentUser, cart, setCart }) {
-	const formatter = new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: 'USD',
-	})
+	const formatter = new Intl.NumberFormat("en-US", {
+		style: "currency",
+		currency: "USD",
+	});
 	const navigate = useNavigate();
 	const calculateTotals = (cart) => {
-    let cart_total = 0;
-    let cart_items = 0;
-    if(!cart){
-        return {}
-    }
-    if(!cart.cart_items || cart.cart_items.length === 0){
-        return {}
-    }
+		let cart_total = 0;
+		let cart_items = 0;
+		if (!cart) {
+			return {};
+		}
+		if (!cart.cart_items || cart.cart_items.length === 0) {
+			return {};
+		}
 		cart.cart_items.forEach((item) => {
-			cart_total += item.item_total
+			cart_total += item.item_total;
 			cart_items += item.quantity;
 		});
 		return { cart_total: formatter.format(cart_total), cart_items };
 	};
-	
+
 	useEffect(() => {
 		const storedCartId = localStorage.getItem("cartId")
 			? localStorage.getItem("cartId")

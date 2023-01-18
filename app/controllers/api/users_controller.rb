@@ -1,5 +1,5 @@
 class Api::UsersController < ApplicationController
-  skip_before_action :authorize, only: [:create, :show, :index]
+  skip_before_action :authorize
 
   def index
     render json: User.all
@@ -8,10 +8,10 @@ class Api::UsersController < ApplicationController
   def show
     render json: current_user
   end
-
+  
   def create
     user = User.create!(user_params)
-    cart = Cart.create
+    cart = current_cart || Cart.create
     user.carts << cart
     user.save!
     session[:user_id] = user.id

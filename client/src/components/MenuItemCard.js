@@ -13,11 +13,11 @@ function MenuItemCard({ mItem, setCartId }) {
 			special_request: "",
 		};
 		if (quantity < 1) {
-			alert("quantity cant be 0");
+			alert("Quantity cant be 0");
 			return;
 		}
 		if (quantity > 100) {
-			alert("quantity cant be more than 100");
+			alert("Quantity cant be more than 100");
 			return;
 		}
 		fetch("/api/carts", {
@@ -30,13 +30,14 @@ function MenuItemCard({ mItem, setCartId }) {
 				// console.log(cart.cart_id);
 				setCartId(cart.cart_id);
 				localStorage.setItem("cartId", cart.cart_id);
-				navigate(`/cart`);
+				// navigate(`/cart`);
 				console.log(cart);
 			})
 			.catch((error) => {
 				console.log(error);
 			});
 	};
+	
 
 	return (
 		<div>
