@@ -17,7 +17,7 @@ function NavBar({ currentUser }) {
 				Cart
 			</Link>
 			{!currentUser ? (
-				<Link className="login" to="/login">
+				<Link className="nav-link" to="/login">
 					Login
 				</Link>
 			) : null}

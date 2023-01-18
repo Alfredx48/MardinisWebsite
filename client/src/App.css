@@ -88,9 +88,17 @@ img {
 	font-family: playfair display;
 }
 
+@media (max-width: 500px) {
+	.nav-bar {
+		gap: 5%;
+		justify-content: left;
+		padding-left: 20px;
+	}
+}
+
 .logout-button {
 	position: fixed;
-	top: 7px;
+	top: 0px;
 	right: 5px;
 	z-index: 1;
 	background-color: transparent;
@@ -101,6 +109,14 @@ img {
 	font-size: 18px;
 	cursor: pointer; /* To ensure the button is always on top */
 }
+
+/* @media (max-width: 500px) {
+	.logout-button {
+			position: absolute;
+			top: 10px;
+			right: 10px;
+	}
+} */
 
 .login-card {
 	margin-top: 60px;
@@ -188,7 +204,8 @@ img {
 	align-self: flex-start;
 }
 
-.login-button:hover, .button:hover {
+.login-button:hover,
+.button:hover {
 	cursor: pointer;
 	transform: scale(1.1);
 	animation: pulse 1s infinite;
@@ -206,71 +223,69 @@ img {
 
 .pulse:not(.active) {
 	transform: scale(1.1);
-	animation: pulse 1.
-	5s infinite;
+	animation: pulse 1 5s infinite;
 }
 
 @keyframes pulse {
-1% {
-transform: scale(1);
-}
-50% {
-transform: scale(1.1);
-}
-100% {
-transform: scale(1);
-}
+	1% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.1);
+	}
+	100% {
+		transform: scale(1);
+	}
 }
 
-.signup-form-div{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.signup-form-div {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }
-.signup-form{
+.signup-form {
 	box-shadow: rgba(0, 0, 0, 0.349) 0px 4px 8px;
 	border-radius: 4px;
 }
 .signup-button {
-		background-color: indianred;
-		border: none;
-		border-radius: 4px;
-		color: #ffffff;
-		padding: 12px 20px;
-		font-family: playfair display;
-		transition: transform 0.5s ease-in-out;
-		float: right;
+	background-color: indianred;
+	border: none;
+	border-radius: 4px;
+	color: #ffffff;
+	padding: 12px 20px;
+	font-family: playfair display;
+	transition: transform 0.5s ease-in-out;
+	float: right;
 }
 
-.signup-button.signup-button:hover{
+.signup-button.signup-button:hover {
 	cursor: pointer;
 	transform: scale(1.1);
 	animation: pulse 1s infinite;
-	
 }
 .form-row {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  /* width: 80%; */
-  margin: 10px 0;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	/* width: 80%; */
+	margin: 10px 0;
 }
 
 .form-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 100%;
 }
 
 .signup-input {
-  width: 80%;
-  margin: 5px 0;
-  font-size: 1.5em;
+	width: 80%;
+	margin: 5px 0;
+	font-size: 1.5em;
 }
 
 .signup-label {
-  font-size: 0.8em;
-  margin-right: 10px;
+	font-size: 0.8em;
+	margin-right: 10px;
 }
