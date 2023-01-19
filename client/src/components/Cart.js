@@ -77,6 +77,30 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart }) {
 		}
 	};
 	const { cart_total, cart_items } = calculateTotals(cart);
+	const submitOrder = () => {
+		const { currentCart } = this.props;
+		const userId = currentUser ? currentUser.id : null;
+	
+		const order = {
+			cart_id: currentCart.id,
+			user_id: userId,
+			total_cost: currentCart.total_cost,
+			total_items: currentCart.total_items
+		}
+	
+		fetch("/api/orders", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(order)
+		})
+			.then((response) => response.json())
+			.then((order) => {
+				// do something with the order, like redirecting to a success page
+			})
+			.catch((error) => {
+				console.log(error);
+			});
+	}
 	return (
 		<div>
 			<button onClick={deleteCart}> delete cart</button>
@@ -88,6 +112,7 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart }) {
 			{cart.cart_items && cart.cart_items.length > 0 ? (
 				<h4> Total items: {cart_items}</h4>
 			) : null}
+			<buton onClick={submitOrder}> submit order </buton>
 		</div>
 	);
 }

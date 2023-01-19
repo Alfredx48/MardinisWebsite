@@ -12,7 +12,7 @@ function MenuItemCard({ mItem, setCartId}) {
 		};
 		if (isNaN(quantity) || quantity < 1 || quantity > 100) {
 			alert(
-				"Invalid quantity, please enter a valid quantity between 1 and 100"
+				"Invalid Quantity, please enter a valid quantity between 1 and 100"
 			);
 			return;
 		}
