@@ -8,6 +8,7 @@ import LoginPage from "./components/LoginPage";
 import MenuItems from "./components/MenuItems";
 import Cart from "./components/Cart";
 import Logout from "./components/Logout";
+import AdminPage from "./components/AdminPage";
 
 function App() {
 	const [currentUser, setCurrentUser] = useState({});
@@ -45,31 +46,37 @@ function App() {
 				setCurrentUser={setCurrentUser}
 			/>}
 			<Routes>
+					<Route
+						path="/admin"
+						element={restaurant.map((rest, idx) => (
+							<AdminPage key={rest.id} rest={rest} restaurant={restaurant} currentUser={currentUser} />
+						))}
+					/>
 				<Route
 					path="/"
 					element={
 						<HomePage
-							currentUser={currentUser}
-							setCurrentUser={setCurrentUser}
+						currentUser={currentUser}
+						setCurrentUser={setCurrentUser}
 						/>
 					}
-				/>
+					/>
 				<Route path="/about" element={<AboutPage restaurant={restaurant} />} />
 				<Route
 					path="/login"
 					element={
 						<LoginPage
-							currentUser={currentUser}
+						currentUser={currentUser}
 							setCurrentUser={setCurrentUser}
+							/>
+						}
 						/>
-					}
-				/>
 				<Route
 					path="/order-now"
 					element={restaurant.map((rest, idx) => (
 						<MenuItems key={idx} rest={rest} restaurant={restaurant} setCartId={setCartId} />
-					))}
-				/>
+						))}
+						/>
 				<Route
 					path="/cart"
 					element={
@@ -80,10 +87,10 @@ function App() {
 							currentUser={currentUser}
 							cartId={cartId}
 							setCartId={setCartId}
-						/>
+							/>
 					}
-				/>
-			</Routes>
+					/>
+					</Routes>
 		</div>
 	);
 }

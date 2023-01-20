@@ -16,6 +16,12 @@ function NavBar({ currentUser }) {
 			<Link className="nav-link" to="/cart">
 				Cart
 			</Link>
+
+			{currentUser && currentUser.admin === true ? (
+				<Link className="nav-link" to="/admin">
+					Admin Portal
+				</Link>
+			) : null}
 			{!currentUser ? (
 				<Link className="nav-link" to="/login">
 					Login

@@ -81,9 +81,9 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart }) {
 
 	const submitOrder = () => {
 
-		if (cart.total_cost || cart.total_items <= 0) {
-			return alert("Order can't be submitted with 0 items or cost ")
-		}
+		// if (cart.total_cost || cart.total_items <= 0) {
+		// 	return alert("Order can't be submitted with 0 items or cost ")
+		// }
 		const userId = currentUser ? currentUser.id : null;
 		const cartID = currentUser ? cart.id : cartId;
 		// console.log(cartID)
