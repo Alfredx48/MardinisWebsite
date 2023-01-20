@@ -4,4 +4,5 @@ class CartItemSerializer < ActiveModel::Serializer
   has_one :menu_item
 
 
+
 end

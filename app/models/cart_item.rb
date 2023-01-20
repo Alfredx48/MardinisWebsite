@@ -31,5 +31,13 @@ end
     self.cart.total_items
   end
 
+  private
+  
+def check_quantity
+  if self.quantity < 1 || self.quantity > 100
+    self.quantity = 1
+  end
+end
+
 
 end

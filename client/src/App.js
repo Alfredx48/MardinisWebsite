@@ -74,6 +74,7 @@ function App() {
 					path="/cart"
 					element={
 						<Cart
+							rest={restaurant}
 							cart={cart}
 							setCart={setCart}
 							currentUser={currentUser}

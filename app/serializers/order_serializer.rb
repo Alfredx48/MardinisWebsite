@@ -1,4 +1,4 @@
 class OrderSerializer < ActiveModel::Serializer
-  attributes :id, :total_cost, :status, :custom_request, :placed_at, :completed_at
-  has_one :user
+  attributes :id, :total_cost, :total_items, :status, :custom_request, :created_at, :user_id, :restaurant_id
+  # has_one :user
 end

@@ -2,12 +2,11 @@ class CreateOrders < ActiveRecord::Migration[6.1]
   def change
     create_table :orders do |t|
       t.float :total_cost
+      t.integer :total_items
       t.string :status
       t.string :custom_request
-      t.datetime :placed_at
-      t.datetime :completed_at
       t.integer :user_id
-      t.belongs_to :restaurant, null: false, foreign_key: true
+      t.integer :restaurant_id
       t.timestamps
     end
   end

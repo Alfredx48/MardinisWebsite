@@ -17,12 +17,18 @@ class Api::CartsController < ApplicationController
     elsif session[:cart_id]
       cart = Cart.find_by(id: session[:cart_id])
     end
-
     if !cart
       cart = Cart.create
+      if current_user
+        cart.user_id = current_user.id
+        cart.save!
+      end
+      if Restaurant.first
+        cart.restaurant_id = Restaurant.first.id
+      end
+      cart.save!
       session[:cart_id] = cart.id
     end
-
     cart_item = cart.cart_items.create(cart_items_params)
     render json: { cart_id: cart.id, cart: cart, menu_items: cart.menu_items, cart_items: cart.cart_items }
   end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2023_01_13_184205) do
+ActiveRecord::Schema.define(version: 2023_01_13_182752) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -28,23 +28,7 @@ ActiveRecord::Schema.define(version: 2023_01_13_184205) do
 
   create_table "carts", force: :cascade do |t|
     t.integer "user_id"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-  end
-
-  create_table "ingredient_items", force: :cascade do |t|
-    t.bigint "ingredient_id", null: false
-    t.bigint "menu_item_id", null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["ingredient_id"], name: "index_ingredient_items_on_ingredient_id"
-    t.index ["menu_item_id"], name: "index_ingredient_items_on_menu_item_id"
-  end
-
-  create_table "ingredients", force: :cascade do |t|
-    t.string "name"
-    t.string "image"
-    t.float "price"
+    t.integer "restaurant_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end
@@ -66,25 +50,21 @@ ActiveRecord::Schema.define(version: 2023_01_13_184205) do
     t.boolean "hot_sauce"
     t.bigint "order_id", null: false
     t.bigint "menu_item_id", null: false
-    t.bigint "ingredient_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["ingredient_id"], name: "index_order_items_on_ingredient_id"
     t.index ["menu_item_id"], name: "index_order_items_on_menu_item_id"
     t.index ["order_id"], name: "index_order_items_on_order_id"
   end
 
   create_table "orders", force: :cascade do |t|
     t.float "total_cost"
+    t.integer "total_items"
     t.string "status"
     t.string "custom_request"
-    t.datetime "placed_at"
-    t.datetime "completed_at"
     t.integer "user_id"
-    t.bigint "restaurant_id", null: false
+    t.integer "restaurant_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["restaurant_id"], name: "index_orders_on_restaurant_id"
   end
 
   create_table "restaurants", force: :cascade do |t|
@@ -110,11 +90,7 @@ ActiveRecord::Schema.define(version: 2023_01_13_184205) do
 
   add_foreign_key "cart_items", "carts"
   add_foreign_key "cart_items", "menu_items"
-  add_foreign_key "ingredient_items", "ingredients"
-  add_foreign_key "ingredient_items", "menu_items"
   add_foreign_key "menu_items", "restaurants"
-  add_foreign_key "order_items", "ingredients"
   add_foreign_key "order_items", "menu_items"
   add_foreign_key "order_items", "orders"
-  add_foreign_key "orders", "restaurants"
 end
