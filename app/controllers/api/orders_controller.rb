@@ -2,7 +2,7 @@ class Api::OrdersController < ApplicationController
   skip_before_action :authorize
 
   def index
-    render json: Order.all
+    render json: Order.all.reverse
   end
 
   def create

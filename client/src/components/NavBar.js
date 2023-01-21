@@ -4,6 +4,11 @@ import { Link } from "react-router-dom";
 function NavBar({ currentUser }) {
 	return (
 		<div className="nav-bar">
+			{currentUser && currentUser.admin === true ? (
+				<Link className="nav-link" to="/admin">
+					Admin Portal
+				</Link>
+			) : null}
 			<Link className="nav-link" to="/">
 				Home
 			</Link>
@@ -17,11 +22,6 @@ function NavBar({ currentUser }) {
 				Cart
 			</Link>
 
-			{currentUser && currentUser.admin === true ? (
-				<Link className="nav-link" to="/admin">
-					Admin Portal
-				</Link>
-			) : null}
 			{!currentUser ? (
 				<Link className="nav-link" to="/login">
 					Login

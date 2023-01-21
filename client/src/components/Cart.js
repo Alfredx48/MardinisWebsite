@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CartItems from "./CartItems";
 
-function Cart({ cartId, setCartId, currentUser, cart, setCart }) {
+function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 	const formatter = new Intl.NumberFormat("en-US", {
 		style: "currency",
 		currency: "USD",
@@ -81,13 +81,11 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart }) {
 
 	const submitOrder = () => {
 
-		// if (cart.total_cost || cart.total_items <= 0) {
-		// 	return alert("Order can't be submitted with 0 items or cost ")
-		// }
+		if (cart_total && cart_items <= 0) {
+			return alert("Order can't be submitted with 0 items or cost ")
+		}
 		const userId = currentUser ? currentUser.id : null;
 		const cartID = currentUser ? cart.id : cartId;
-		// console.log(cartID)
-		// console.log(userId)
 		const order = {
 			cart_id: cartID,
 			user_id: userId,
@@ -107,7 +105,10 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart }) {
 				console.log(order);
 				deleteCart()
 				setCart([])
+				setNewOrder(true)
 				// navigate("/");
+
+
 			})
 			.catch((error) => {
 				console.log(error);

@@ -15,6 +15,7 @@ function App() {
 	const [restaurant, setRestaurant] = useState([]);
 	const [cartId, setCartId] = useState([]);
 	const [cart, setCart] = useState([]);
+	const [newOrder, setNewOrder] = useState(false);
 
 	useEffect(() => {
 		fetch("/api/me").then((r) => {
@@ -25,12 +26,18 @@ function App() {
 	}, []);
 
 	useEffect(() => {
-		fetch("/api/restaurants").then((r) => {
-			if (r.ok) {
-				r.json().then((rest) => setRestaurant(rest));
-			}
-		});
-	}, []);
+		if (newOrder) {
+			fetch("/api/restaurants/1").then((r) => {
+				if (r.ok) {
+					r.json().then((rest) => {
+						setRestaurant(rest)
+						setNewOrder(false)
+					});
+				}
+			});
+		}
+	}, [newOrder, setNewOrder]);
+
 	return (
 		<div className="App">
 			<NavBar
@@ -39,58 +46,62 @@ function App() {
 				currentUser={currentUser}
 				setCurrentUser={setCurrentUser}
 			/>
-			{!currentUser ? null : <Logout
-				setCart={setCart}
-				setCartId={setCartId}
-				currentUser={currentUser}
-				setCurrentUser={setCurrentUser}
-			/>}
+			{!currentUser ? null : (
+				<Logout
+					setCart={setCart}
+					setCartId={setCartId}
+					currentUser={currentUser}
+					setCurrentUser={setCurrentUser}
+				/>
+			)}
 			<Routes>
-					<Route
-						path="/admin"
-						element={restaurant.map((rest, idx) => (
-							<AdminPage key={rest.id} rest={rest} restaurant={restaurant} currentUser={currentUser} />
-						))}
-					/>
+				<Route
+					path="/admin"
+					element={
+						<AdminPage
+							setNewOrder={setNewOrder}
+							restaurant={restaurant}
+							currentUser={currentUser}
+						/>
+					}
+				/>
 				<Route
 					path="/"
 					element={
 						<HomePage
-						currentUser={currentUser}
-						setCurrentUser={setCurrentUser}
+							currentUser={currentUser}
+							setCurrentUser={setCurrentUser}
 						/>
 					}
-					/>
+				/>
 				<Route path="/about" element={<AboutPage restaurant={restaurant} />} />
 				<Route
 					path="/login"
 					element={
 						<LoginPage
-						currentUser={currentUser}
+							currentUser={currentUser}
 							setCurrentUser={setCurrentUser}
-							/>
-						}
 						/>
+					}
+				/>
 				<Route
 					path="/order-now"
-					element={restaurant.map((rest, idx) => (
-						<MenuItems key={idx} rest={rest} restaurant={restaurant} setCartId={setCartId} />
-						))}
-						/>
+					element={<MenuItems restaurant={restaurant} setCartId={setCartId} />}
+				/>
 				<Route
 					path="/cart"
 					element={
 						<Cart
-							rest={restaurant}
+							setNewOrder={setNewOrder}
 							cart={cart}
 							setCart={setCart}
 							currentUser={currentUser}
 							cartId={cartId}
 							setCartId={setCartId}
-							/>
+						/>
 					}
-					/>
-					</Routes>
+				/>
+			</Routes>
 		</div>
 	);
 }

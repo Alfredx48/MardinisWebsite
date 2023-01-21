@@ -1,4 +1,5 @@
 class Order < ApplicationRecord
+  default_scope { order(created_at: :desc) }
   has_many :order_items, dependent: :destroy
   has_many :menu_items, through: :order_items
 
