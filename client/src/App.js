@@ -16,6 +16,7 @@ function App() {
 	const [cartId, setCartId] = useState([]);
 	const [cart, setCart] = useState([]);
 	const [newOrder, setNewOrder] = useState(false);
+	const [dataFetched, setDataFetched] = useState(false);
 
 	useEffect(() => {
 		fetch("/api/me").then((r) => {
@@ -26,7 +27,7 @@ function App() {
 	}, []);
 
 	useEffect(() => {
-		if (newOrder) {
+		if (newOrder || !dataFetched) {
 			fetch("/api/restaurants/1").then((r) => {
 				if (r.ok) {
 					r.json().then((rest) => {
@@ -36,7 +37,7 @@ function App() {
 				}
 			});
 		}
-	}, [newOrder, setNewOrder]);
+	}, [newOrder, dataFetched, setNewOrder, setDataFetched]);
 
 	return (
 		<div className="App">
