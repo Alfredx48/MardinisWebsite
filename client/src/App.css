@@ -1,36 +1,15 @@
 body {
 	font-family: playfair display;
-	margin-top: 60px;
+	/* margin-top: 60px; */
 }
 
-img {
+/* img {
 	max-width: 250px;
 	max-height: 150px;
-}
+} */
 
-.quantity-div input {
-	width: 40px;
-	height: 40px;
-	text-align: center;
-	border: 1px solid gray;
-	border-radius: 5px;
-	font-size: 20px;
-}
 
-.quantity-div button {
-	width: 40px;
-	height: 20px;
-	font-size: 20px;
-	border: none;
-	background-color: transparent;
-}
-
-.quantity-div button:hover {
-	color: red;
-	cursor: pointer;
-}
-
-.dishes {
+/* .dishes {
 	background-color: #ffffff;
 	min-width: 250px;
 	max-width: 200px;
@@ -49,7 +28,7 @@ img {
 	flex-wrap: wrap;
 	justify-content: center;
 	padding: 0;
-}
+} */
 
 .nav-bar .nav-link {
 	margin: 10px 0;

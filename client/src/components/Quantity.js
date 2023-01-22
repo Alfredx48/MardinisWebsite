@@ -1,4 +1,5 @@
 import React from "react";
+import "../css/quantity.css"
 
 function Quantity({quantity, setQuantity}) {
 

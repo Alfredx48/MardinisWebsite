@@ -1,0 +1,12 @@
+.dish-card {
+  width: 80%;
+  margin: 50px auto;
+  padding: 0 20px;
+}
+
+.menuItems {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}

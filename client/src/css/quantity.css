@@ -1,0 +1,26 @@
+.quantity-div {
+  display: flex;
+  align-items: center;
+}
+
+.quantity-div input {
+	width: 40px;
+	height: 40px;
+	text-align: center;
+	border: 1px solid gray;
+	border-radius: 5px;
+	font-size: 20px;
+}
+
+.quantity-div button {
+	width: 40px;
+	height: 40px;
+	font-size: 20px;
+	border: none;
+	background-color: transparent;
+}
+
+.quantity-div button:hover {
+	color: red;
+	cursor: pointer;
+}

@@ -1,7 +1,8 @@
-import {useState} from "react";
+import { useState } from "react";
 import Quantity from "./Quantity";
+import "../css/menuItemCard.css";
 
-function MenuItemCard({ mItem, setCartId}) {
+function MenuItemCard({ mItem, setCartId }) {
 	const [quantity, setQuantity] = useState(1);
 
 	const handleAddToCart = (mItem) => {
@@ -32,19 +33,17 @@ function MenuItemCard({ mItem, setCartId}) {
 			});
 	};
 
-
 	return (
-		<div>
-			<div key={mItem.id}>
-				<img src={mItem.image} alt={mItem.name} />
-				<h1 key={mItem.id}>{mItem.name}</h1>
-				<p>{mItem.description}</p>
-				<p>{mItem.formatted_price}</p>
-				<br />
-				<Quantity quantity={quantity} setQuantity={setQuantity} />
-				<button onClick={() => handleAddToCart(mItem)}>Add To Cart</button>
-			</div>
-		</div>
+
+		<div className="menu-item">
+				{/* <img src={mItem.image} alt={mItem.name} /> */}
+  <h4>{mItem.name}</h4>
+  <p>{mItem.description}</p>
+  <p className="price">{mItem.formatted_price}</p>
+			<Quantity className="quantity" setQuantity={setQuantity} quantity={quantity} />
+  <button onClick={() => handleAddToCart(mItem)}>Add To Cart</button>
+</div>
+		
 	);
 }
 
