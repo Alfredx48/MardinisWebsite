@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import PendingOrders from "./PendingOrders";
 
-function AdminPage({ restaurant , setNewOrder }) {
+function AdminPage({ restaurant , setNewOrder, currentUser }) {
 	const [orders, setOrders] = useState([]);
 
 	useEffect(() => {
@@ -11,15 +11,17 @@ function AdminPage({ restaurant , setNewOrder }) {
   }, [restaurant]);
   
 
-	return (
-		<div>
+  return (
+    <>
+   { currentUser && currentUser.admin === true ? <div>
 			AdminPage
 			{orders && orders.length ? (
-				orders.map((order) => <PendingOrders key={order.id} order={order} />)
-			) : (
-				<h1>...loading</h1>
-			)}
-		</div>
+        orders.map((order) => <PendingOrders key={order.id} order={order} />)
+        ) : (
+          <h1>...loading</h1>
+          )}
+		</div> : <h1>Not Authorized</h1>}
+          </>
 	);
 }
 
