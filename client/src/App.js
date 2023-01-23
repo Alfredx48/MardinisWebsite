@@ -31,8 +31,8 @@ function App() {
 			fetch("/api/restaurants/1").then((r) => {
 				if (r.ok) {
 					r.json().then((rest) => {
-						setRestaurant(rest)
-						setNewOrder(false)
+						setRestaurant(rest);
+						setNewOrder(false);
 					});
 				}
 			});
@@ -40,70 +40,79 @@ function App() {
 	}, [newOrder, dataFetched, setNewOrder, setDataFetched]);
 
 	return (
-		<div className="App">
-			<NavBar
-				setCart={setCart}
-				setCartId={setCartId}
-				currentUser={currentUser}
-				setCurrentUser={setCurrentUser}
-			/>
-			{!currentUser ? null : (
-				<Logout
+		<>
+			<div className=".header-top"></div>
+			<div className="App">
+				<NavBar
 					setCart={setCart}
 					setCartId={setCartId}
 					currentUser={currentUser}
 					setCurrentUser={setCurrentUser}
 				/>
-			)}
-			<Routes>
-				<Route
-					path="/admin"
-					element={
-						<AdminPage
-							setNewOrder={setNewOrder}
-							restaurant={restaurant}
-							currentUser={currentUser}
-						/>
-					}
-				/>
-				<Route
-					path="/"
-					element={
-						<HomePage
-							currentUser={currentUser}
-							setCurrentUser={setCurrentUser}
-						/>
-					}
-				/>
-				<Route path="/about" element={<AboutPage restaurant={restaurant} />} />
-				<Route
-					path="/login"
-					element={
-						<LoginPage
-							currentUser={currentUser}
-							setCurrentUser={setCurrentUser}
-						/>
-					}
-				/>
-				<Route
-					path="/order-now"
-					element={<MenuItems restaurant={restaurant} setCartId={setCartId} />}
-				/>
-				<Route
-					path="/cart"
-					element={
-						<Cart
-							setNewOrder={setNewOrder}
-							cart={cart}
-							setCart={setCart}
-							currentUser={currentUser}
-							cartId={cartId}
-							setCartId={setCartId}
-						/>
-					}
-				/>
-			</Routes>
-		</div>
+				{!currentUser ? null : (
+					<Logout
+						setCart={setCart}
+						setCartId={setCartId}
+						currentUser={currentUser}
+						setCurrentUser={setCurrentUser}
+					/>
+				)}
+				<Routes>
+					<Route
+						path="/admin"
+						element={
+							<AdminPage
+								setNewOrder={setNewOrder}
+								restaurant={restaurant}
+								currentUser={currentUser}
+							/>
+						}
+					/>
+					<Route
+						path="/"
+						element={
+							<HomePage
+								className="home"
+								currentUser={currentUser}
+								setCurrentUser={setCurrentUser}
+							/>
+						}
+					/>
+					<Route
+						path="/about"
+						element={<AboutPage restaurant={restaurant} />}
+					/>
+					<Route
+						path="/login"
+						element={
+							<LoginPage
+								currentUser={currentUser}
+								setCurrentUser={setCurrentUser}
+							/>
+						}
+					/>
+					<Route
+						path="/order-now"
+						element={
+							<MenuItems restaurant={restaurant} setCartId={setCartId} />
+						}
+					/>
+					<Route
+						path="/cart"
+						element={
+							<Cart
+								setNewOrder={setNewOrder}
+								cart={cart}
+								setCart={setCart}
+								currentUser={currentUser}
+								cartId={cartId}
+								setCartId={setCartId}
+							/>
+						}
+					/>
+				</Routes>
+			</div>
+		</>
 	);
 }
 

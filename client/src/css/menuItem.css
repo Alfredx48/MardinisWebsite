@@ -1,12 +1,24 @@
-.dish-card {
-  width: 80%;
-  margin: 50px auto;
-  padding: 0 20px;
+
+.menu-container {
+  background-image: url('https://i.imgur.com/QUo9OTb_d.jpg?maxwidth=520&shape=thumb&fidelity=high');
+  height: 100%;
+  width: 100vw;
+  background-attachment: fixed;
+  background-size: cover;
 }
 
-.menuItems {
+.dish-card {
+  width: 80%;
+  margin: 0 auto;
+  padding: 10px;
+  background-color: rgba(250, 250, 250, 0.2);
+  border-radius: 10px;
+}
+
+/* .menuItems {
   width: 100%;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-}
+} */
+

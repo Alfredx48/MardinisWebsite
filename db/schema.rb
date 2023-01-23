@@ -38,6 +38,7 @@ ActiveRecord::Schema.define(version: 2023_01_13_182752) do
     t.text "description"
     t.float "price"
     t.string "image"
+    t.string "tag"
     t.bigint "restaurant_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false

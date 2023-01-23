@@ -4,8 +4,8 @@
 }
 
 .quantity-div input {
-	width: 40px;
-	height: 40px;
+	max-width: 20px;
+  max-height: 20px;
 	text-align: center;
 	border: 1px solid gray;
 	border-radius: 5px;
@@ -20,7 +20,3 @@
 	background-color: transparent;
 }
 
-.quantity-div button:hover {
-	color: red;
-	cursor: pointer;
-}

@@ -41,7 +41,7 @@ function MenuItemCard({ mItem, setCartId }) {
   <p>{mItem.description}</p>
   <p className="price">{mItem.formatted_price}</p>
 			<Quantity className="quantity" setQuantity={setQuantity} quantity={quantity} />
-  <button onClick={() => handleAddToCart(mItem)}>Add To Cart</button>
+  <button  className= "add-cart" onClick={() => handleAddToCart(mItem)}>Add</button>
 </div>
 		
 	);
