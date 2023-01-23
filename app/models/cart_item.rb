@@ -34,7 +34,7 @@ end
   private
   
 def check_quantity
-  if self.quantity < 1 || self.quantity > 100
+  if self.quantity < 1 || self.quantity > 50
     self.quantity = 1
   end
 end

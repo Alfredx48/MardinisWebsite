@@ -11,9 +11,9 @@ function MenuItemCard({ mItem, setCartId }) {
 			quantity: parseInt(quantity),
 			special_request: "",
 		};
-		if (isNaN(quantity) || quantity < 1 || quantity > 100) {
+		if (isNaN(quantity) || quantity < 1 || quantity > 50) {
 			alert(
-				"Invalid Quantity, please enter a valid quantity between 1 and 100"
+				"Invalid Quantity, please enter a valid Quantity between 1 and 50"
 			);
 			return;
 		}

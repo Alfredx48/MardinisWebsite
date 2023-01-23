@@ -1,5 +1,7 @@
-
+@import url('https://fonts.cdnfonts.com/css/adelle');
 .menu-container {
+  color: black;
+  font-family: "adelle";
   background-image: url('https://i.imgur.com/QUo9OTb_d.jpg?maxwidth=520&shape=thumb&fidelity=high');
   height: 100%;
   width: 100vw;

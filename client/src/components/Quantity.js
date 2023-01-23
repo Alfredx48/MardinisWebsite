@@ -10,7 +10,7 @@ function Quantity({quantity, setQuantity}) {
 	};
 
 	const noQuantOver = () => {
-		if (quantity < 100) {
+		if (quantity < 50) {
 			setQuantity(quantity + 1);
 		}
 	};
@@ -29,7 +29,7 @@ function Quantity({quantity, setQuantity}) {
 				}}
 				onInput={(e) => {
 					if (e.target.value < 0) e.target.value = quantity;
-					if (e.target.value > 100) e.target.value = 100;
+					if (e.target.value > 50) e.target.value = 50;
 				}}
 			/>
 			{/* <span>{quantity}</span> */}
