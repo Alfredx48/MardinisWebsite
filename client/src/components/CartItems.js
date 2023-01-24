@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import Quantity from "./Quantity";
+import "../css/cart.css";
 
 function CartItems({ cartItem, setCart, formatter }) {
-	const [updatedQuan, setUpatedQuan] = useState(cartItem.quantity);
+	// const [updatedQuan, setUpatedQuan] = useState(cartItem.quantity);
 	async function removeItem(cartItemId) {
 		try {
 			const response = await fetch(`/api/cart_items/${cartItemId}`, {
@@ -25,14 +26,14 @@ function CartItems({ cartItem, setCart, formatter }) {
 		}
 	}
 	return (
-		<div>
+		<div className="cart-items">
+			<button onClick={() => removeItem(cartItem.id)}> Remove Item</button>
 			<h3>
-				{cartItem.item_name}
-				<span> {formatter.format(cartItem.item_total)}</span>
+				{cartItem.quantity} {cartItem.item_name}
+				<span> {formatter.format(cartItem.item_total)} </span>
 			</h3>
 			<p>{cartItem.special_request}</p>
-			<Quantity quantity={updatedQuan} setQuantity={setUpatedQuan} />
-			<button onClick={() => removeItem(cartItem.id)}> Remove Item</button>
+			{/* <Quantity quantity={updatedQuan} setQuantity={setUpatedQuan} /> */}
 		</div>
 	);
 }

@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CartItems from "./CartItems";
+import "../css/cart.css";
 
 function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 	const formatter = new Intl.NumberFormat("en-US", {
@@ -73,16 +74,15 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 				/>
 			));
 		} else {
-			return <h2>No items in the cart</h2>;
+			return <div className="no-cart"> <h2>No items in the cart</h2></div>;
 		}
 	};
 	const { cart_total, cart_items } = calculateTotals(cart);
 	// debugger
 
 	const submitOrder = () => {
-
 		if (cart_total && cart_items <= 0) {
-			return alert("Order can't be submitted with 0 items or cost ")
+			return alert("Order can't be submitted with 0 items or cost ");
 		}
 		const userId = currentUser ? currentUser.id : null;
 		const cartID = currentUser ? cart.id : cartId;
@@ -94,7 +94,7 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 			status: "pending",
 			custom_request: "",
 		};
-		console.log(order)
+		console.log(order);
 		fetch("/api/orders", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
@@ -103,29 +103,27 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 			.then((response) => response.json())
 			.then((order) => {
 				console.log(order);
-				deleteCart()
-				setCart([])
-				setNewOrder(true)
+				deleteCart();
+				setCart([]);
+				setNewOrder(true);
 				// navigate("/");
-
-
 			})
 			.catch((error) => {
 				console.log(error);
 			});
 	};
 	return (
-		<div>
-			<button onClick={deleteCart}> delete cart</button>
-			<button onClick={() => navigate("/order-now")}>add more items</button>
+		<div className="cart">
+			<button onClick={submitOrder}> submit order </button>
 			{mappedCartItems()}
 			{cart.cart_items && cart.cart_items.length > 0 ? (
 				<h4>Total Cost: {cart_total}</h4>
-			) : null}
+				) : null}
 			{cart.cart_items && cart.cart_items.length > 0 ? (
 				<h4> Total items: {cart_items}</h4>
-			) : null}
-			<button onClick={submitOrder}> submit order </button>
+				) : null}
+				<button onClick={() => navigate("/order-now")}>Add Items</button>
+				<button onClick={deleteCart}> Delete Cart</button>
 		</div>
 	);
 }

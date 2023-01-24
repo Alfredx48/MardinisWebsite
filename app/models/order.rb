@@ -3,6 +3,7 @@ class Order < ApplicationRecord
   has_many :order_items, dependent: :destroy
   has_many :menu_items, through: :order_items
 
+
   def self.create_from_cart(cart, user_id, status, custom_request)
     if cart.total_items == 0 || cart.total_cost == 0
     raise "Order can't be submitted with 0 items or cost"

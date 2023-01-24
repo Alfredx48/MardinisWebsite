@@ -6,8 +6,8 @@ class Api::RestaurantsController < ApplicationController
   end
 
   def show
-    rest = Restaurant.find(params[:id])
-    render json: rest
+    @rest = Restaurant.find(params[:id])
+    render json: @rest
   end
 
 end
