@@ -22,7 +22,7 @@
 
 .nav-link:hover {
 	text-decoration: underline;
-	color: blue;
+	color: rgb(71, 71, 153);
 }
 .nav-bar-container {
 	width: 100vw;
@@ -30,7 +30,6 @@
 }
 
 .nav-bar {
-	/* height: 100vh; */
 	width: 30vw;
 	background-color: black;
 	display: flex;
@@ -43,24 +42,26 @@
 	z-index: 1;
 }
 .logout-button {
-	position: absolute;
-	top: 1%;
-	left: 88%;
-	/* margin-left: 85%; */
+	/* list-style-type: none; */
+
 	max-width: 100%;
 	background-color: transparent;
 	border: none;
 	text-decoration: none;
 	font-family: "Helvetica Neue", "Arial", "sans-serif";
 	font-size: 12px;
-	line-height: 1.25em;
 	color: white;
+	line-height: 1.25em;
 	text-transform: uppercase;
 	letter-spacing: 3px;
 	font-weight: normal;
 	font-style: normal;
-	list-style-type: none;
 	cursor: pointer;
+}
+
+.logout-button:hover {
+	text-decoration: underline;
+	color: rgb(71, 71, 153);
 }
 
 @media (max-width: 700px) {
@@ -69,9 +70,12 @@
 
 		justify-content: space-evenly;
 		display: flex;
-		margin-top: 30px;
+		/* margin-top: 30px; */
 	}
 	.nav-bar {
+		height: 35px;
+
+		align-items: center;
 		margin: auto;
 		gap: 10%;
 		justify-content: space-evenly;
@@ -80,7 +84,8 @@
 	}
 
 	.logout-button {
-		position: absolute;
-		left: 76%;
+		/* position: absolute;
+		left: 80%;
+		top: 0; */
 	}
 }

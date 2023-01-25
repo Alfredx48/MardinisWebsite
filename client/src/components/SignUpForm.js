@@ -1,6 +1,9 @@
 import React from "react";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function SignUpForm({
+	errors,
 	formData,
 	handleChange,
 	setCurrentUser,
@@ -36,7 +39,25 @@ function SignUpForm({
 					})
 					.then(navigate("/"));
 			} else {
-				r.json().then((err) => setErrors(err.errors));
+				r.json().then((err) => {
+					setErrors(err.errors)
+					if (errors) {
+						errors.forEach(error => {
+							toast.error(`${error}`, {
+								position: "top-center",
+								autoClose: 3000,
+								hideProgressBar: false,
+								closeOnClick: true,
+								pauseOnHover: true,
+								draggable: true,
+								progress: undefined,
+								theme: "light",
+
+							})
+
+						})
+					}
+				});
 			}
 		});
 	}

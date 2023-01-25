@@ -1,97 +1,65 @@
 .menu-item {
 	display: flex;
+	justify-content: space-between;
 	flex-direction: row;
 	align-items: center;
-  gap: 1%;
-  padding: 8px;
-  border-bottom: 1px solid  rgb(0, 0, 0);
-}
-/* .line {
-  width: 100%;
-  height: 1px;
-  box-shadow: 0 0 20px 2px rgba(0,0,0,0.4), 0 0 80px 8px rgba(255, 255, 255);
-} */
-
-.menu-item .quantity {
-  margin-right: 10px;
+	gap: 1%;
+	padding: 8px;
+	border-bottom: 1px solid rgb(0, 0, 0);
 }
 
 .menu-item h4 {
-  text-align: left;
+	text-align: left;
 	font-size: 1rem;
-	width: 100%;
-  /* margin-right: 10px; */
-
+	width: 40%;
 }
 
 .menu-item p {
-  text-align: left;
-
 	font-size: 0.9rem;
 	width: 100%;
-  /* text-decoration: underline; */
-  
 }
 
 .price {
-  width: 100%;
-  font-size: .75rem;
-/* text-decoration: none !important; */
-
+	font-size: 0.75rem;
 }
 .menu-item button {
-	/* background-color: green; */
 	background-color: transparent;
-  border: none;
-
-	/* color: white; */
-	/* border-radius: 10px; */
+	border: none;
 	cursor: pointer;
 }
 .menu-item button:hover {
-color: beige;
+	color: firebrick;
 }
 
 .menu-item .price {
 	display: flex;
 	width: 7%;
-  text-align: right;
+	text-align: right;
 }
-
 
 @media only screen and (max-width: 600px) {
-  .menu-item {
-    flex-direction: column;
+	.menu-item {
+		flex-direction: column;
+	}
+	.menu-item h4 {
+		width: 100%;
+		font-size: 1.2rem;
+		text-align: left;
+		margin-top: 10px;
+	}
+	.menu-item p {
+		font-size: 1.2rem;
+		text-align: left;
+		margin-bottom: 10px;
+	}
+	.price {
+		margin-top: 10px;
 
-  }
-  .menu-item h4 {
-    font-size: 1.2rem;
-    text-align: left;
-    margin-top: 10px;
-  }
-  .menu-item p {
-    font-size: 1.2rem;
-    text-align: left;
-    margin-bottom: 10px;
-  }
-  .price {
-    margin-top: 10px;
+		text-align: left;
+		margin-right: auto;
+	}
 
-    text-align: left;
-    margin-right: auto;
-  }
-
-  .quantity-div{
-    /* position: absolute; */
-    bottom: 5px;
-
-  }
-
-  .add-cart {
-    /* position: absolute; */
-  }
-
-
+	.quantity-div {
+		bottom: 5px;
+	}
 }
-
-

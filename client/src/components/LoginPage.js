@@ -4,6 +4,7 @@ import LoginForm from "./LoginForm";
 import SignUpForm from "./SignUpForm";
 import { motion } from "framer-motion";
 
+
 function LoginPage({ currentUser, setCurrentUser }) {
 	const navigate = useNavigate();
 	const [errors, setErrors] = useState([]);
@@ -71,7 +72,7 @@ function LoginPage({ currentUser, setCurrentUser }) {
 			>
 				<div className="error-wrapper">
 					<div className="errors">
-						{!errors
+						{/* {!errors
 							? null
 							: errors.map((error, idx) => (
 									<motion.p
@@ -92,7 +93,7 @@ function LoginPage({ currentUser, setCurrentUser }) {
 									>
 										{error}
 									</motion.p>
-							  ))}
+							  ))} */}
 					</div>
 				</div>
 				{display  === "login" ? (

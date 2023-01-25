@@ -2,6 +2,8 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CartItems from "./CartItems";
 import "../css/cart.css";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 	const formatter = new Intl.NumberFormat("en-US", {
@@ -55,11 +57,11 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 			method: "DELETE",
 		}).then((r) => {
 			if (r.ok) {
-				setCartId(null);
+				setCartId([]);
 				setCart([]);
+				localStorage.removeItem("cartId");
 			}
 		});
-		localStorage.removeItem("cartId");
 	};
 
 	const mappedCartItems = () => {
@@ -74,15 +76,20 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 				/>
 			));
 		} else {
-			return <div className="no-cart"> <h2>No items in the cart</h2></div>;
+			return (
+				<div className="no-cart">
+					{" "}
+					<h2>No items in the cart</h2>
+				</div>
+			);
 		}
 	};
 	const { cart_total, cart_items } = calculateTotals(cart);
 	// debugger
 
 	const submitOrder = () => {
-		if (cart_total && cart_items <= 0) {
-			return alert("Order can't be submitted with 0 items or cost ");
+		if (cart.total_cost || cart.total_items <= 0) {
+			return toast.error("Order can't be submitted with 0 items or cost ");
 		}
 		const userId = currentUser ? currentUser.id : null;
 		const cartID = currentUser ? cart.id : cartId;
@@ -103,9 +110,21 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 			.then((response) => response.json())
 			.then((order) => {
 				console.log(order);
-				deleteCart();
+				localStorage.removeItem("cartId");
+				setCartId([]);
 				setCart([]);
+				deleteCart();
 				setNewOrder(true);
+				toast(" Your Order has been Submit!", {
+					position: "top-center",
+					autoClose: 3000,
+					hideProgressBar: false,
+					closeOnClick: true,
+					pauseOnHover: true,
+					draggable: true,
+					progress: undefined,
+					theme: "light",
+				});
 				// navigate("/");
 			})
 			.catch((error) => {
@@ -113,17 +132,45 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 			});
 	};
 	return (
-		<div className="cart">
-			<button onClick={submitOrder}> submit order </button>
-			{mappedCartItems()}
-			{cart.cart_items && cart.cart_items.length > 0 ? (
-				<h4>Total Cost: {cart_total}</h4>
-				) : null}
-			{cart.cart_items && cart.cart_items.length > 0 ? (
-				<h4> Total items: {cart_items}</h4>
-				) : null}
-				<button onClick={() => navigate("/order-now")}>Add Items</button>
-				<button onClick={deleteCart}> Delete Cart</button>
+		<div className="cart-c">
+			<div className="cart">
+				<div className="button-div">
+					<button className="top-button" onClick={() => navigate("/order-now")}>
+						Add More Items
+					</button>
+					<button className="top-button" onClick={submitOrder}>
+						{" "}
+						submit order{" "}
+					</button>
+				</div>
+				{mappedCartItems()}
+				<div>
+					<div className="total-container">
+						<div className="total">
+							{cart.cart_items && cart.cart_items.length > 0 ? (
+								<h4>Total Cost:</h4>
+							) : null}
+							{cart.cart_items && cart.cart_items.length > 0 ? (
+								<h4>Total Items: </h4>
+							) : null}
+						</div>
+						<div className="total-num">
+							{/* {cart.cart_items && cart.cart_items.length > 0 ? (
+								<button className="remove-all" onClick={deleteCart}>
+									{" "}
+									Remove all Items
+								</button>
+							) : null} */}
+							{cart.cart_items && cart.cart_items.length > 0 ? (
+								<h4>{cart_total}</h4>
+							) : null}
+							{cart.cart_items && cart.cart_items.length > 0 ? (
+								<h4> {cart_items}</h4>
+							) : null}
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 	);
 }

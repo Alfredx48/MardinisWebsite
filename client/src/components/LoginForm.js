@@ -1,5 +1,7 @@
 import React from "react";
 import { useNavigate} from "react-router-dom";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function LoginForm({
 	email,
@@ -37,7 +39,25 @@ function LoginForm({
 					})
 					.then(navigate("/"));
 			} else {
-				r.json().then((err) => setErrors(err.errors));
+				r.json().then((err) => {
+					setErrors(err.errors)
+					if (errors) {
+						errors.forEach(error => {
+							toast.error(`${error}`, {
+								position: "top-center",
+								autoClose: 4500,
+								hideProgressBar: false,
+								closeOnClick: true,
+								pauseOnHover: true,
+								draggable: true,
+								progress: undefined,
+								theme: "light",
+
+							})
+
+						})
+					}
+				});
 			}
 		});
 	}

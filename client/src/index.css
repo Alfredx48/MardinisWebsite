@@ -1,4 +1,7 @@
 body {
+	background-attachment: fixed;
+	background-size: cover;
+  background-image: url("https://i.imgur.com/QUo9OTb_d.jpg?maxwidth=520&shape=thumb&fidelity=high");
   margin: 0;
   padding: 0;
   background-color: black;

@@ -9,6 +9,7 @@ import MenuItems from "./components/MenuItems";
 import Cart from "./components/Cart";
 import Logout from "./components/Logout";
 import AdminPage from "./components/AdminPage";
+import { ToastContainer } from "react-toastify";
 
 function App() {
 	const [currentUser, setCurrentUser] = useState({});
@@ -41,6 +42,19 @@ function App() {
 
 	return (
 		<>
+			<ToastContainer
+				position="top-center"
+				autoClose={2000}
+				// limit={1}
+				hideProgressBar={false}
+				newestOnTop
+				closeOnClick
+				rtl={false}
+				pauseOnFocusLoss
+				draggable
+				pauseOnHover
+				theme="light"
+			/>
 			<div className=".header-top"></div>
 			<div className="App">
 				<NavBar
@@ -49,14 +63,7 @@ function App() {
 					currentUser={currentUser}
 					setCurrentUser={setCurrentUser}
 				/>
-				{!currentUser ? null : (
-					<Logout
-						setCart={setCart}
-						setCartId={setCartId}
-						currentUser={currentUser}
-						setCurrentUser={setCurrentUser}
-					/>
-				)}
+
 				<Routes>
 					<Route
 						path="/admin"
