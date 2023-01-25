@@ -41,16 +41,19 @@ function CartItems({ cartItem, setCart, formatter }) {
 	return (
 		<div className="cart-items">
 			<span>
-				{cartItem.quantity}
+				{cartItem.item_name}
 			</span>
 			<span>
-				{cartItem.item_name}
+				<span>x</span> {cartItem.quantity}
 			</span>
 				<span className="item-price">  {formatter.format(cartItem.item_total)} </span>
 			<p>{cartItem.special_request}</p>
 			{/* <Quantity quantity={updatedQuan} setQuantity={setUpatedQuan} /> */}
+			<div className="trash-div">
 			<button className="trash"  onClick={() => removeItem(cartItem.id)}><FontAwesomeIcon icon={faTrash}   size="lg" />
  </button>
+
+			</div>
 		</div>
 	);
 }

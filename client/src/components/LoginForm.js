@@ -41,8 +41,7 @@ function LoginForm({
 			} else {
 				r.json().then((err) => {
 					setErrors(err.errors)
-					if (errors) {
-						errors.forEach(error => {
+						err.errors.forEach(error => {
 							toast.error(`${error}`, {
 								position: "top-center",
 								autoClose: 4500,
@@ -56,7 +55,7 @@ function LoginForm({
 							})
 
 						})
-					}
+					
 				});
 			}
 		});

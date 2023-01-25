@@ -14,7 +14,16 @@ function MenuItemCard({ mItem, setCartId }) {
 			special_request: "",
 		};
 		if (isNaN(quantity) || quantity < 1 || quantity > 50) {
-			alert("Invalid Quantity, please enter a valid Quantity between 1 and 50");
+			toast.error("Invalid Quantity, please enter a valid Quantity between 1 and 50", {
+				position: "top-right",
+				autoClose: 500,
+				hideProgressBar: false,
+				closeOnClick: true,
+				pauseOnHover: true,
+				draggable: true,
+				progress: undefined,
+				theme: "light",
+			});
 			return;
 		}
 		fetch("/api/carts", {
@@ -25,6 +34,7 @@ function MenuItemCard({ mItem, setCartId }) {
 			.then((response) => response.json())
 			.then((cart) => {
 				setCartId(cart.cart_id);
+				setQuantity(1)
 				localStorage.setItem("cartId", cart.cart_id);
 				console.log(cart);
 				toast.success("Item added to cart!", {

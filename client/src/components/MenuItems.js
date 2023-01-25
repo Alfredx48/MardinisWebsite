@@ -82,7 +82,7 @@ function MenuItems({ restaurant, setCartId }) {
 	};
 
 	return (
-		<div className="menu-container">
+		<div className="dish-card">
 			<div className="menu-filter">
 				<label>
 					<input
@@ -102,7 +102,7 @@ function MenuItems({ restaurant, setCartId }) {
 				</label>
 			</div>
 			<div className="menuItems">
-				<div className="dish-card">{mappedMenuItems()}</div>
+				<div >{mappedMenuItems()}</div>
 			</div>
 		</div>
 	);

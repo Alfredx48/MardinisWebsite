@@ -37,7 +37,7 @@
 	text-align: right;
 }
 
-@media only screen and (max-width: 600px) {
+@media only screen and (max-width: 630px) {
 	.menu-item {
 		flex-direction: column;
 	}
@@ -45,7 +45,6 @@
 		width: 100%;
 		font-size: 1.2rem;
 		text-align: left;
-		margin-top: 10px;
 	}
 	.menu-item p {
 		font-size: 1.2rem;

@@ -15,23 +15,23 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 	function calculateTotals(cart) {
 		let cart_total = 0;
 		let cart_items = 0;
-    if (!cart) {
+		if (!cart) {
 			return {};
-    }
-    if (!cart.cart_items || cart.cart_items.length === 0) {
+		}
+		if (!cart.cart_items || cart.cart_items.length === 0) {
 			return {};
-    }
-    cart.cart_items.forEach((item) => {
+		}
+		cart.cart_items.forEach((item) => {
 			cart_total += item.item_total;
 			cart_items += item.quantity;
-    });
-		
-    return { cart_total, cart_items} ;
+		});
+
+		return { cart_total, cart_items };
 	}
-	
+
 	const subTotal = () => {
 		return (cart_total * (1 + TAX_RATE)).toFixed(2);
-	}
+	};
 
 	useEffect(() => {
 		const storedCartId = localStorage.getItem("cartId")
@@ -57,7 +57,7 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 			});
 		}
 	}, [currentUser, cartId, setCart]);
-	
+
 	const deleteCart = () => {
 		fetch(`/api/carts/${cartId}`, {
 			method: "DELETE",
@@ -138,22 +138,15 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 			});
 	};
 
-		
-
-
 	return (
 		<div className="cart-c">
 			<div className="cart">
 				<div className="button-div">
-					<button className="top-button" onClick={() => navigate("/order-now")}>
+					<button className="top-gbutton" onClick={() => navigate("/order-now")}>
 						Add More Items
 					</button>
-					<button className="top-button" onClick={submitOrder}>
-						{" "}
-						submit order{" "}
-					</button>
 				</div>
-				{mappedCartItems()}
+				<div className="cart-div">{mappedCartItems()}</div>
 				<div>
 					<div className="total-container">
 						<div className="total">
@@ -174,17 +167,23 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 									Remove all Items
 								</button>
 							) : null} */}
-							{cart_total && cart.cart_items && cart.cart_items.length > 0 ? (
-								<h4>{ formatter.format(subTotal())}</h4>
-							) : null}
 							{cart.cart_items && cart.cart_items.length > 0 ? (
 								<h4>{formatter.format(cart_total)}</h4>
+							) : null}
+							{cart_total && cart.cart_items && cart.cart_items.length > 0 ? (
+								<h4>{formatter.format(subTotal())}</h4>
 							) : null}
 							{cart.cart_items && cart.cart_items.length > 0 ? (
 								<h4> {cart_items}</h4>
 							) : null}
+							</div>
 						</div>
 					</div>
+							<div className="button-div">
+								<button className="button" onClick={submitOrder}>
+									{" "}
+									submit order{" "}
+								</button>
 				</div>
 			</div>
 		</div>

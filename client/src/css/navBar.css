@@ -30,16 +30,20 @@
 }
 
 .nav-bar {
+	height: 35px;
 	width: 30vw;
+	align-items: center;
+
 	background-color: black;
 	display: flex;
-	justify-content: space-between;
+	justify-content: space-evenly;
 	top: 0px;
 	left: 0px;
-	flex-direction: column;
-	margin-left: 2%;
+	flex-direction: row;
+	margin: 0 auto;
 	font-family: playfair display;
 	z-index: 1;
+	gap: 15%;
 }
 .logout-button {
 	/* list-style-type: none; */

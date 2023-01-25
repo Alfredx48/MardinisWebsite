@@ -18,39 +18,76 @@
 }
 
 .dish-card {
+  align-items: center;
+  color: black;
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-	width: 70%;
+	max-width: 60%;
+  min-width: 60%;
 	margin: 0 auto;
 	/* padding: 10px; */
 	background-color: rgba(250, 250, 250);
-	border-radius: 10px;
+	/* border-radius: 10px; */
 }
 
 .image-slideshow {
 	display: flex;
 	justify-content: center;
 	margin: auto;
-  box-shadow: 10px 10px 5px #ccc;
+  /* box-shadow: 10px 10px 5px #ccc;
   -moz-box-shadow: 10px 10px 5px #ccc;
   -webkit-box-shadow: 10px 10px 5px #ccc;
-  -khtml-box-shadow: 10px 10px 5px #ccc;
+  -khtml-box-shadow: 10px 10px 5px #ccc; */
 }
 .image {
-  margin: 10px;
-	max-width: 400px;
+	max-width: 600px;
 	min-width: 400px;
 
 }
-@media(max-width: 600px) {
+@media(max-width: 1100px) {
+
+  .dish-card{
+    max-width: 60%;
+  min-width: 60%;
+
+  }
   .image {
-    max-width: 230px;
-    min-width: 230px;
+    max-width: 450px;
+    min-width: 400px;
   }
   
   
 }
+@media(max-width: 775px) {
+
+  .dish-card{
+    max-width: 75%;
+  min-width: 75%;
+
+  }
+  .image {
+    max-width: 430px;
+    min-width: 270px;
+  }
+  
+  
+}
+@media(max-width: 600px) {
+
+  .dish-card{
+    max-width: 90%;
+  min-width: 90%;
+
+  }
+  .image {
+    max-width: 330px;
+    min-width: 270px;
+  }
+  
+  
+}
+
 
 /* .menuItems {
   width: 100%;
