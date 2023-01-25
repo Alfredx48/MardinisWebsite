@@ -23,7 +23,7 @@ class CartItem < ApplicationRecord
 end
 
   def cart_total
-    self.cart.sub_total
+    self.cart.total_cost
   end
 
     

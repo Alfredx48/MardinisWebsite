@@ -7,7 +7,6 @@ import NavBar from "./components/NavBar";
 import LoginPage from "./components/LoginPage";
 import MenuItems from "./components/MenuItems";
 import Cart from "./components/Cart";
-import Logout from "./components/Logout";
 import AdminPage from "./components/AdminPage";
 import { ToastContainer } from "react-toastify";
 
