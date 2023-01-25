@@ -20,7 +20,7 @@
 .dish-card {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-around;
 	width: 70%;
 	margin: 0 auto;
 	/* padding: 10px; */
