@@ -33,19 +33,20 @@
 	justify-content: center;
 	margin: auto;
   box-shadow: 10px 10px 5px #ccc;
-  /* -moz-box-shadow: 10px 10px 5px #ccc; */
-  /* -webkit-box-shadow: 10px 10px 5px #ccc; */
-  /* -khtml-box-shadow: 10px 10px 5px #ccc; */
+  -moz-box-shadow: 10px 10px 5px #ccc;
+  -webkit-box-shadow: 10px 10px 5px #ccc;
+  -khtml-box-shadow: 10px 10px 5px #ccc;
 }
 .image {
+  margin: 10px;
 	max-width: 400px;
 	min-width: 400px;
 
 }
-@media only screen and (max-width: 600px) {
+@media(max-width: 600px) {
   .image {
-    max-width: 320px;
-    min-width: 30px;
+    max-width: 200px;
+    min-width: 200px;
   }
   
   
