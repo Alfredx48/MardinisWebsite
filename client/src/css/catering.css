@@ -1,0 +1,49 @@
+
+.catering{
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    background-color: aliceblue;
+    margin: auto;
+    max-width: 60%;
+  min-width: 60%;
+    max-height: 100%;
+    min-height: 100vh;
+}
+.catering img{
+  margin-top: 2%;
+  max-width: 80%;
+  min-width: 80%;
+}
+.catering h2{
+  font-family: "alternate-gothic-no-3-d";
+    font-size: 57px;
+    line-height: 1.25em;
+    text-transform: none;
+    text-decoration: none;
+    letter-spacing: 1px;
+    font-weight: 400;
+    font-style: normal;
+    color: #262626;
+    /* margin: 2em 0 0.75em; */
+}
+
+.catering h3{
+  color: #262626;
+}
+
+
+@media (max-width: 660px) {
+
+  .catering{
+    max-width: 100%;
+    min-width: 100%;
+  }
+  .image{
+    width: 100%;
+  }
+  .catering h2 {
+    font-size: 40px;
+
+  }
+  }

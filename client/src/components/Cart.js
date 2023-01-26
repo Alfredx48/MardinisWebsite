@@ -4,6 +4,7 @@ import CartItems from "./CartItems";
 import "../css/cart.css";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { AnimatePresence, motion } from "framer-motion";
 
 function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 	const TAX_RATE = 0.095;
@@ -138,11 +139,20 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 			});
 	};
 
+
 	return (
-		<div className="cart-c">
+		<AnimatePresence>
+
+				
+			<div className="cart-c">
+			<motion.div
+			 initial={{ opacity: 0 }}
+			 animate={{ opacity: 1, transition: { duration: 1 } }}
+			 exit={{ opacity: 0, transition: { duration: 1 } }}
+				>
 			<div className="cart">
 				<div className="button-div">
-					<button className="top-gbutton" onClick={() => navigate("/order-now")}>
+					<button className="add-button" onClick={() => navigate("/order-now")}>
 						Add More Items
 					</button>
 				</div>
@@ -152,41 +162,43 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 						<div className="total">
 							{cart.cart_items && cart.cart_items.length > 0 ? (
 								<h4>Sub Total:</h4>
-							) : null}
+								) : null}
 							{cart.cart_items && cart.cart_items.length > 0 ? (
 								<h4>Total Cost:</h4>
-							) : null}
+								) : null}
 							{cart.cart_items && cart.cart_items.length > 0 ? (
 								<h4>Total Items: </h4>
-							) : null}
+								) : null}
 						</div>
 						<div className="total-num">
 							{/* {cart.cart_items && cart.cart_items.length > 0 ? (
 								<button className="remove-all" onClick={deleteCart}>
-									{" "}
-									Remove all Items
+								{" "}
+								Remove all Items
 								</button>
 							) : null} */}
 							{cart.cart_items && cart.cart_items.length > 0 ? (
 								<h4>{formatter.format(cart_total)}</h4>
-							) : null}
+								) : null}
 							{cart_total && cart.cart_items && cart.cart_items.length > 0 ? (
 								<h4>{formatter.format(subTotal())}</h4>
-							) : null}
+								) : null}
 							{cart.cart_items && cart.cart_items.length > 0 ? (
 								<h4> {cart_items}</h4>
-							) : null}
+								) : null}
 							</div>
 						</div>
 					</div>
 							<div className="button-div">
-								<button className="button" onClick={submitOrder}>
+								<button className="add-button" onClick={submitOrder}>
 									{" "}
 									submit order{" "}
 								</button>
 				</div>
 			</div>
+								</motion.div>
 		</div>
+								</AnimatePresence>
 	);
 }
 

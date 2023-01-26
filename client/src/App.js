@@ -8,6 +8,7 @@ import LoginPage from "./components/LoginPage";
 import MenuItems from "./components/MenuItems";
 import Cart from "./components/Cart";
 import AdminPage from "./components/AdminPage";
+import Catering from "./components/Catering";
 import { ToastContainer } from "react-toastify";
 
 function App() {
@@ -72,6 +73,12 @@ function App() {
 								restaurant={restaurant}
 								currentUser={currentUser}
 							/>
+						}
+					/>
+					<Route
+						path="/catering"
+						element={
+						<Catering rest={restaurant} />
 						}
 					/>
 					<Route

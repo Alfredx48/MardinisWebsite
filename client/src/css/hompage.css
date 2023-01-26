@@ -4,5 +4,12 @@
   width: 100vw;
   background-attachment: fixed;
   background-size: cover;
+}
 
+
+@media (max-width: 500px) {
+  .home{
+    background-position: center top;
+
+  }
 }

@@ -7,25 +7,28 @@ function NavBar({ currentUser, setCart, setCartId, setCurrentUser }) {
 	return (
 		<div className="nav-bar-container">
 			<div className="nav-bar">
-				<Link className="nav-link" to="/cart">
-					Cart
+				<Link className="nav-link" to="/">
+					Home
 				</Link>
 				<Link className="nav-link" to="/order-now">
 					Menu
 				</Link>
-				<Link className="nav-link" to="/">
-					Home
+				<Link className="nav-link" to="/catering">
+					Catering
 				</Link>
 
 				<Link className="nav-link" to="/about">
 					about
+				</Link>
+				<Link className="nav-link" to="/cart">
+					Cart
 				</Link>
 				{!currentUser ? (
 					<Link className="logout-button" to="/login">
 						Login
 					</Link>
 				) : (
-						<Logout
+					<Logout
 						setCart={setCart}
 						setCartId={setCartId}
 						currentUser={currentUser}

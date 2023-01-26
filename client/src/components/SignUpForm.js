@@ -1,6 +1,7 @@
 import React from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "../css/signup.css"
 
 function SignUpForm({
 	errors,
@@ -77,6 +78,7 @@ function SignUpForm({
 							name="name"
 							value={formData.name}
 							onChange={(e) => handleChange(e)}
+							required
 						/>
 					</div>
 					<div className="form-col">
@@ -92,6 +94,8 @@ function SignUpForm({
 							name="email"
 							value={formData.email}
 							onChange={(e) => handleChange(e)}
+							required
+
 						/>
 					</div>
 				</div>
@@ -109,6 +113,8 @@ function SignUpForm({
 							name="address"
 							value={formData.address}
 							onChange={(e) => handleChange(e)}
+							required
+
 						/>
 					</div>
 					<div className="form-col">
@@ -124,6 +130,8 @@ function SignUpForm({
 							name="phone"
 							value={formData.phone}
 							onChange={(e) => handleChange(e)}
+							required
+
 						/>
 					</div>
 				</div>
@@ -138,6 +146,8 @@ function SignUpForm({
 							name="password"
 							value={formData.password}
 							onChange={(e) => handleChange(e)}
+							required
+
 						/>
 					</div>
 					<div className="form-col">
@@ -150,6 +160,7 @@ function SignUpForm({
 							name="passwordConfirmation"
 							value={formData.passwordConfirmation}
 							onChange={(e) => handleChange(e)}
+							required
 						/>
 					</div>
 				</div>

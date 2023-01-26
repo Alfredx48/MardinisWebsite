@@ -11,7 +11,6 @@
 	font-size: 12px;
 	line-height: 1.25em;
 	color: white;
-	/* font-family: playfair display; */
 	text-transform: uppercase;
 	letter-spacing: 3px;
 	font-weight: normal;
@@ -33,7 +32,6 @@
 	height: 35px;
 	width: 30vw;
 	align-items: center;
-
 	background-color: black;
 	display: flex;
 	justify-content: space-evenly;
@@ -41,13 +39,10 @@
 	left: 0px;
 	flex-direction: row;
 	margin: 0 auto;
-	font-family: playfair display;
 	z-index: 1;
 	gap: 15%;
 }
 .logout-button {
-	/* list-style-type: none; */
-
 	max-width: 100%;
 	background-color: transparent;
 	border: none;
@@ -85,11 +80,5 @@
 		justify-content: space-evenly;
 		display: flex;
 		flex-direction: row;
-	}
-
-	.logout-button {
-		/* position: absolute;
-		left: 80%;
-		top: 0; */
 	}
 }

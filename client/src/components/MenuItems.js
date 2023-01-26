@@ -2,6 +2,7 @@ import MenuItemCard from "./MenuItemCard";
 import { useState, useEffect } from "react";
 import "../css/menuItem.css";
 import ImageSlideshow from "./ImageSlideshow";
+import { AnimatePresence, motion } from "framer-motion";
 // import { AnimatePresence, motion } from "framer-motion";
 
 function MenuItems({ restaurant, setCartId }) {
@@ -66,13 +67,12 @@ function MenuItems({ restaurant, setCartId }) {
 				isPlate = true;
 				return (
 					<>
-				
 						<ImageSlideshow images={plateImages} />
 						<div className="menu-title">
 							<h1> Plates </h1>
 						</div>
 					</>
-						)
+				);
 			} else {
 				return (
 					<MenuItemCard key={mItem.id} setCartId={setCartId} mItem={mItem} />
@@ -82,29 +82,40 @@ function MenuItems({ restaurant, setCartId }) {
 	};
 
 	return (
-		<div className="dish-card">
-			<div className="menu-filter">
-				<label>
-					<input
-						type="checkbox"
-						checked={wrapChecked}
-						onChange={handleWrapChecked}
-					/>
-					Wraps
-				</label>
-				<label>
-					<input
-						type="checkbox"
-						checked={plateChecked}
-						onChange={handlePlateChecked}
-					/>
-					Plates
-				</label>
-			</div>
-			<div className="menuItems">
-				<div >{mappedMenuItems()}</div>
-			</div>
-		</div>
+		<AnimatePresence>
+			<motion.div
+				// key={mItem.id}
+				initial={{ y: -100, opacity: 0 }}
+				animate={{ y: 0, opacity: 1 }}
+				exit={{ y: -100, opacity: 0 }}
+				transition={{ duration: 0.5, ease: "easeInOut" }}
+			>
+				<div className="dish-card">
+					<div className="menu-filter">
+						<label>
+							<input
+								type="checkbox"
+								checked={wrapChecked}
+								onChange={handleWrapChecked}
+							/>
+							Wraps
+						</label>
+						<label>
+							<input
+								type="checkbox"
+								checked={plateChecked}
+								onChange={handlePlateChecked}
+							/>
+							Plates
+						</label>
+					</div>
+					<div className="menuItems">
+						<div>{mappedMenuItems()}</div>
+					</div>
+				</div>
+				{" "}
+			</motion.div>
+		</AnimatePresence>
 	);
 }
 

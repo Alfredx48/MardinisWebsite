@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate} from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "../css/login.css"
 
 function LoginForm({
 	email,
@@ -74,6 +75,7 @@ function LoginForm({
 					name="email"
 					value={email}
 					onChange={(e) => handleChange(e)}
+					required
 				/>
 				<label>Password: </label>
 				<input
@@ -85,6 +87,7 @@ function LoginForm({
 					id="password"
 					value={password}
 					onChange={(e) => handleChange(e)}
+					required
 				/>
 				<button className="login-button" type="submit" value="Login">
 					Login
