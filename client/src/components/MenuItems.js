@@ -173,12 +173,12 @@ function MenuItems({ restaurant, setCartId }) {
 						<ImageSlideshow images={grilledImages} />
 						<div className="menu-title">
 							<h1> Grilled Sandwiche's </h1>
+						</div>
 							<p>
 								Comes with side of fries. Sandwiches come with mayonnaise,
 								mustard, lettuce, tomatoes, onions pickles & pepperoncini.
 								Choice of bread and cheese.
 							</p>
-						</div>
 					</>
 				);
 			} else {
