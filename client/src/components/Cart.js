@@ -7,7 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { AnimatePresence, motion } from "framer-motion";
 
 function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
-	const [customRequest, setCustomRequest] = useState([]);
+	const [customRequest, setCustomRequest] = useState("");
 	const TAX_RATE = 0.095;
 	const formatter = new Intl.NumberFormat("en-US", {
 		style: "currency",
@@ -123,6 +123,7 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 				setCart([]);
 				deleteCart();
 				setNewOrder(true);
+				setCustomRequest("")
 				toast(" Your Order has been Submit!", {
 					position: "top-center",
 					autoClose: 3000,
