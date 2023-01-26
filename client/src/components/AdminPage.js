@@ -14,7 +14,6 @@ function AdminPage({ restaurant , setNewOrder, currentUser }) {
   return (
     <>
    { currentUser && currentUser.admin === true ? <div>
-			AdminPage
 			{orders && orders.length ? (
         orders.map((order) => <PendingOrders key={order.id} order={order} />)
         ) : (

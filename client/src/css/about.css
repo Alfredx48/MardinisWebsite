@@ -28,6 +28,18 @@
     color: #262626;
     margin: 2em 0 0.75em;
 }
+.info-div h4{
+  font-family: "adelle";
+    font-size: 26px;
+    line-height: 1.25em;
+    text-transform: none;
+    text-decoration: none;
+    letter-spacing: 1px;
+    font-weight: 300;
+    font-style: normal;
+    color: #262626;
+    margin: 2em 0 0.75em;
+}
 
 .info-div{
   color: black;

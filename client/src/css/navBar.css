@@ -30,17 +30,14 @@
 
 .nav-bar {
 	height: 35px;
-	width: 30vw;
+	width: 40vw;
 	align-items: center;
 	background-color: black;
 	display: flex;
 	justify-content: space-evenly;
-	top: 0px;
-	left: 0px;
-	flex-direction: row;
-	margin: 0 auto;
+	margin: auto;
 	z-index: 1;
-	gap: 15%;
+	gap: 10%;
 }
 .logout-button {
 	max-width: 100%;
@@ -64,21 +61,21 @@
 }
 
 @media (max-width: 700px) {
-	.nav-bar-container {
-		background-color: black;
 
-		justify-content: space-evenly;
-		display: flex;
-		/* margin-top: 30px; */
+	.nav-link{
+		font-size: 7px;
 	}
-	.nav-bar {
-		height: 35px;
+	.logout-button{
+		font-size: 7px;
 
+	}
+	/* .nav-bar-container {
+		flex-wrap: wrap;
+		flex-direction: column;
+		width: 100vw;
 		align-items: center;
-		margin: auto;
-		gap: 10%;
-		justify-content: space-evenly;
-		display: flex;
-		flex-direction: row;
-	}
+	} */
+	.nav-bar {
+
+	} 
 }

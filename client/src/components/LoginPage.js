@@ -70,32 +70,6 @@ function LoginPage({ currentUser, setCurrentUser }) {
 
 				exit={{ x: "-100%", opacity: 0 }}
 			>
-				<div className="error-wrapper">
-					<div className="errors">
-						{/* {!errors
-							? null
-							: errors.map((error, idx) => (
-									<motion.p
-										key={idx}
-										variants={{
-											flash: {
-												y: [-10, 10],
-												transition: {
-													duration: 0.5,
-													yoyo: Infinity,
-												},
-											},
-											exit: { opacity: 0, y: -10 },
-										}}
-										animate="flash"
-										exit="exit"
-										className="error"
-									>
-										{error}
-									</motion.p>
-							  ))} */}
-					</div>
-				</div>
 				{display  === "login" ? (
 					<LoginForm
 						active={active}
