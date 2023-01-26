@@ -27,7 +27,16 @@
   /* border-bottom: 1px solid  rgb(0, 0, 0); */
 
 } 
+.requests{
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
 
+.requests textarea {
+  text-align: center;
+  border-radius: 5px;
+}
 .cart-items {
   display: flex;
   justify-content: space-between;

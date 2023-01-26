@@ -1,64 +1,68 @@
-.about-div{
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  background-color: aliceblue;
-  margin: auto;
-  max-width: 60%;
-  min-width: 60%;
-  max-height: 100%;
-  min-height: 100vh;
-  
+.about-div {
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	background-color: aliceblue;
+	margin: auto;
+	max-width: 60%;
+	min-width: 60%;
+	max-height: 100%;
+	min-height: 100vh;
 }
 
-.about-div img{
-  margin-top: 2%;
-  max-width: 80%;
-  min-width: 80%;
+.about-div img {
+	margin-top: 2%;
+	max-width: 80%;
+	min-width: 80%;
 }
-.info-div h2{
-  font-family: "adelle";
-    font-size: 26px;
-    line-height: 1.25em;
-    text-transform: none;
-    text-decoration: none;
-    letter-spacing: 1px;
-    font-weight: 300;
-    font-style: normal;
-    color: #262626;
-    margin: 2em 0 0.75em;
+.info-div h2 {
+	font-family: "adelle";
+	font-size: 26px;
+	line-height: 1.25em;
+	text-transform: none;
+	text-decoration: none;
+	letter-spacing: 1px;
+	font-weight: 300;
+	font-style: normal;
+	color: #262626;
+	margin: 2em 0 0.75em;
 }
-.info-div h4{
-  font-family: "adelle";
-    font-size: 26px;
-    line-height: 1.25em;
-    text-transform: none;
-    text-decoration: none;
-    letter-spacing: 1px;
-    font-weight: 300;
-    font-style: normal;
-    color: #262626;
-    margin: 2em 0 0.75em;
-}
-
-.info-div{
-  color: black;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.info-div h4 {
+	font-family: "adelle";
+	width: 100%;
+	font-size: 20px;
+	text-transform: none;
+	text-decoration: none;
+	font-weight: 300;
+	font-style: normal;
+	color: #262626;
+	margin: 2em 0 0.75em;
 }
 
-.info-div p{
-  max-width: 70%;
-  min-width: 70%;
-  /* margin-bottom: 10px; */
+.info-div {
+	color: black;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }
 
-
-@media (max-width: 500px) {
-  
-.about-div { 
-  max-width: 100%;
-  min-width: 100%;
+.info-div p {
+	max-width: 70%;
+	min-width: 70%;
+	/* margin-bottom: 10px; */
 }
+
+@media (max-width: 600px) {
+	.about-div {
+		max-width: 100%;
+		min-width: 100%;
+	}
+
+	.info-div h2 {
+		font-size: 20px;
+	}
+
+	.info-div h4 {
+		font-size: 16px;
+	}
 }

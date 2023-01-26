@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CartItems from "./CartItems";
 import "../css/cart.css";
@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { AnimatePresence, motion } from "framer-motion";
 
 function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
+	const [customRequest, setCustomRequest] = useState([]);
 	const TAX_RATE = 0.095;
 	const formatter = new Intl.NumberFormat("en-US", {
 		style: "currency",
@@ -106,7 +107,7 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 			total_cost: cart.total_cost,
 			total_items: cart.total_items,
 			status: "pending",
-			custom_request: "",
+			custom_request: customRequest,
 		};
 		console.log(order);
 		fetch("/api/orders", {
@@ -139,66 +140,75 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 			});
 	};
 
-
 	return (
 		<AnimatePresence>
-
-				
 			<div className="cart-c">
-			<motion.div
-			 initial={{ opacity: 0 }}
-			 animate={{ opacity: 1, transition: { duration: 1 } }}
-			 exit={{ opacity: 0, transition: { duration: 1 } }}
+				<motion.div
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1, transition: { duration: 1 } }}
+					exit={{ opacity: 0, transition: { duration: 1 } }}
 				>
-			<div className="cart">
-				<div className="button-div">
-					<button className="add-button" onClick={() => navigate("/order-now")}>
-						Add More Items
-					</button>
-				</div>
-				<div className="cart-div">{mappedCartItems()}</div>
-				<div>
-					<div className="total-container">
-						<div className="total">
-							{cart.cart_items && cart.cart_items.length > 0 ? (
-								<h4>Sub Total:</h4>
-								) : null}
-							{cart.cart_items && cart.cart_items.length > 0 ? (
-								<h4>Total Cost:</h4>
-								) : null}
-							{cart.cart_items && cart.cart_items.length > 0 ? (
-								<h4>Total Items: </h4>
-								) : null}
+					<div className="cart">
+						<div className="button-div">
+							<button
+								className="add-button"
+								onClick={() => navigate("/order-now")}
+							>
+								Add More Items
+							</button>
 						</div>
-						<div className="total-num">
-							{/* {cart.cart_items && cart.cart_items.length > 0 ? (
+						<div className="cart-div">{mappedCartItems()}</div>
+						<div className="requests">
+							<textarea
+								onChange={(e) => setCustomRequest(e.target.value)}
+								placeholder="Special Requests ?"
+								value={customRequest}
+							></textarea>
+						</div>
+						<div>
+							<div className="total-container">
+								<div className="total">
+									{cart.cart_items && cart.cart_items.length > 0 ? (
+										<h4>Sub Total:</h4>
+									) : null}
+									{cart.cart_items && cart.cart_items.length > 0 ? (
+										<h4>Total Cost:</h4>
+									) : null}
+									{cart.cart_items && cart.cart_items.length > 0 ? (
+										<h4>Total Items: </h4>
+									) : null}
+								</div>
+								<div className="total-num">
+									{/* {cart.cart_items && cart.cart_items.length > 0 ? (
 								<button className="remove-all" onClick={deleteCart}>
 								{" "}
 								Remove all Items
 								</button>
 							) : null} */}
-							{cart.cart_items && cart.cart_items.length > 0 ? (
-								<h4>{formatter.format(cart_total)}</h4>
-								) : null}
-							{cart_total && cart.cart_items && cart.cart_items.length > 0 ? (
-								<h4>{formatter.format(subTotal())}</h4>
-								) : null}
-							{cart.cart_items && cart.cart_items.length > 0 ? (
-								<h4> {cart_items}</h4>
-								) : null}
+									{cart.cart_items && cart.cart_items.length > 0 ? (
+										<h4>{formatter.format(cart_total)}</h4>
+									) : null}
+									{cart_total &&
+									cart.cart_items &&
+									cart.cart_items.length > 0 ? (
+										<h4>{formatter.format(subTotal())}</h4>
+									) : null}
+									{cart.cart_items && cart.cart_items.length > 0 ? (
+										<h4> {cart_items}</h4>
+									) : null}
+								</div>
 							</div>
 						</div>
+						<div className="button-div">
+							<button className="add-button" onClick={submitOrder}>
+								{" "}
+								submit order{" "}
+							</button>
+						</div>
 					</div>
-							<div className="button-div">
-								<button className="add-button" onClick={submitOrder}>
-									{" "}
-									submit order{" "}
-								</button>
-				</div>
+				</motion.div>
 			</div>
-								</motion.div>
-		</div>
-								</AnimatePresence>
+		</AnimatePresence>
 	);
 }
 

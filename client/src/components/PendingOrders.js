@@ -33,7 +33,8 @@ function PendingOrders({ order }) {
     <div onClick={handleDisplayItems} className='orders'>
       <h2> status: {order.status}</h2>
       <p> Total: {formatter.format(order.total_cost)}</p>
-      <p> Items: {order.total_items}</p>
+        <p> Items: {order.total_items}</p>
+        <p> Requests: {order.custom_request}</p>
       <p>{date}</p>
      { displayItems ?  <div className='order-items'>
       {mappedOrderItems()}

@@ -42,38 +42,35 @@
   -khtml-box-shadow: 10px 10px 5px #ccc; */
 }
 .image {
-	max-width: 500px;
+  margin-top: 15px;
+  max-width: 500px;
 	min-width: 400px;
+  /* max-height: 300px;
+	max-height: 300px; */
+  /* object-fit: contain; */
+  border-radius: 10px;
 
 }
 .menu-filter{
   display: flex;
   justify-content: space-between;
-  gap: 20%
+  flex-direction: row;
+  flex-wrap: wrap;
+  max-width: 100%;
+  min-width: 100%;
+  gap: 2%
 } 
 .menu-filter label {
   color: indianred;
   cursor: pointer;
-  padding: 5px;
-  margin: 5px;
+  /* padding: 5px;
+  margin: 5px; */
 }
 
-.menu-filter label:hover {
+/* .menu-filter label:hover {
   background-color: #f2f2f2;
-}
+} */
 
-input[type="checkbox"]:checked + label {
-  font-weight: bold;
-  text-decoration: underline;
-}
-
-input[type="checkbox"] {
-  cursor: pointer;
-}
-
-input[type="checkbox"]:checked {
-  background-color: green;
-}
 
 
 .wrapCheckbox {
@@ -88,7 +85,7 @@ input[type="checkbox"]:checked {
 
   }
   .image {
-    max-width: 450px;
+    max-width: 400px;
     min-width: 400px;
   }
   

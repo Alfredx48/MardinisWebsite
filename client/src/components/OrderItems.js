@@ -3,7 +3,9 @@ import React from "react";
 function OrderItems({ orderItem }) {
 	console.log(orderItem);
 	return (
-		<div>
+    <div>
+      Items: 
+      {" "}
 			<span>{orderItem.quantity}</span> <span>{orderItem.name}</span>
 		</div>
 	);
