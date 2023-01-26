@@ -26,8 +26,8 @@ const Catering = ({ rest }) => {
 			<div className="catering">
 				<img src="https://i.imgur.com/Scnc7hH.png" alt="mardinis logo" />
 				<h2> You plan the party. We do the rest.</h2>
-				<ImageSlideshow images={catringImages} />
 				<h3>Contact us at : {rest.phone} for more infomation</h3>
+				<ImageSlideshow images={catringImages} />
 			</div>
 		</motion.div>
 	);

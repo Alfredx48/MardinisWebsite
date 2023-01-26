@@ -52,6 +52,7 @@
 
 }
 .menu-filter{
+  margin-top: 35px;
   display: flex;
   justify-content: space-between;
   flex-direction: row;

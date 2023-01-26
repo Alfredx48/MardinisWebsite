@@ -1,5 +1,6 @@
 .cart {
-	align-items: center;
+  
+  align-items: center;
 	font-family: "adelle";
 	width: 100vw;
 	max-height: 100%;
@@ -13,6 +14,11 @@
 	background-color: #f2f2f2;
   
 }
+.cart-c{
+  margin-top: 20px;
+
+}
+  
 
 .cart-div {
   display: flex;
