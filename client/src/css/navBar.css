@@ -69,15 +69,14 @@
 		font-size: 7px;
 	}
 	.logout-button {
-		margin-bottom: 8px;
+		margin-bottom: 9px;
 		font-size: 7px;
 	}
-	/* .nav-bar-container {
+	.nav-bar-container {
 		flex-wrap: wrap;
 		flex-direction: column;
 		width: 100vw;
 		align-items: center;
-	} */
-	.nav-bar {
 	}
+
 }

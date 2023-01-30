@@ -23,6 +23,11 @@ function NavBar({ currentUser, setCart, setCartId, setCurrentUser }) {
 				<Link className="nav-link" to="/cart">
 					Cart
 				</Link>
+				{currentUser && currentUser.admin === true ? (
+					<Link className="nav-link" to="/admin">
+						Admin Portal
+					</Link>
+				) : null}
 				{!currentUser ? (
 					<Link className="logout-button" to="/login">
 						Login
@@ -35,11 +40,6 @@ function NavBar({ currentUser, setCart, setCartId, setCurrentUser }) {
 						setCurrentUser={setCurrentUser}
 					/>
 				)}
-				{currentUser && currentUser.admin === true ? (
-					<Link className="nav-link" to="/admin">
-						Admin Portal
-					</Link>
-				) : null}
 			</div>
 		</div>
 	);
