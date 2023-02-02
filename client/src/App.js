@@ -10,6 +10,7 @@ import Cart from "./components/Cart";
 import AdminPage from "./components/AdminPage";
 import Catering from "./components/Catering";
 import { ToastContainer } from "react-toastify";
+import UserOrders from "./components/UserOrders";
 
 function App() {
 	const [currentUser, setCurrentUser] = useState({});
@@ -20,12 +21,17 @@ function App() {
 	const [dataFetched, setDataFetched] = useState(false);
 
 	useEffect(() => {
-		fetch("/api/me").then((r) => {
-			if (r.ok) {
-				r.json().then((user) => setCurrentUser(user));
-			}
-		});
-	}, []);
+		if (newOrder || !dataFetched) {
+			fetch("/api/me").then((r) => {
+				if (r.ok) {
+					r.json().then((user) => {
+						setCurrentUser(user);
+						setNewOrder(false);
+					});
+				}
+			});
+		}
+	}, [newOrder, dataFetched, setNewOrder, setDataFetched]);
 
 	useEffect(() => {
 		if (newOrder || !dataFetched) {
@@ -76,11 +82,10 @@ function App() {
 						}
 					/>
 					<Route
-						path="/catering"
-						element={
-						<Catering rest={restaurant} />
-						}
+						path="/my-orders"
+						element={<UserOrders currentUser={currentUser} />}
 					/>
+					<Route path="/catering" element={<Catering rest={restaurant} />} />
 					<Route
 						path="/"
 						element={

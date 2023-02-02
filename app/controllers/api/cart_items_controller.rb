@@ -2,7 +2,7 @@ class Api::CartItemsController < ApplicationController
   skip_before_action :authorize, only: [:destroy, :index]
   before_action :cart_item, only: [:destroy]
 
-  def index 
+  def index
     render json: CartItem.all
   end
 

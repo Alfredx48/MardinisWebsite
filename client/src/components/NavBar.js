@@ -23,9 +23,12 @@ function NavBar({ currentUser, setCart, setCartId, setCurrentUser }) {
 				<Link className="nav-link" to="/cart">
 					Cart
 				</Link>
-				{currentUser && currentUser.admin === true ? (
+		{	 currentUser ? 	<Link className="nav-link" to="/my-orders">
+					MyOrders
+				</Link> : null}
+				{currentUser && currentUser.admin ? (
 					<Link className="nav-link" to="/admin">
-						Admin Portal
+						Admin
 					</Link>
 				) : null}
 				{!currentUser ? (

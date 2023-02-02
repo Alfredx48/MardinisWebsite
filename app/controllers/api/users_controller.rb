@@ -8,7 +8,7 @@ class Api::UsersController < ApplicationController
   def show
     render json: current_user
   end
-  
+
   def create
     user = User.create!(user_params)
     restaurant_id = Restaurant.first.try(:id)

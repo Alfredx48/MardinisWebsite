@@ -17,5 +17,4 @@ class Api::SessionsController < ApplicationController
     session.delete(:cart_id)
     head :no_content
   end
-
 end

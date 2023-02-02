@@ -6,5 +6,5 @@ class RestaurantSerializer < ActiveModel::Serializer
 
   def orders
     ActiveModel::SerializableResource.new(object.orders.order(created_at: :desc))
-end
+  end
 end

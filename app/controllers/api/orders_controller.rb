@@ -15,6 +15,12 @@ class Api::OrdersController < ApplicationController
     render json: { message: "Order placed successfully.", order: order }, status: :created
   end
 
+  def update 
+    order = Order.find_by(id: params[:id])
+    order.update(order_params)
+    render json: order, status: :accepted 
+  end
+
   private
 
   def order_params

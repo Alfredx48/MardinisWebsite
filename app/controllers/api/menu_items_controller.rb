@@ -1,7 +1,7 @@
 class Api::MenuItemsController < ApplicationController
   skip_before_action :authorize, only: [:index, :show]
 
-  def index 
+  def index
     render json: MenuItem.all
   end
 
@@ -9,5 +9,4 @@ class Api::MenuItemsController < ApplicationController
     menu_item = MenuItem.find(params[:id])
     render json: menu_item
   end
-
 end

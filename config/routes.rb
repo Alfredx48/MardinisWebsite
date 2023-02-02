@@ -1,12 +1,12 @@
 Rails.application.routes.draw do
   namespace :api do
     resources :users
-      resources :cart_items
+    resources :cart_items
     resources :carts
     resources :order_items
     resources :menu_items
     resources :orders
-      resources :restaurants, only: [:index, :show]
+    resources :restaurants, only: [:index, :show]
     get "/me", to: "users#show"
     post "/signup", to: "users#create"
     post "/login", to: "sessions#create"
@@ -19,5 +19,3 @@ Rails.application.routes.draw do
   #     constraints: ->(req) { !req.xhr? && req.format.html? }
   # get "/auth/:provider/callback" => "sessions#omniauth"
 end
-
-
