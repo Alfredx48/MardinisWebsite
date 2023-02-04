@@ -66,7 +66,7 @@ function PendingOrders({ order, setNewOrder, currentUser }) {
 		</div>
         <div className="button-div">
 
-				{currentUser && currentUser.admin ? (
+				{currentUser && currentUser.admin && order.status === "pending" ? (
           <button  onClick={handleOrderComplete}> Order is Complete </button>
           ) : null}
           </div>
