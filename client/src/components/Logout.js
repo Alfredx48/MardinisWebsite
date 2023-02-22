@@ -7,7 +7,7 @@ function Logout({ setCart, setCartId, setCurrentUser }) {
 		fetch("/api/logout", {
 			method: "DELETE",
 		})
-			.then(() => setCurrentUser(""))
+			.then(() => setCurrentUser({}))
 			.then(navigate("/"));
 
 		setCartId([]);

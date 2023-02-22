@@ -28,7 +28,7 @@ function MenuItems({ restaurant, setCartId }) {
 			setMenuItems(restaurant.menu_items);
 		}
 	}, [restaurant]);
-	console.log(restaurant);
+	// console.log(restaurant);
 
 	if (!menuItems) return <h1>...loading</h1>;
 
@@ -51,62 +51,94 @@ function MenuItems({ restaurant, setCartId }) {
 	};
 
 	const mappedMenuItems = () => {
-		let currentCategory = '';
-		return filteredMenuItems().map(mItem => {
+		let currentCategory = "";
+		return filteredMenuItems().map((mItem) => {
 			if (mItem.tag !== currentCategory) {
 				currentCategory = mItem.tag;
 				switch (mItem.tag.toLowerCase()) {
-					case 'wrap':
+					case "wrap":
 						return (
 							<>
 								<ImageSlideshow images={wrapImages} />
-								<MenuItemCard setCartId={setCartId} mItem={mItem} key={mItem.id} />
+								<MenuItemCard
+									setCartId={setCartId}
+									mItem={mItem}
+									key={mItem.id}
+								/>
 							</>
 						);
-					case 'plate':
+					case "plate":
 						return (
 							<>
 								<ImageSlideshow images={plateImages} />
-								<MenuItemCard setCartId={setCartId} mItem={mItem} key={mItem.id} />
+								<MenuItemCard
+									setCartId={setCartId}
+									mItem={mItem}
+									key={mItem.id}
+								/>
 							</>
 						);
-					case 'salad':
+					case "salad":
 						return (
 							<>
 								<ImageSlideshow images={saladImages} />
-								<MenuItemCard setCartId={setCartId} mItem={mItem} key={mItem.id} />
+								<MenuItemCard
+									setCartId={setCartId}
+									mItem={mItem}
+									key={mItem.id}
+								/>
 							</>
 						);
-					case 'burger':
+					case "burger":
 						return (
 							<>
 								<ImageSlideshow images={burgerImages} />
-								<MenuItemCard setCartId={setCartId} mItem={mItem} key={mItem.id} />
+								<MenuItemCard
+									setCartId={setCartId}
+									mItem={mItem}
+									key={mItem.id}
+								/>
 							</>
 						);
-					case 'cold':
+					case "cold":
 						return (
 							<>
 								<ImageSlideshow images={coldImages} />
-								<MenuItemCard setCartId={setCartId} mItem={mItem} key={mItem.id} />
+								<MenuItemCard
+									setCartId={setCartId}
+									mItem={mItem}
+									key={mItem.id}
+								/>
 							</>
 						);
-					case 'grilled':
+					case "grilled":
 						return (
 							<>
 								<ImageSlideshow images={grilledImages} />
-								<MenuItemCard setCartId={setCartId} mItem={mItem} key={mItem.id} />
+								<MenuItemCard
+									setCartId={setCartId}
+									mItem={mItem}
+									key={mItem.id}
+								/>
 							</>
 						);
 					default:
-						return <MenuItemCard setCartId={setCartId} mItem={mItem} key={mItem.id} />;
+						return (
+							<MenuItemCard
+								setCartId={setCartId}
+								mItem={mItem}
+								key={mItem.id}
+							/>
+						);
 				}
 			} else {
-				return <MenuItemCard setCartId={setCartId} mItem={mItem} key={mItem.id} />;
+				return (
+					<MenuItemCard setCartId={setCartId} mItem={mItem} key={mItem.id} />
+				);
 			}
 		});
 	};
-	
+
 	return (
 		<AnimatePresence>
 			<motion.div
@@ -115,7 +147,7 @@ function MenuItems({ restaurant, setCartId }) {
 				exit={{ y: -100, opacity: 0 }}
 				transition={{ duration: 0.5, ease: "easeInOut" }}
 			>
-				<div key={Math.random()*1000000} className="dish-card">
+				<div className="dish-card">
 					<div className="menu-filter">
 						<label>
 							<input
@@ -166,6 +198,7 @@ function MenuItems({ restaurant, setCartId }) {
 							Grilled Sandwiche's
 						</label>
 					</div>
+
 					<div className="menuItems">
 						<div>{mappedMenuItems()}</div>
 					</div>

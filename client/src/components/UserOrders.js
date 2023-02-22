@@ -6,10 +6,9 @@ function UserOrders({ currentUser }) {
 	const navigate = useNavigate();
 	useEffect(() => {
 		if (currentUser && currentUser.orders) setUserOrders(currentUser.orders);
-		console.log(currentUser.orders);
+		// console.log(currentUser.orders);
 	}, [currentUser]);
 
-	console.log(userOrders);
 
 	return (
 		<>

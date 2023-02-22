@@ -6,14 +6,14 @@ const ImageSlideshow = ({ images }) => {
 	useEffect(() => {
 		const intervalId = setInterval(() => {
 			setCurrentImageIndex((currentImageIndex + 1) % images.length);
-		}, 4000); 
+		}, 4000);
 
 		return () => clearInterval(intervalId);
 	}, [currentImageIndex, images.length]);
 
 	return (
 		<div className="image-slideshow">
-			<img className="image"src={images[currentImageIndex]} alt="item" />
+			<img className="image" src={images[currentImageIndex]} alt="item" />
 		</div>
 	);
 };

@@ -1,18 +1,14 @@
 import React from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import "../css/signup.css"
+import "../css/signup.css";
 
 function SignUpForm({
-	errors,
 	formData,
 	handleChange,
 	setCurrentUser,
 	setErrors,
-	navigate,
-	handleBlur,
-	handleFocus,
-	active,
+	navigate
 }) {
 	function handleSubmit(e) {
 		e.preventDefault();
@@ -41,21 +37,18 @@ function SignUpForm({
 					.then(navigate("/"));
 			} else {
 				r.json().then((err) => {
-						err.errors.forEach(error => {
-							toast.error(`${error}`, {
-								position: "top-center",
-								autoClose: 3000,
-								hideProgressBar: false,
-								closeOnClick: true,
-								pauseOnHover: true,
-								draggable: true,
-								progress: undefined,
-								theme: "light",
-
-							})
-
-						})
-					
+					err.errors.forEach((error) => {
+						toast.error(`${error}`, {
+							position: "top-center",
+							autoClose: 3000,
+							hideProgressBar: false,
+							closeOnClick: true,
+							pauseOnHover: true,
+							draggable: true,
+							progress: undefined,
+							theme: "light",
+						});
+					});
 				});
 			}
 		});
@@ -70,10 +63,7 @@ function SignUpForm({
 							Name:
 						</label>
 						<input
-							// className={`input ${active ? "" : "pulse"}`}
 							className="signup-input"
-							onFocus={handleFocus}
-							onBlur={handleBlur}
 							type="text"
 							name="name"
 							value={formData.name}
@@ -86,35 +76,27 @@ function SignUpForm({
 							Email:
 						</label>
 						<input
-							// className={`input ${active ? "" : "pulse"}`}
 							className="signup-input"
-							onFocus={handleFocus}
-							onBlur={handleBlur}
-							type="text"
+							type="email"
 							name="email"
 							value={formData.email}
 							onChange={(e) => handleChange(e)}
 							required
-
 						/>
 					</div>
 				</div>
 				<div className="form-row">
 					<div className="form-col">
 						<label className="signup-label" htmlFor="address">
-							Address:
+							Street Address:
 						</label>
 						<input
-							// className={`input ${active ? "" : "pulse"}`}
 							className="signup-input"
-							onFocus={handleFocus}
-							onBlur={handleBlur}
 							type="text"
 							name="address"
 							value={formData.address}
 							onChange={(e) => handleChange(e)}
 							required
-
 						/>
 					</div>
 					<div className="form-col">
@@ -122,16 +104,12 @@ function SignUpForm({
 							Phone Number:
 						</label>
 						<input
-							// className={`input ${active ? "" : "pulse"}`}
 							className="signup-input"
-							onFocus={handleFocus}
-							onBlur={handleBlur}
-							type="integer"
+							type="tel"
 							name="phone"
 							value={formData.phone}
 							onChange={(e) => handleChange(e)}
 							required
-
 						/>
 					</div>
 				</div>
@@ -147,7 +125,6 @@ function SignUpForm({
 							value={formData.password}
 							onChange={(e) => handleChange(e)}
 							required
-
 						/>
 					</div>
 					<div className="form-col">

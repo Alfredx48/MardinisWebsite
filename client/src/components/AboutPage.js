@@ -14,7 +14,6 @@ function AboutPage({ restaurant }) {
 				<img src="https://i.imgur.com/Scnc7hH.png" alt="mardinis logo" />
 				<div className="info-div">
 					<h2 className="about-l">Located In Beautiful Menlo Park, CA</h2>
-					{/* <h1>{restaurant.name}</h1> */}
 					<h2>{restaurant.address}</h2>
 					<h2> We are Open : </h2>
 					<h2> Monday to Saturday - {restaurant.hours_of_operation} </h2>

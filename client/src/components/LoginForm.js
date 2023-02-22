@@ -1,19 +1,15 @@
 import React from "react";
-import { useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import "../css/login.css"
+import "../css/login.css";
 
 function LoginForm({
 	email,
 	password,
 	handleChange,
-	errors,
 	setErrors,
 	setCurrentUser,
-	handleBlur,
-	handleFocus,
-	active,
 }) {
 	const navigate = useNavigate();
 
@@ -34,29 +30,26 @@ function LoginForm({
 			if (r.ok) {
 				r.json()
 					.then((user) => {
-						console.log(user);
+						// console.log(user);
 						setCurrentUser(user);
 						setErrors([]);
 					})
 					.then(navigate("/"));
 			} else {
 				r.json().then((err) => {
-					setErrors(err.errors)
-						err.errors.forEach(error => {
-							toast.error(`${error}`, {
-								position: "top-center",
-								autoClose: 4500,
-								hideProgressBar: false,
-								closeOnClick: true,
-								pauseOnHover: true,
-								draggable: true,
-								progress: undefined,
-								theme: "light",
-
-							})
-
-						})
-					
+					setErrors(err.errors);
+					err.errors.forEach((error) => {
+						toast.error(`${error}`, {
+							position: "top-center",
+							autoClose: 4500,
+							hideProgressBar: false,
+							closeOnClick: true,
+							pauseOnHover: true,
+							draggable: true,
+							progress: undefined,
+							theme: "light",
+						});
+					});
 				});
 			}
 		});
@@ -64,13 +57,11 @@ function LoginForm({
 
 	return (
 		<div className="login-form-div">
-			<form className="login-form" onSubmit={handleSubmit}>
+			<form className="login-form" onSubmit={handleSubmit} autoComplete="off">
 				<label>Email: </label>
 				<input
-					className={`input ${active ? "" : "pulse"}`}
-					onFocus={handleFocus}
-					onBlur={handleBlur}
-					type="text"
+					className="input"
+					type="email"
 					id="email"
 					name="email"
 					value={email}
@@ -79,9 +70,7 @@ function LoginForm({
 				/>
 				<label>Password: </label>
 				<input
-					className={`input ${active ? "" : "pulse"}`}
-					onFocus={handleFocus}
-					onBlur={handleBlur}
+					className="input"
 					type="password"
 					name="password"
 					id="password"

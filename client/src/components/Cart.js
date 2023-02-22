@@ -92,8 +92,8 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 			);
 		}
 	};
+
 	const { cart_total, cart_items } = calculateTotals(cart);
-	// debugger
 
 	const submitOrder = () => {
 		if (!cart.total_cost || cart.total_items <= 0) {
@@ -109,7 +109,7 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 			status: "pending",
 			custom_request: customRequest,
 		};
-		console.log(order);
+		// console.log(order);
 		fetch("/api/orders", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
@@ -117,13 +117,13 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 		})
 			.then((response) => response.json())
 			.then((order) => {
-				console.log(order);
+				// console.log(order);
 				localStorage.removeItem("cartId");
 				setCartId([]);
 				setCart([]);
 				deleteCart();
 				setNewOrder(true);
-				setCustomRequest("")
+				setCustomRequest("");
 				toast(" Your Order has been Submit!", {
 					position: "top-center",
 					autoClose: 3000,
@@ -134,10 +134,9 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 					progress: undefined,
 					theme: "light",
 				});
-				// navigate("/");
 			})
 			.catch((error) => {
-				console.log(error);
+				// console.log(error);
 			});
 	};
 
@@ -180,12 +179,6 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 									) : null}
 								</div>
 								<div className="total-num">
-									{/* {cart.cart_items && cart.cart_items.length > 0 ? (
-								<button className="remove-all" onClick={deleteCart}>
-								{" "}
-								Remove all Items
-								</button>
-							) : null} */}
 									{cart.cart_items && cart.cart_items.length > 0 ? (
 										<h4>{formatter.format(cart_total)}</h4>
 									) : null}

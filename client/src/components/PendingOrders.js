@@ -16,11 +16,11 @@ function PendingOrders({ order, setNewOrder, currentUser }) {
 
 	useEffect(() => {
 		if (order) setOrderItems(order.order_items);
-		console.log(order);
+		// console.log(order);
 	}, [order]);
 
 	const mappedOrderItems = () => {
-		console.log(order);
+		// console.log(order);
 		if (!orderItems) return <h1>hi</h1>;
 		return orderItems.map((orderItem) => (
 			<OrderItems key={orderItem.id} orderItem={orderItem} />
@@ -45,7 +45,7 @@ function PendingOrders({ order, setNewOrder, currentUser }) {
 			.then((r) => r.json())
 			.then((data) => {
 				setNewOrder(true);
-				console.log(data);
+				// console.log(data);
 			});
 	};
   return (

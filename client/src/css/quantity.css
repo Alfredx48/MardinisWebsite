@@ -1,11 +1,11 @@
 .quantity-div {
-  display: flex;
-  align-items: center;
+	display: flex;
+	align-items: center;
 }
 
 .quantity-div input {
 	max-width: 25px;
-  max-height: 20px;
+	max-height: 20px;
 	text-align: center;
 	border: 1px solid gray;
 	border-radius: 5px;
@@ -19,4 +19,3 @@
 	border: none;
 	background-color: transparent;
 }
-

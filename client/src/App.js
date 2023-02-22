@@ -112,7 +112,7 @@ function App() {
 					<Route
 						path="/order-now"
 						element={
-							<MenuItems restaurant={restaurant} setCartId={setCartId} />
+							<MenuItems  restaurant={restaurant} setCartId={setCartId} />
 						}
 					/>
 					<Route

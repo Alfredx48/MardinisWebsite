@@ -16,7 +16,12 @@ function AdminPage({ restaurant, setNewOrder, currentUser }) {
 				<div>
 					{orders && orders.length ? (
 						orders.map((order) => (
-              <PendingOrders currentUser={currentUser} setNewOrder={setNewOrder} key={order.id} order={order} />
+							<PendingOrders
+								currentUser={currentUser}
+								setNewOrder={setNewOrder}
+								key={order.id}
+								order={order}
+							/>
 						))
 					) : (
 						<h1>...loading</h1>

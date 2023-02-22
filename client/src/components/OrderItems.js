@@ -1,7 +1,7 @@
 import React from "react";
 
 function OrderItems({ orderItem }) {
-	console.log(orderItem);
+	// console.log(orderItem);
 	return (
     <div>
       Items: 

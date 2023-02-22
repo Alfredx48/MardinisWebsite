@@ -1,12 +1,11 @@
 import React from "react";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrash } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import "../css/cart.css";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 function CartItems({ cartItem, setCart, formatter }) {
-	// const [updatedQuan, setUpatedQuan] = useState(cartItem.quantity);
 	async function removeItem(cartItemId) {
 		try {
 			const response = await fetch(`/api/cart_items/${cartItemId}`, {
@@ -40,19 +39,19 @@ function CartItems({ cartItem, setCart, formatter }) {
 	}
 	return (
 		<div className="cart-items">
-			<span>
-				{cartItem.item_name}
-			</span>
+			<span>{cartItem.item_name}</span>
 			<span>
 				<span>x</span> {cartItem.quantity}
 			</span>
-				<span className="item-price">  {formatter.format(cartItem.item_total)} </span>
+			<span className="item-price">
+				{" "}
+				{formatter.format(cartItem.item_total)}{" "}
+			</span>
 			<p>{cartItem.special_request}</p>
-			{/* <Quantity quantity={updatedQuan} setQuantity={setUpatedQuan} /> */}
 			<div className="trash-div">
-			<button className="trash"  onClick={() => removeItem(cartItem.id)}><FontAwesomeIcon icon={faTrash}   size="lg" />
- </button>
-
+				<button className="trash" onClick={() => removeItem(cartItem.id)}>
+					<FontAwesomeIcon icon={faTrash} size="lg" />
+				</button>
 			</div>
 		</div>
 	);

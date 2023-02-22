@@ -2,7 +2,6 @@ import { useState } from "react";
 import Quantity from "./Quantity";
 import "../css/menuItemCard.css";
 import { toast } from "react-toastify";
-// import 'react-toastify/dist/ReactToastify.css';
 
 function MenuItemCard({ mItem, setCartId }) {
 	const [quantity, setQuantity] = useState(1);
@@ -14,16 +13,19 @@ function MenuItemCard({ mItem, setCartId }) {
 			special_request: "",
 		};
 		if (isNaN(quantity) || quantity < 1 || quantity > 50) {
-			toast.error("Invalid Quantity, please enter a valid Quantity between 1 and 50", {
-				position: "top-right",
-				autoClose: 500,
-				hideProgressBar: false,
-				closeOnClick: true,
-				pauseOnHover: true,
-				draggable: true,
-				progress: undefined,
-				theme: "light",
-			});
+			toast.error(
+				"Invalid Quantity, please enter a valid Quantity between 1 and 50",
+				{
+					position: "top-right",
+					autoClose: 500,
+					hideProgressBar: false,
+					closeOnClick: true,
+					pauseOnHover: true,
+					draggable: true,
+					progress: undefined,
+					theme: "light",
+				}
+			);
 			return;
 		}
 		fetch("/api/carts", {
@@ -34,9 +36,9 @@ function MenuItemCard({ mItem, setCartId }) {
 			.then((response) => response.json())
 			.then((cart) => {
 				setCartId(cart.cart_id);
-				setQuantity(1)
+				setQuantity(1);
 				localStorage.setItem("cartId", cart.cart_id);
-				console.log(cart);
+				// console.log(cart);
 				toast.success("Item added to cart!", {
 					position: "top-right",
 					autoClose: 500,
@@ -49,13 +51,12 @@ function MenuItemCard({ mItem, setCartId }) {
 				});
 			})
 			.catch((error) => {
-				console.log(error);
+				// console.log(error);
 			});
 	};
 
 	return (
-		<div className="menu-item">
-			{/* <img src={mItem.image} alt={mItem.name} /> */}
+		<div  className="menu-item">
 			<h4>{mItem.name}</h4>
 			<p>{mItem.description}</p>
 			<p className="price">{mItem.formatted_price}</p>
