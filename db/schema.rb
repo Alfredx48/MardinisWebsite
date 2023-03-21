@@ -64,6 +64,7 @@ ActiveRecord::Schema.define(version: 2023_01_13_182752) do
     t.string "custom_request"
     t.integer "user_id"
     t.integer "restaurant_id"
+    t.string "payment_intent_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end

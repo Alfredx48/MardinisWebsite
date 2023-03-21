@@ -5,6 +5,8 @@ import "../css/cart.css";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AnimatePresence, motion } from "framer-motion";
+import { CardElement, useStripe, useElements, PaymentElement } from "@stripe/react-stripe-js";
+
 
 function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 	const [customRequest, setCustomRequest] = useState("");
@@ -14,6 +16,9 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 		currency: "USD",
 	});
 	const navigate = useNavigate();
+	const stripe = useStripe();
+	const elements = useElements();
+	console.log(stripe, elements)
 	function calculateTotals(cart) {
 		let cart_total = 0;
 		let cart_items = 0;
@@ -95,7 +100,7 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 
 	const { cart_total, cart_items } = calculateTotals(cart);
 
-	const submitOrder = () => {
+	const submitOrder = (paymentMethodId) => {
 		if (!cart.total_cost || cart.total_items <= 0) {
 			return toast.error("Order can't be submitted with 0 items or cost ");
 		}
@@ -104,10 +109,11 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 		const order = {
 			cart_id: cartID,
 			user_id: userId,
-			total_cost: cart.total_cost,
+			total_cost: subTotal(),
 			total_items: cart.total_items,
 			status: "pending",
 			custom_request: customRequest,
+			payment_method_id: paymentMethodId,
 		};
 		// console.log(order);
 		fetch("/api/orders", {
@@ -136,8 +142,51 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 				});
 			})
 			.catch((error) => {
-				// console.log(error);
+				console.log(error);
 			});
+	};
+
+	const handlePayment = async (event) => {
+		event.preventDefault();
+		if (!stripe || !elements) {
+			return;
+		}
+
+		const cardElement = elements.getElement(CardElement);
+
+		const { error, paymentMethod } = await stripe.createPaymentMethod({
+			type: "card",
+			card: cardElement,
+		});
+
+		if (error) {
+			console.error("Error:", error);
+		} else {
+			const paymentIntentResponse = await fetch(
+				"/api/create_payment_intent",
+				{
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ total_cost: subTotal() }),
+				}
+			);
+
+			const paymentIntentData = await paymentIntentResponse.json();
+			const confirmResult = await stripe.confirmCardPayment(
+				paymentIntentData.client_secret,
+				{
+					payment_method: paymentMethod.id,
+				}
+			);
+
+			if (confirmResult.error) {
+				console.error("Error:", confirmResult.error);
+			} else {
+				if (confirmResult.paymentIntent.status === "succeeded") {
+					submitOrder(paymentMethod.id);
+				}
+			}
+		}
 	};
 
 	return (
@@ -193,11 +242,13 @@ function Cart({ cartId, setCartId, currentUser, cart, setCart, setNewOrder }) {
 								</div>
 							</div>
 						</div>
-						<div className="button-div">
-							<button className="add-button" onClick={submitOrder}>
-								{" "}
-								submit order{" "}
-							</button>
+						<div className="stripe-div">
+							<form onSubmit={handlePayment}>
+								<CardElement />
+								<button type="submit" disabled={!stripe}>
+									Submit Order
+								</button>
+							</form>
 						</div>
 					</div>
 				</motion.div>
