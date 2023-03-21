@@ -11,8 +11,9 @@ Rails.application.routes.draw do
     post "/signup", to: "users#create"
     post "/login", to: "sessions#create"
     delete "/logout", to: "sessions#destroy"
-
     delete "/remove_item", to: "carts#remove_item"
+    post '/create_payment_intent', to: 'orders#create_payment_intent'
+
   end
   # get "*path",
   #     to: "fallback#index",

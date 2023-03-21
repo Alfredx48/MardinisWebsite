@@ -11,6 +11,9 @@ import AdminPage from "./components/AdminPage";
 import Catering from "./components/Catering";
 import { ToastContainer } from "react-toastify";
 import UserOrders from "./components/UserOrders";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+
 
 function App() {
 	const [currentUser, setCurrentUser] = useState({});
@@ -19,6 +22,9 @@ function App() {
 	const [cart, setCart] = useState([]);
 	const [newOrder, setNewOrder] = useState(false);
 	const [dataFetched, setDataFetched] = useState(false);
+	
+	
+	const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY)
 
 	useEffect(() => {
 		if (newOrder || !dataFetched) {
@@ -117,15 +123,19 @@ function App() {
 					/>
 					<Route
 						path="/cart"
-						element={
-							<Cart
-								setNewOrder={setNewOrder}
-								cart={cart}
-								setCart={setCart}
-								currentUser={currentUser}
-								cartId={cartId}
-								setCartId={setCartId}
-							/>
+						element={(
+							
+							<Elements stripe={stripePromise}>
+              <Cart
+                setNewOrder={setNewOrder}
+                cart={cart}
+                setCart={setCart}
+                currentUser={currentUser}
+                cartId={cartId}
+                setCartId={setCartId}
+								/>
+            </Elements>
+								)
 						}
 					/>
 				</Routes>
