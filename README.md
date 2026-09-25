@@ -31,7 +31,7 @@ Set these in Render (or a local `.env`; see `.env.example`):
 
 | Variable | Needed for |
 | --- | --- |
-| `DATABASE_URL` | Production database (Render sets this) |
+| `DATABASE_URL` | Production database: the Supabase Session pooler connection string |
 | `STRIPE_SECRET_KEY` | Card payments. Without it, only pay-at-pickup is offered |
 | `STRIPE_PUBLISHABLE_KEY` | Card payments (sent to the browser by the API) |
 | `STRIPE_WEBHOOK_SECRET` | Optional backup that marks orders paid if a customer closes the tab mid-payment. Point a Stripe webhook for `payment_intent.succeeded` at `/api/stripe/webhook` |
@@ -50,9 +50,9 @@ Order lines store the item name and price at the time of ordering, so editing th
 
 ## Deploying to Render
 
-`render.yaml` is a Render Blueprint describing the web service and its database.
+`render.yaml` is a Render Blueprint describing the web service. The database is hosted on Supabase (free tier), not Render.
 
-**New setup:** Render dashboard → **New → Blueprint** → choose this repo. Render creates the `mardinis` web service and `mardinis-db` Postgres database, generates `SECRET_KEY_BASE`, and asks for the Stripe keys and first admin login.
+**New setup:** Render dashboard → **New → Blueprint** → choose this repo. Render creates the `mardinis` web service, generates `SECRET_KEY_BASE`, and asks for `DATABASE_URL` (the Supabase **Session pooler** connection string), the Stripe keys, and the first admin login.
 
 **Existing Render service:** keep it (and its database) and update its settings to match `render.yaml`:
 - Build command `./bin/render-build.sh`, start command `bundle exec puma -C config/puma.rb`, health check path `/up`
@@ -60,4 +60,4 @@ Order lines store the item name and price at the time of ordering, so editing th
 
 Every deploy runs `bin/render-build.sh`: install gems, build React into `public/`, run migrations, run seeds. Seeds are safe to run on every deploy: they only fill an empty database and never delete anything.
 
-To use a Supabase database instead of Render's, delete the `databases:` section and the `fromDatabase` block from `render.yaml`, and set `DATABASE_URL` to Supabase's connection string.
+**Database (Supabase):** in the Supabase project, click **Connect** and copy the **Session pooler** string (port 5432, not the transaction pooler on 6543), fill in the password, and set it as `DATABASE_URL` on Render. The first deploy creates all tables. Turn off Supabase's auto-generated Data API, since the app doesn't use it and it could expose tables directly.

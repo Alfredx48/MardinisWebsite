@@ -1,13 +1,7 @@
-# Render Blueprint: creates the web service and its Postgres database.
+# Render Blueprint for the web service (React site + Rails API).
+# The database lives on Supabase, so no Render database is created.
 # Dashboard → New → Blueprint → pick this repo. Values marked `sync: false`
 # are prompted for on first deploy and never stored in git.
-databases:
-  - name: mardinis-db
-    databaseName: mardinis
-    user: mardinis
-    plan: basic-256mb
-    region: oregon
-
 services:
   - type: web
     name: mardinis
@@ -19,10 +13,9 @@ services:
     startCommand: bundle exec puma -C config/puma.rb
     healthCheckPath: /up
     envVars:
+      # Supabase "Session pooler" connection string (port 5432)
       - key: DATABASE_URL
-        fromDatabase:
-          name: mardinis-db
-          property: connectionString
+        sync: false
       - key: RAILS_ENV
         value: production
       - key: SECRET_KEY_BASE
