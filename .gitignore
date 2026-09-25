@@ -32,3 +32,6 @@
 
 #Ignore for google auth
 /.env
+
+# Local copy of the Supabase connection string (contains the DB password)
+/.env.supabase
