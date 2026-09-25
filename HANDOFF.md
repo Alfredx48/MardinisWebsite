@@ -6,7 +6,7 @@ Context for a new Claude Code session picking up this project. Written 2026-09-2
 
 - Family restaurant website + online ordering + admin/kitchen portal for **Mardini's Deli Cafe**, 408 Willow Rd, Menlo Park, CA (a real business run by the owner's family).
 - **Live:** https://mardinismenlopark.com (also https://mardinis.onrender.com). Auto-deploys from `main` on GitHub `Alfredx48/MardinisWebsite`.
-- **Stack:** Ruby 3.4.10 / Rails 8.1.4 API + React 18 (Create React App) SPA, Postgres on Supabase, hosted on Render.
+- **Stack:** Ruby 3.4.10 / Rails 8.1.4 API + React 18 SPA built with Vite, Postgres on Supabase, hosted on Render.
 - **State:** a full overhaul was completed, tested, merged and deployed. All 46 RSpec specs pass.
 - **Next tasks (owner's priorities):**
   1. Find working food photos for the menu (6 broken links, 36 items with no photo).
@@ -25,9 +25,9 @@ Context for a new Claude Code session picking up this project. Written 2026-09-2
 - Ruby via **rbenv** (`~/.rbenv`). Shell PATH needs `export PATH="$HOME/.rbenv/shims:$PATH"`. `.ruby-version` = 3.4.10 (3.4.11 is also installed; don't switch, Render compatibility).
 - Node 24 locally (nvm), Node 22 on Render (`.node-version`). Local Postgres is running (WSL).
 - Local DBs (names kept from the bootcamp template): `react_rails_api_project_template_development` / `_test`. Dev data includes a dev-only admin `admin@example.com` / `password123` and a couple of test orders.
-- `bin/dev` runs Rails on :3000 + React dev server on :4000 (open http://localhost:4000; the React dev server proxies `/api` to :3000).
-- **Phone testing via ngrok:** `ngrok http 4000`, and start React with `DANGEROUSLY_DISABLE_HOST_CHECK=true`. Rails dev already allows `*.ngrok-free.app` / `*.ngrok.app` / `*.ngrok.io` (`config/environments/development.rb`).
-- Tests: `bundle exec rspec` (46 examples: checkout pricing, Stripe flow (mocked), access control, admin API, hours/pickup slots). Frontend: `cd client && npx eslint --max-warnings=0 src` and `npm run build`.
+- `bin/dev` runs Rails on :3000 + Vite dev server on :4000 (open http://localhost:4000; Vite proxies `/api` to :3000).
+- **Phone testing via ngrok:** `ngrok http 4000`; Vite's dev server already allows ngrok hosts (`client/vite.config.js`). Rails dev already allows `*.ngrok-free.app` / `*.ngrok.app` / `*.ngrok.io` (`config/environments/development.rb`).
+- Tests: `bundle exec rspec` (46 examples: checkout pricing, Stripe flow (mocked), access control, admin API, hours/pickup slots). Frontend: `npm run lint --prefix client` and `npm run build --prefix client`.
 - **Headless browser testing** worked last session but isn't installed permanently. To recreate: `npm i playwright-core` in a scratch dir, and use the cached Chromium headless shell at `~/.cache/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-linux64/chrome-headless-shell`. It needs `libnspr4 libnss3 libasound2t64`: `apt-get download` them (no sudo), `dpkg-deb -x` them into a dir, and set `LD_LIBRARY_PATH=<dir>/usr/lib/x86_64-linux-gnu`. `dig` isn't installed; use `https://dns.google/resolve?name=...&type=A` for DNS checks.
 
 ## Production setup
@@ -120,7 +120,7 @@ The current image status (checked 2026-09-25 against the live `/api/menu`; item 
 
 **Gaps to address:**
 - **PWA install.**
-  - `client/public/manifest.json` exists (`display: standalone`, `start_url: "."`), but its icons are **CRA's default React logo** (verified for `logo192.png`; `logo512.png` and `favicon.ico` are almost certainly the same CRA defaults). An installed app would show the React atom, so replace them with Mardini's icons.
+  - `client/public/manifest.json` exists (`display: standalone`, `start_url: "."`), but its icons are **Create React App's default React logo** (verified for `logo192.png`; `logo512.png` and `favicon.ico` are almost certainly the same defaults). An installed app would show the React atom, so replace them with Mardini's icons.
   - There's no service worker. Chrome's install prompt may require one, so add a minimal one or use a `workbox`-style setup; don't cache `/api` responses.
   - Consider a separate kitchen manifest/`start_url` (e.g. `/admin/orders` or a new `/kitchen` route) so the installed app opens straight to the board.
 - **iPad/iOS specifics:**
@@ -147,6 +147,4 @@ The current image status (checked 2026-09-25 against the live `/api/menu`; item 
 - Confirm `SECRET_KEY_BASE` is spelled right in Render, and that Card payments is off (or live Stripe keys are in).
 - Check the tax rate in Admin → Settings: it's still **9.5%**, a legacy value, and Menlo Park's actual rate is unverified. Also check the hours (Mon–Sat 9–9, Sun 10–8 by default) and the prep time (20 min).
 - The owner's admin login is whatever `ADMIN_EMAIL`/`ADMIN_PASSWORD` were set in Render (created by the first seed). There's no password-reset flow yet; an admin can't be recovered without console or DB access.
-- CRA (`react-scripts` 5) is deprecated. It builds fine, but migrating to Vite is a worthwhile later task.
-- `client/.env` (tracked) holds an old `pk_test_` publishable key. The server-provided key takes precedence, so this is harmless, but it can be cleaned up.
 - No transactional email (order confirmation, catering notifications). Stripe sends receipts for card payments only.

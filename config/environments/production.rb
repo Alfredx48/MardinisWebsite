@@ -1,4 +1,5 @@
 require "active_support/core_ext/integer/time"
+require_relative "../../lib/middleware/immutable_assets"
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
@@ -12,9 +13,14 @@ Rails.application.configure do
   # Full error reports are disabled.
   config.consider_all_requests_local = false
 
-  # The React build in public/ is served by Rails. Its static/ files have
-  # fingerprinted names, so browsers can cache them for a year.
-  config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.year.to_i}" }
+  # The React build in public/ is served by Rails. Hashed files in assets/ are
+  # cached for a year (see ImmutableAssets); icons and the manifest for an hour.
+  config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.hour.to_i}" }
+  config.middleware.insert_before ActionDispatch::Static, ImmutableAssets
+  # Never serve index.html as a static file: it names the current asset files,
+  # so a cached copy would break after the next deploy. "/" goes through
+  # FallbackController instead, which makes browsers revalidate it.
+  config.public_file_server.index_name = "no-static-index"
 
   # Render terminates SSL at its proxy; trust it and redirect plain HTTP to HTTPS.
   config.assume_ssl = true

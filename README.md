@@ -18,12 +18,11 @@ bin/rails db:setup   # creates the DB, loads the schema and seeds the menu
 bin/dev              # API on :3000 + React on http://localhost:4000
 ```
 
-To test on a phone through ngrok, run `ngrok http 4000` and start the React server with
-`DANGEROUSLY_DISABLE_HOST_CHECK=true` (development only).
+To test on a phone through ngrok, run `ngrok http 4000`; the Vite dev server already accepts ngrok hosts.
 
 In development the seeds create an admin login `admin@example.com` / `password123` if no admin exists yet.
 
-Run the backend tests with `bundle exec rspec`.
+Run the backend tests with `bundle exec rspec`, and lint the front end with `npm run lint --prefix client`.
 
 ## Configuration
 

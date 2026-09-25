@@ -41,6 +41,7 @@ Rails.application.routes.draw do
   end
 
   # Let React Router handle every other page (e.g. refreshing /menu or /admin).
+  root "fallback#index"
   get "*path",
       to: "fallback#index",
       constraints: ->(req) { !req.xhr? && req.format.html? }

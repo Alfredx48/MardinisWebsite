@@ -340,7 +340,7 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 
 function PaymentStep({ payment, restaurant, onBack }) {
 	// The server's key must win: it always matches the secret key that created the payment.
-	const key = restaurant.payments.stripe_publishable_key || process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY;
+	const key = restaurant.payments.stripe_publishable_key;
 	const stripePromise = getStripe(key);
 	const options = useMemo(
 		() => ({
