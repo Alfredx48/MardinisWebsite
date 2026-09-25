@@ -1,6 +1,7 @@
 require_relative "boot"
 
 require "rails"
+require "active_support/core_ext/integer/time"
 # Pick the frameworks you want:
 require "active_model/railtie"
 require "active_record/railtie"
@@ -27,7 +28,9 @@ module Mardinis
 
     # Cookie-based sessions for logins, which API-only apps leave out by default.
     config.middleware.use ActionDispatch::Cookies
-    config.middleware.use ActionDispatch::Session::CookieStore, key: "_mardinis_session"
+    # The cookie is renewed on every request, so a login lasts until 30 days of
+    # not using the site. The kitchen tablet stays signed in across app restarts.
+    config.middleware.use ActionDispatch::Session::CookieStore, key: "_mardinis_session", expire_after: 30.days
 
     # Use SameSite=Strict for all cookies to help protect against CSRF
     # https://owasp.org/www-community/SameSite

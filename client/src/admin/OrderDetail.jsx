@@ -5,6 +5,7 @@ import { faBan, faPrint, faRotateLeft, faUser } from "@fortawesome/free-solid-sv
 import { api } from "../api";
 import { formatDateTime, formatTime, money, telHref, todayInRestaurant } from "../format";
 import { Modal, QuantityStepper } from "../components/ui";
+import { useAuth } from "../context/AuthContext";
 import { useAdmin } from "./AdminContext";
 import { FormErrors, PaymentBadge, StatusBadge } from "./adminUi";
 import {
@@ -36,10 +37,33 @@ export function nextActionLabel(order) {
 // Reason picker used by the board's cancel dialog and the detail modal.
 function CancelForm({ order, onDone, onBack }) {
 	const { updateOrder, refundOrder } = useAdmin();
+	const { user } = useAuth();
 	const [reason, setReason] = useState("");
 	const [busy, setBusy] = useState(false);
 	const [errors, setErrors] = useState(null);
 	const paidOnline = canRefund(order);
+	// Kitchen staff can't refund, so they can't cancel orders paid online either.
+	const needsManager = paidOnline && !user?.admin;
+
+	if (needsManager) {
+		return (
+			<>
+				<div className="modal-body">
+					<h2 className="adm-modal-title">Cancel order #{order.number}?</h2>
+					<div className="notice">
+						This order was paid online ({money(order.total)}), so it has to be refunded when it's cancelled.
+						Ask a manager to cancel it from the admin.
+					</div>
+				</div>
+				<div className="modal-footer">
+					<span className="spacer" />
+					<button type="button" className="btn btn-secondary" onClick={onBack}>
+						Go back
+					</button>
+				</div>
+			</>
+		);
+	}
 
 	const submit = async (refund) => {
 		setBusy(true);
@@ -445,6 +469,7 @@ function NotesEditor({ order, onSaved }) {
 // Full order view. `onUpdated(order)` lets the opener refresh its own copy.
 export default function OrderDetail({ order: initial, onClose, onUpdated }) {
 	const { updateOrder, printOrder } = useAdmin();
+	const { user } = useAuth();
 	const [order, setOrder] = useState(initial);
 	const [mode, setMode] = useState("view");
 	const [busy, setBusy] = useState(false);
@@ -648,7 +673,7 @@ export default function OrderDetail({ order: initial, onClose, onUpdated }) {
 							Cancel
 						</button>
 					)}
-					{canRefund(order) && (
+					{user?.admin && canRefund(order) && (
 						<button type="button" className="btn btn-ghost adm-text-danger" onClick={() => setMode("refund")}>
 							<FontAwesomeIcon icon={faRotateLeft} />
 							Refund

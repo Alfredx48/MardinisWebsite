@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -8,6 +9,7 @@ import {
 	faCommentDots,
 	faPrint,
 	faRotate,
+	faTabletScreenButton,
 	faVolumeHigh,
 	faVolumeXmark,
 	faWifi,
@@ -25,6 +27,22 @@ const COLUMNS = [
 	{ status: "ready", title: "Ready", empty: "Nothing waiting for pickup." },
 ];
 const LATE_MINUTES = 15;
+
+// 0 (on track) to 3 (overdue): colors the kitchen screen's tickets. ASAP orders go by
+// how long ago they were placed; scheduled ones by how soon they're due.
+function urgency(order) {
+	if (order.status === "ready") return 0;
+	if (order.pickup_at) {
+		const minutesLeft = (new Date(order.pickup_at).getTime() - Date.now()) / 60000;
+		if (minutesLeft > 15) return 0;
+		if (minutesLeft > 5) return 1;
+		return minutesLeft > 0 ? 2 : 3;
+	}
+	const age = minutesAgo(placedAt(order));
+	if (age < 5) return 0;
+	if (age < 10) return 1;
+	return age < LATE_MINUTES ? 2 : 3;
+}
 
 // After a ticket advances it jumps to the next column, and whatever slides under the
 // finger could be another order's button. Swallow taps that follow too quickly.
@@ -103,13 +121,22 @@ function Ticket({ order, onOpen, onCancel }) {
 	};
 
 	return (
-		<article className={`adm-ticket is-${order.status}${late ? " is-late" : ""}`} aria-label={`Order ${order.number}`}>
+		<article
+			className={`adm-ticket is-${order.status} is-urgency-${urgency(order)}${late ? " is-late" : ""}`}
+			aria-label={`Order ${order.number}`}
+		>
 			<header className="adm-ticket-head">
 				<button type="button" className="adm-ticket-number" onClick={() => onOpen(order)}>
 					#{order.number}
 				</button>
 				<span className={`adm-age${late ? " is-late" : ""}`} title={`Placed at ${formatTime(placedAt(order))}`}>
-					{age < 1 ? "just now" : `${age} min ago`}
+					{age < 1 ? (
+						"just now"
+					) : (
+						<>
+							{age} min<span className="adm-age-ago"> ago</span>
+						</>
+					)}
 				</span>
 				<OverflowMenu
 					label={`More actions for order ${order.number}`}
@@ -172,18 +199,85 @@ function Ticket({ order, onOpen, onCancel }) {
 	);
 }
 
-export default function LiveOrders() {
-	const { orders, ordersError, refreshOrders, soundOn, setSoundOn, audioReady, enableAudio } = useAdmin();
+// The New / Preparing / Ready columns, shared by Live Orders and the kitchen screen.
+export function OrderBoard() {
+	const { orders, ordersError, refreshOrders } = useAdmin();
 	const [detail, setDetail] = useState(null);
 	const [cancelling, setCancelling] = useState(null);
 	const [mobileColumn, setMobileColumn] = useState("new");
 	useNow(30000);
 
-	const byStatus = (status) => (orders || []).filter((o) => o.status === status);
+	if (!orders) {
+		return ordersError ? (
+			<EmptyState title="Couldn't load orders">
+				<button type="button" className="btn btn-secondary" onClick={refreshOrders}>
+					Try again
+				</button>
+			</EmptyState>
+		) : (
+			<Spinner label="Loading orders" />
+		);
+	}
+
+	const byStatus = (status) => orders.filter((o) => o.status === status);
+
+	return (
+		<>
+			<div className="segmented adm-board-tabs" role="group" aria-label="Show column">
+				{COLUMNS.map((c) => (
+					<button
+						type="button"
+						key={c.status}
+						aria-pressed={mobileColumn === c.status}
+						onClick={() => setMobileColumn(c.status)}
+					>
+						{c.title} ({byStatus(c.status).length})
+					</button>
+				))}
+			</div>
+			<div className="adm-board">
+				{COLUMNS.map((c) => {
+					const list = byStatus(c.status);
+					return (
+						<section
+							key={c.status}
+							className={`adm-column is-${c.status}${mobileColumn === c.status ? " is-current" : ""}`}
+							aria-label={`${c.title} orders`}
+						>
+							<h2 className="adm-column-title">
+								{c.title}
+								<span className="adm-column-count">{list.length}</span>
+							</h2>
+							{list.length === 0 ? (
+								<p className="adm-column-empty">{c.empty}</p>
+							) : (
+								<div className="adm-column-list">
+									{list.map((o) => (
+										<Ticket key={o.id} order={o} onOpen={setDetail} onCancel={setCancelling} />
+									))}
+								</div>
+							)}
+						</section>
+					);
+				})}
+			</div>
+
+			{detail && <OrderDetail order={detail} onClose={() => setDetail(null)} />}
+			{cancelling && <CancelDialog order={cancelling} onClose={() => setCancelling(null)} />}
+		</>
+	);
+}
+
+export default function LiveOrders() {
+	const { orders, ordersError, refreshOrders, soundOn, setSoundOn, audioReady, enableAudio } = useAdmin();
 
 	return (
 		<div className="adm-page adm-page-wide">
 			<PageHeader title="Live orders" subtitle="Updates automatically every 10 seconds.">
+				<Link to="/kitchen" className="btn btn-secondary">
+					<FontAwesomeIcon icon={faTabletScreenButton} />
+					Kitchen screen
+				</Link>
 				{soundOn && !audioReady ? (
 					<button type="button" className="btn btn-primary" onClick={enableAudio}>
 						<FontAwesomeIcon icon={faVolumeHigh} />
@@ -205,7 +299,7 @@ export default function LiveOrders() {
 				</button>
 			</PageHeader>
 
-			{ordersError && (
+			{ordersError && orders && (
 				<div className="notice adm-mb" role="alert">
 					<FontAwesomeIcon icon={faWifi} />
 					<span>
@@ -214,61 +308,7 @@ export default function LiveOrders() {
 				</div>
 			)}
 
-			{!orders ? (
-				ordersError ? (
-					<EmptyState title="Couldn't load orders">
-						<button type="button" className="btn btn-secondary" onClick={refreshOrders}>
-							Try again
-						</button>
-					</EmptyState>
-				) : (
-					<Spinner label="Loading orders" />
-				)
-			) : (
-				<>
-					<div className="segmented adm-board-tabs" role="group" aria-label="Show column">
-						{COLUMNS.map((c) => (
-							<button
-								type="button"
-								key={c.status}
-								aria-pressed={mobileColumn === c.status}
-								onClick={() => setMobileColumn(c.status)}
-							>
-								{c.title} ({byStatus(c.status).length})
-							</button>
-						))}
-					</div>
-					<div className="adm-board">
-						{COLUMNS.map((c) => {
-							const list = byStatus(c.status);
-							return (
-								<section
-									key={c.status}
-									className={`adm-column is-${c.status}${mobileColumn === c.status ? " is-current" : ""}`}
-									aria-label={`${c.title} orders`}
-								>
-									<h2 className="adm-column-title">
-										{c.title}
-										<span className="adm-column-count">{list.length}</span>
-									</h2>
-									{list.length === 0 ? (
-										<p className="adm-column-empty">{c.empty}</p>
-									) : (
-										<div className="adm-column-list">
-											{list.map((o) => (
-												<Ticket key={o.id} order={o} onOpen={setDetail} onCancel={setCancelling} />
-											))}
-										</div>
-									)}
-								</section>
-							);
-						})}
-					</div>
-				</>
-			)}
-
-			{detail && <OrderDetail order={detail} onClose={() => setDetail(null)} />}
-			{cancelling && <CancelDialog order={cancelling} onClose={() => setCancelling(null)} />}
+			<OrderBoard />
 		</div>
 	);
 }

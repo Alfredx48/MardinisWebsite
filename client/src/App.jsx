@@ -21,6 +21,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import PolicyPage from "./pages/PolicyPage";
 
 const AdminApp = lazy(() => import("./admin/AdminApp"));
+const KitchenApp = lazy(() => import("./admin/KitchenApp"));
 
 function ScrollToTop() {
 	const { pathname } = useLocation();
@@ -51,7 +52,7 @@ function RequireUser({ admin = false, children }) {
 	const location = useLocation();
 	if (loading) return <Spinner />;
 	if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
-	if (admin && !user.admin) return <Navigate to="/" replace />;
+	if (admin && !user.admin) return <Navigate to={user.kitchen ? "/kitchen" : "/"} replace />;
 	return children;
 }
 
@@ -71,6 +72,15 @@ export default function App() {
 										<AdminApp />
 									</Suspense>
 								</RequireUser>
+							}
+						/>
+						{/* Signs in on its own screen so the installed kitchen app never leaves it. */}
+						<Route
+							path="/kitchen/*"
+							element={
+								<Suspense fallback={<Spinner />}>
+									<KitchenApp />
+								</Suspense>
 							}
 						/>
 						<Route element={<SiteLayout />}>

@@ -52,6 +52,70 @@ RSpec.describe "Access control", type: :request do
     expect(response).to have_http_status(:ok)
   end
 
+  describe "kitchen staff" do
+    let(:cook) { create_user(kitchen: true) }
+    let!(:item) { create_item(restaurant) }
+
+    around { |ex| travel_to(lunchtime) { ex.run } }
+    before { log_in(cook) }
+
+    def place_order(**attrs)
+      order = Checkout.new(restaurant: restaurant, user: nil, params: {
+        payment_method: "in_store", customer: { name: "Kim", phone: "555" }, items: [{ menu_item_id: item.id, quantity: 1 }],
+      }).call
+      order.save!
+      order.mark_placed!
+      order.update!(attrs) if attrs.any?
+      order
+    end
+
+    it "sees the live board and moves orders along" do
+      order = place_order
+      get "/api/admin/orders", params: { scope: "active" }
+      expect(json["orders"].map { |o| o["id"] }).to eq([order.id])
+
+      get "/api/admin/orders/#{order.id}"
+      expect(response).to have_http_status(:ok)
+
+      patch "/api/admin/orders/#{order.id}", params: { status: "preparing" }, as: :json
+      expect(order.reload.status).to eq("preparing")
+    end
+
+    it "can cancel pay-at-pickup orders but not orders paid online" do
+      in_store = place_order
+      patch "/api/admin/orders/#{in_store.id}", params: { status: "cancelled", cancel_reason: "Sold out" }, as: :json
+      expect(in_store.reload.status).to eq("cancelled")
+
+      paid = place_order(payment_method: "card", payment_status: "paid", payment_intent_id: "pi_1")
+      patch "/api/admin/orders/#{paid.id}", params: { status: "cancelled" }, as: :json
+      expect(response).to have_http_status(:forbidden)
+      expect(paid.reload.status).to eq("new")
+    end
+
+    it "can't refund, browse order history or reach the rest of the admin" do
+      order = place_order(payment_method: "card", payment_status: "paid", payment_intent_id: "pi_1")
+      expect(Stripe::Refund).not_to receive(:create)
+      post "/api/admin/orders/#{order.id}/refund", params: { cancel: true }, as: :json
+      expect(response).to have_http_status(:forbidden)
+
+      get "/api/admin/orders", params: { q: "kim" }
+      expect(response).to have_http_status(:forbidden)
+
+      %w[/api/admin/stats /api/admin/users /api/admin/categories /api/admin/restaurant /api/admin/catering_inquiries].each do |path|
+        get path
+        expect(response).to have_http_status(:forbidden), path
+      end
+      patch "/api/admin/users/#{cook.id}", params: { role: "admin" }, as: :json
+      expect(response).to have_http_status(:forbidden)
+      expect(cook.reload.admin).to be(false)
+    end
+  end
+
+  it "keeps people logged in for 30 days of inactivity" do
+    log_in(customer)
+    expect(response.headers["set-cookie"]).to match(/_mardinis_session=.*expires=/i)
+  end
+
   it "requires the current password to change a password" do
     log_in(customer)
     patch "/api/me", params: { password: "newpassword1" }, as: :json

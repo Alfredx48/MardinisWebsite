@@ -69,6 +69,11 @@ export default function Header() {
 											Admin
 										</Link>
 									)}
+									{user.kitchen && !user.admin && (
+										<Link to="/kitchen" className="nav-link nav-admin">
+											Kitchen
+										</Link>
+									)}
 									<NavLink to="/account" className="nav-link">
 										<FontAwesomeIcon icon={faUser} /> {user.name.split(" ")[0]}
 									</NavLink>

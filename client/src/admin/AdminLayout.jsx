@@ -13,6 +13,7 @@ import {
 	faGaugeHigh,
 	faGear,
 	faRightFromBracket,
+	faTabletScreenButton,
 	faUsers,
 	faUtensils,
 	faVolumeHigh,
@@ -27,6 +28,7 @@ function NavItems({ newOrderCount, newCatering }) {
 	const links = [
 		{ to: "/admin", label: "Dashboard", icon: faGaugeHigh, end: true },
 		{ to: "/admin/orders", label: "Live Orders", icon: faBellConcierge, count: newOrderCount, urgent: true },
+		{ to: "/kitchen", label: "Kitchen Screen", icon: faTabletScreenButton },
 		{ to: "/admin/history", label: "Order History", icon: faClockRotateLeft },
 		{ to: "/admin/menu", label: "Menu", icon: faUtensils },
 		{ to: "/admin/catering", label: "Catering", icon: faChampagneGlasses, count: newCatering },
@@ -159,7 +161,7 @@ function PausedBanner() {
 }
 
 // Big, sticky alert for orders cancelled while the kitchen may be working on them.
-function CancelledBanner() {
+export function CancelledBanner() {
 	const { cancelAlerts, dismissCancelAlert } = useAdmin();
 	if (!cancelAlerts.length) return null;
 	return (

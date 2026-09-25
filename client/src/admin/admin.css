@@ -2052,10 +2052,9 @@
 }
 
 /* --------------------------------------------------------------- customers */
-.adm-admin-toggle {
-	display: inline-flex;
-	align-items: center;
-	gap: 10px;
+.adm-role-select.select {
+	width: auto;
+	min-width: 150px;
 }
 
 .adm-user-card {

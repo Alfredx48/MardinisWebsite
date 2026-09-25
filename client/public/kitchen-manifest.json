@@ -1,0 +1,16 @@
+{
+  "id": "/kitchen",
+  "short_name": "Kitchen",
+  "name": "Mardini's Kitchen",
+  "description": "Incoming orders for the Mardini's kitchen.",
+  "icons": [
+    { "src": "/kitchen-icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any maskable" },
+    { "src": "/kitchen-icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any maskable" }
+  ],
+  "start_url": "/kitchen",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["fullscreen", "standalone"],
+  "theme_color": "#1c1814",
+  "background_color": "#1c1814"
+}

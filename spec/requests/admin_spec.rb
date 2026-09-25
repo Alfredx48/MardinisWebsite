@@ -217,10 +217,26 @@ RSpec.describe "Admin portal API", type: :request do
   describe "users" do
     it "promotes customers but won't let admins demote themselves" do
       customer = create_user
-      patch "/api/admin/users/#{customer.id}", params: { admin: true }, as: :json
+      patch "/api/admin/users/#{customer.id}", params: { role: "admin" }, as: :json
       expect(customer.reload.admin).to be(true)
 
-      patch "/api/admin/users/#{admin.id}", params: { admin: false }, as: :json
+      patch "/api/admin/users/#{admin.id}", params: { role: "kitchen" }, as: :json
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(admin.reload.role).to eq("admin")
+    end
+
+    it "gives and takes away kitchen access" do
+      cook = create_user
+      patch "/api/admin/users/#{cook.id}", params: { role: "kitchen" }, as: :json
+      expect(json).to include("role" => "kitchen", "kitchen" => true, "admin" => false)
+
+      get "/api/admin/users", params: { staff: "true" }
+      expect(json.map { |u| u["id"] }).to contain_exactly(admin.id, cook.id)
+
+      patch "/api/admin/users/#{cook.id}", params: { role: "customer" }, as: :json
+      expect(cook.reload).to have_attributes(admin: false, kitchen: false)
+
+      patch "/api/admin/users/#{cook.id}", params: { role: "owner" }, as: :json
       expect(response).to have_http_status(:unprocessable_content)
     end
   end

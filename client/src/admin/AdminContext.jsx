@@ -11,16 +11,23 @@ const AdminContext = createContext(null);
 const ACTIVE = ["new", "preparing", "ready"];
 const ORDER_POLL_MS = 10000;
 const CATERING_POLL_MS = 60000;
+// The kitchen screen repeats the chime until someone acknowledges the new order.
+const REPEAT_ALERT_MS = 20000;
 
 // Shared state for every admin screen: restaurant settings, the live (active) orders
 // feed with new-order alerts, sidebar counts, sound preference and ticket printing.
 // Orders are polled here rather than on the board so alerts ring on any admin page.
-export function AdminProvider({ children }) {
+// `kitchen` is the kitchen screen: orders only (kitchen staff can't load settings or
+// catering), a louder chime, and alerts that repeat until acknowledged.
+export function AdminProvider({ children, kitchen = false, title }) {
 	const { refresh: refreshSite } = useRestaurant();
 
 	const [settings, setSettings] = useState(null);
 	const [orders, setOrders] = useState(null);
 	const [ordersError, setOrdersError] = useState(null);
+	const [ordersUpdatedAt, setOrdersUpdatedAt] = useState(null);
+	// New orders nobody has acknowledged yet (kitchen screen only).
+	const [unackedIds, setUnackedIds] = useState([]);
 	const [newCatering, setNewCatering] = useState(0);
 	const [soundOn, setSoundOnState] = useState(() => readPref("sound", true));
 	const [audioReady, setAudioReady] = useState(() => getAudioContext()?.state === "running");
@@ -40,10 +47,11 @@ export function AdminProvider({ children }) {
 
 	/* ------------------------------------------------------------- settings */
 	useEffect(() => {
+		if (kitchen) return;
 		api.get("/admin/restaurant")
 			.then(setSettings)
 			.catch((e) => toast.error(e.message));
-	}, []);
+	}, [kitchen]);
 
 	const saveSettings = useCallback(
 		async (attrs) => {
@@ -63,24 +71,26 @@ export function AdminProvider({ children }) {
 			try {
 				const fresh = await api.get(`/admin/orders/${order.id}`);
 				if (fresh.status !== "cancelled") continue;
-				if (soundOnRef.current) playChime();
+				if (soundOnRef.current) playChime({ loud: kitchen });
 				setCancelAlerts((list) => (list.some((a) => a.id === fresh.id) ? list : [...list, fresh]));
 			} catch {
 				// The next poll will show the current state anyway.
 			}
 		}
-	}, []);
+	}, [kitchen]);
 
 	const announce = useCallback((fresh) => {
-		if (soundOnRef.current) playChime();
-		if (fresh.length > 3) {
+		if (soundOnRef.current) playChime({ loud: kitchen });
+		if (kitchen) {
+			setUnackedIds((ids) => [...ids, ...fresh.map((o) => o.id)]);
+		} else if (fresh.length > 3) {
 			toast.info(`${fresh.length} new orders just came in`, { autoClose: 8000 });
 		} else {
 			fresh.forEach((o) =>
 				toast.info(`New order #${o.number} from ${o.customer_name}`, { autoClose: 8000 })
 			);
 		}
-	}, []);
+	}, [kitchen]);
 
 	const loadOrders = useCallback(async () => {
 		const version = mutationVersion.current;
@@ -105,6 +115,7 @@ export function AdminProvider({ children }) {
 			list.forEach((o) => knownIds.current.add(o.id));
 			setOrders(list);
 			setOrdersError(null);
+			setOrdersUpdatedAt(Date.now());
 		} catch (e) {
 			setOrdersError(e);
 		}
@@ -158,36 +169,60 @@ export function AdminProvider({ children }) {
 
 	const newOrderCount = orders ? orders.filter((o) => o.status === "new").length : 0;
 
+	// An alert clears itself once the order leaves "New" (started, cancelled...).
+	const newAlerts = useMemo(
+		() => (orders || []).filter((o) => o.status === "new" && unackedIds.includes(o.id)),
+		[orders, unackedIds]
+	);
+	const acknowledgeAlerts = useCallback(() => setUnackedIds([]), []);
+
+	useEffect(() => {
+		if (!newAlerts.length) return undefined;
+		const id = setInterval(() => {
+			if (soundOnRef.current) playChime({ loud: true });
+		}, REPEAT_ALERT_MS);
+		return () => clearInterval(id);
+	}, [newAlerts.length]);
+
 	// "(2) Mardini's admin" in the tab so new orders are visible from other tabs.
-	const baseTitle = useRef(document.title.replace(/^\(\d+\)\s*/, ""));
+	const [originalTitle] = useState(() => document.title.replace(/^\(\d+\)\s*/, ""));
+	const baseTitle = title || originalTitle;
 	useEffect(() => {
-		document.title = newOrderCount ? `(${newOrderCount}) ${baseTitle.current}` : baseTitle.current;
-	}, [newOrderCount]);
-	useEffect(() => {
-		const original = baseTitle.current;
-		return () => {
-			document.title = original;
-		};
-	}, []);
+		document.title = newOrderCount ? `(${newOrderCount}) ${baseTitle}` : baseTitle;
+	}, [newOrderCount, baseTitle]);
+	useEffect(
+		() => () => {
+			document.title = originalTitle;
+		},
+		[originalTitle]
+	);
 
 	/* ------------------------------------------------------------- catering */
 	const loadCatering = useCallback(async () => {
+		if (kitchen) return;
 		try {
 			const list = await api.get("/admin/catering_inquiries?status=new");
 			setNewCatering(list.length);
 		} catch {
 			// Sidebar count only; errors surface on the catering page itself.
 		}
-	}, []);
+	}, [kitchen]);
 	const refreshCatering = usePolling(loadCatering, CATERING_POLL_MS);
 
 	/* ---------------------------------------------------------------- sound */
 	useEffect(() => {
-		// Any click/tap/keypress in the admin unlocks audio for later chimes.
-		const unlock = () => unlockAudio().then(setAudioReady);
-		document.addEventListener("pointerdown", unlock, { once: true, capture: true });
-		document.addEventListener("keydown", unlock, { once: true, capture: true });
+		// Any click/tap/keypress in the admin unlocks audio for later chimes. iPads
+		// suspend audio again when the app goes to the background, so keep listening.
+		const ctx = getAudioContext();
+		const unlock = () => {
+			if (ctx?.state !== "running") unlockAudio();
+		};
+		const onStateChange = () => setAudioReady(ctx.state === "running");
+		ctx?.addEventListener("statechange", onStateChange);
+		document.addEventListener("pointerdown", unlock, { capture: true });
+		document.addEventListener("keydown", unlock, { capture: true });
 		return () => {
+			ctx?.removeEventListener("statechange", onStateChange);
 			document.removeEventListener("pointerdown", unlock, { capture: true });
 			document.removeEventListener("keydown", unlock, { capture: true });
 		};
@@ -199,16 +234,17 @@ export function AdminProvider({ children }) {
 		if (on) {
 			const ready = await unlockAudio();
 			setAudioReady(ready);
-			if (ready) playChime();
+			if (ready) playChime({ loud: kitchen });
 		}
-	}, []);
+	}, [kitchen]);
 
 	const enableAudio = useCallback(async () => {
 		const ready = await unlockAudio();
 		setAudioReady(ready);
-		if (ready) playChime();
+		if (ready) playChime({ loud: kitchen });
 		else toast.error("This browser blocked sound. Check its site settings.");
-	}, []);
+		return ready;
+	}, [kitchen]);
 
 	/* ------------------------------------------------------------- printing */
 	// Wrapped in a fresh object so printing the same order twice still triggers.
@@ -237,11 +273,14 @@ export function AdminProvider({ children }) {
 			saveSettings,
 			orders,
 			ordersError,
+			ordersUpdatedAt,
 			refreshOrders,
 			updateOrder,
 			refundOrder,
 			applyOrder,
 			newOrderCount,
+			newAlerts,
+			acknowledgeAlerts,
 			newCatering,
 			refreshCatering,
 			soundOn,
@@ -257,11 +296,14 @@ export function AdminProvider({ children }) {
 			saveSettings,
 			orders,
 			ordersError,
+			ordersUpdatedAt,
 			refreshOrders,
 			updateOrder,
 			refundOrder,
 			applyOrder,
 			newOrderCount,
+			newAlerts,
+			acknowledgeAlerts,
 			newCatering,
 			refreshCatering,
 			soundOn,

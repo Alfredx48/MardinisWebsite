@@ -11,6 +11,20 @@ class User < ApplicationRecord
   validates :name, presence: true
   validates :phone, presence: true
 
+  ROLES = %w[customer kitchen admin].freeze
+
+  def role
+    if admin then "admin"
+    elsif kitchen then "kitchen"
+    else "customer"
+    end
+  end
+
+  # Admins and kitchen staff both use the kitchen screen.
+  def staff?
+    admin || kitchen
+  end
+
   private
 
   def email_is_unique

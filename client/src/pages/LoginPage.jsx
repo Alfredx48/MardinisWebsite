@@ -32,7 +32,10 @@ export default function LoginPage() {
 		setBusy(true);
 		try {
 			const u = mode === "login" ? await login(form.email, form.password) : await signup(form);
-			navigate(u.admin && destination === "/" ? "/admin" : destination, { replace: true });
+			let home = destination;
+			if (destination === "/" && u.admin) home = "/admin";
+			else if (destination === "/" && u.kitchen) home = "/kitchen";
+			navigate(home, { replace: true });
 		} catch (err) {
 			setErrors(err.errors?.length ? err.errors : [err.message]);
 			setBusy(false);

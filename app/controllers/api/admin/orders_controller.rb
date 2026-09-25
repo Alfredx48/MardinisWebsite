@@ -1,6 +1,11 @@
 class Api::Admin::OrdersController < Api::Admin::BaseController
   PER_PAGE = 30
 
+  # Kitchen staff may use the live board: see active orders and move them along.
+  # Order history, refunds and cancelling orders paid online stay admin-only.
+  skip_before_action :require_admin, except: [:refund]
+  before_action :require_staff
+
   rescue_from Stripe::StripeError, with: ->(e) { render_errors "Stripe error: #{e.message}", :bad_gateway }
 
   # Kitchen board: GET /api/admin/orders?scope=active
@@ -13,6 +18,7 @@ class Api::Admin::OrdersController < Api::Admin::BaseController
       orders = orders.active.order(Arel.sql("COALESCE(pickup_at, placed_at) ASC"))
       return render json: { orders: orders.map { |o| Presenters.admin_order(o) }, server_time: Time.current }
     end
+    return require_admin unless current_user.admin
 
     orders = orders.where(status: params[:status]) if Order::STATUSES.include?(params[:status])
     orders = orders.where(payment_method: params[:payment_method]) if Order::PAYMENT_METHODS.include?(params[:payment_method])
@@ -51,6 +57,10 @@ class Api::Admin::OrdersController < Api::Admin::BaseController
       order.update!(admin_notes: params[:admin_notes].to_s.first(1000))
     end
     if params[:status].present? && params[:status] != order.status
+      if params[:status] == "cancelled" && !current_user.admin && order.refundable_amount.positive?
+        return render_errors "This order was paid online. Ask a manager to refund and cancel it.", :forbidden
+      end
+
       order.advance_to!(params[:status], reason: params[:cancel_reason].presence)
     end
     render json: Presenters.admin_order(order)

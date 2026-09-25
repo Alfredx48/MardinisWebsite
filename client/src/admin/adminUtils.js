@@ -178,7 +178,16 @@ export function getAudioContext() {
 export async function unlockAudio() {
 	const ctx = getAudioContext();
 	if (!ctx) return false;
-	if (ctx.state === "suspended") {
+	// iPhone/iPad: play through the speaker even when the device is set to silent.
+	if (navigator.audioSession) {
+		try {
+			navigator.audioSession.type = "playback";
+		} catch {
+			// Older Safari versions may reject this.
+		}
+	}
+	// "interrupted" is iOS after the app was in the background or a call came in.
+	if (ctx.state !== "running") {
 		try {
 			await ctx.resume();
 		} catch {
@@ -189,7 +198,8 @@ export async function unlockAudio() {
 }
 
 // A bright two-note "ding-dong", repeated twice so it's hard to miss over a busy counter.
-export function playChime() {
+// `loud` (the kitchen screen) uses a brighter wave that cuts through kitchen noise.
+export function playChime({ loud = false } = {}) {
 	const ctx = getAudioContext();
 	if (!ctx || ctx.state !== "running") return;
 	const notes = [
@@ -202,10 +212,10 @@ export function playChime() {
 		const start = ctx.currentTime + offset;
 		const osc = ctx.createOscillator();
 		const gain = ctx.createGain();
-		osc.type = "sine";
+		osc.type = loud ? "triangle" : "sine";
 		osc.frequency.value = freq;
 		gain.gain.setValueAtTime(0.0001, start);
-		gain.gain.exponentialRampToValueAtTime(0.35, start + 0.02);
+		gain.gain.exponentialRampToValueAtTime(loud ? 0.5 : 0.35, start + 0.02);
 		gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.5);
 		osc.connect(gain).connect(ctx.destination);
 		osc.start(start);

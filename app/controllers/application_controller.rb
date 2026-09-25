@@ -25,6 +25,10 @@ class ApplicationController < ActionController::API
     render json: { errors: ["Admins only."] }, status: :forbidden unless current_user&.admin
   end
 
+  def require_staff
+    render json: { errors: ["Staff only."] }, status: :forbidden unless current_user&.staff?
+  end
+
   def render_errors(errors, status = :unprocessable_content)
     render json: { errors: Array(errors) }, status: status
   end

@@ -1,0 +1,535 @@
+/* Kitchen screen (/kitchen): the Live Orders board made for a wall- or counter-mounted
+   tablet. Bigger type and buttons, all three columns side by side, nothing else. */
+
+.adm-kitchen {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+	min-height: 100dvh;
+	background: var(--cream);
+	/* No double-tap zoom or long-press text selection on a busy counter. */
+	touch-action: manipulation;
+	-webkit-user-select: none;
+	user-select: none;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.adm-kitchen input,
+.adm-kitchen textarea {
+	-webkit-user-select: text;
+	user-select: text;
+}
+
+/* ------------------------------------------------------------------ top bar */
+.adm-k-bar {
+	position: sticky;
+	top: 0;
+	z-index: 32;
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 8px clamp(12px, 2vw, 20px);
+	padding-top: max(8px, env(safe-area-inset-top));
+	background: var(--charcoal);
+	color: #e9e1d4;
+}
+
+.adm-k-brand {
+	display: flex;
+	flex-direction: column;
+	line-height: 1.05;
+}
+
+.adm-k-brand-name {
+	font-family: var(--font-display);
+	font-size: 1.3rem;
+	font-weight: 700;
+}
+
+.adm-k-brand-sub {
+	font-size: 0.72rem;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--saffron);
+}
+
+.adm-k-clock {
+	font-size: 1.45rem;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+.adm-k-conn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 5px 12px;
+	border-radius: 999px;
+	font-size: 0.88rem;
+	font-weight: 600;
+	white-space: nowrap;
+	background: rgba(255, 255, 255, 0.08);
+}
+
+.adm-k-conn-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: #4cc47a;
+}
+
+.adm-k-conn.is-bad {
+	background: var(--danger);
+	color: #fff;
+}
+
+.adm-k-conn.is-bad .adm-k-conn-dot {
+	background: #fff;
+	animation: adm-k-blink 1s steps(2, start) infinite;
+}
+
+.adm-k-conn-age {
+	opacity: 0.7;
+	font-weight: 500;
+}
+
+.adm-k-hint {
+	font-size: 0.82rem;
+	color: var(--saffron);
+	white-space: nowrap;
+}
+
+.adm-k-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 44px;
+	padding: 0 16px;
+	border: 1px solid rgba(255, 255, 255, 0.18);
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.08);
+	color: inherit;
+	font: 600 0.95rem var(--font-body);
+	text-decoration: none;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.adm-k-btn:hover {
+	background: rgba(255, 255, 255, 0.16);
+}
+
+.adm-k-btn.is-off {
+	border-color: var(--saffron);
+	color: var(--saffron);
+}
+
+.adm-k-bar .adm-icon-btn {
+	color: inherit;
+}
+
+.adm-k-bar .adm-icon-btn:hover:not(:disabled) {
+	background: rgba(255, 255, 255, 0.16);
+	color: #fff;
+}
+
+.adm-k-bar .adm-menu-list {
+	color: var(--ink);
+}
+
+@media (max-width: 1000px) {
+	.adm-k-hide-narrow,
+	.adm-k-hint,
+	.adm-k-conn-age {
+		display: none;
+	}
+}
+
+@media (max-width: 640px) {
+	.adm-k-clock,
+	.adm-k-btn span {
+		display: none;
+	}
+	.adm-k-bar {
+		gap: 8px;
+	}
+}
+
+/* ------------------------------------------------------------------ banners */
+.adm-kitchen .adm-cancelled {
+	top: 0;
+	position: relative;
+}
+
+.adm-k-alert {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	padding: 14px clamp(12px, 2vw, 20px);
+	background: var(--terracotta);
+	color: #fff;
+	animation: adm-k-alert-pulse 1.2s ease-in-out infinite alternate;
+}
+
+.adm-k-alert-bell {
+	font-size: 1.8rem;
+	flex-shrink: 0;
+	animation: adm-k-ring 1.2s ease-in-out infinite;
+}
+
+.adm-k-alert-text {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.adm-k-alert-text strong {
+	font-size: 1.5rem;
+	line-height: 1.2;
+}
+
+.adm-k-alert-text span {
+	font-size: 1.05rem;
+	opacity: 0.95;
+}
+
+.adm-k-alert .btn {
+	min-width: 140px;
+	flex-shrink: 0;
+	font-size: 1.15rem;
+}
+
+/* A thick flashing frame around the whole screen while a new order waits. */
+.adm-kitchen.is-alerting::after {
+	content: "";
+	position: fixed;
+	inset: 0;
+	z-index: 70;
+	pointer-events: none;
+	box-shadow: inset 0 0 0 8px var(--terracotta);
+	animation: adm-k-frame 1.2s ease-in-out infinite alternate;
+}
+
+.adm-k-offline {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 12px clamp(12px, 2vw, 20px);
+	background: var(--danger);
+	color: #fff;
+	font-size: 1rem;
+}
+
+.adm-k-offline svg {
+	font-size: 1.3rem;
+	flex-shrink: 0;
+}
+
+/* -------------------------------------------------------------------- board */
+.adm-k-main {
+	flex: 1;
+	padding: 12px clamp(8px, 1.5vw, 16px);
+	padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+.adm-kitchen .adm-column {
+	padding: 10px;
+}
+
+.adm-kitchen .adm-column-title {
+	font-size: 1.15rem;
+}
+
+.adm-kitchen .adm-column-count {
+	min-width: 32px;
+	height: 32px;
+	font-size: 1rem;
+}
+
+.adm-kitchen .adm-column-empty {
+	font-size: 1.05rem;
+}
+
+/* Tablets, portrait or landscape: all three columns, each scrolling on its own. */
+@media (min-width: 640px) {
+	.adm-kitchen {
+		height: 100vh;
+		height: 100dvh;
+	}
+	.adm-k-main {
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+	}
+	.adm-kitchen .adm-board-tabs {
+		display: none;
+	}
+	.adm-kitchen .adm-board {
+		flex: 1;
+		min-height: 0;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: clamp(8px, 1.2vw, 14px);
+		align-items: stretch;
+	}
+	.adm-kitchen .adm-column {
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+	}
+	.adm-kitchen .adm-column-list {
+		flex: 1;
+		min-height: 0;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		-webkit-overflow-scrolling: touch;
+		margin: 0 -4px;
+		padding: 0 4px 8px;
+	}
+}
+
+/* ------------------------------------------------------------------ tickets */
+.adm-kitchen .adm-ticket {
+	gap: 10px;
+	padding: 14px;
+	border-left-width: 8px;
+}
+
+.adm-kitchen .adm-ticket-number {
+	font-size: 1.6rem;
+}
+
+.adm-kitchen .adm-ticket-name {
+	font-size: 1.25rem;
+}
+
+.adm-kitchen .adm-ticket-pickup {
+	font-size: 1.05rem;
+}
+
+.adm-kitchen .adm-ticket-items li {
+	font-size: 1.2rem;
+	line-height: 1.3;
+}
+
+.adm-kitchen .adm-ticket-qty {
+	min-width: 36px;
+}
+
+.adm-kitchen .adm-special {
+	font-size: 1rem;
+	padding: 3px 10px;
+}
+
+.adm-kitchen .adm-request {
+	font-size: 1.05rem;
+	font-weight: 600;
+}
+
+.adm-kitchen .adm-advance.btn {
+	min-height: 64px;
+	font-size: 1.2rem;
+	font-weight: 700;
+}
+
+/* Portrait tablets: narrower columns, so a more compact ticket header. */
+@media (max-width: 1000px) and (min-width: 640px) {
+	.adm-kitchen .adm-ticket-head {
+		gap: 4px;
+		margin-right: 0;
+	}
+	.adm-kitchen .adm-ticket-number {
+		font-size: 1.35rem;
+	}
+	.adm-kitchen .adm-age {
+		padding: 3px 8px;
+		font-size: 0.82rem;
+	}
+	.adm-kitchen .adm-ticket-head .adm-icon-btn {
+		width: 36px;
+	}
+}
+
+@media (max-width: 800px) and (min-width: 640px) {
+	.adm-kitchen .adm-ticket {
+		padding: 12px 10px;
+		border-left-width: 6px;
+	}
+	.adm-kitchen .adm-age-ago {
+		display: none;
+	}
+}
+
+/* Elapsed-time scale: green → yellow → orange → red. */
+.adm-kitchen .adm-age {
+	padding: 4px 10px;
+	border-radius: 999px;
+	font-size: 0.95rem;
+	font-weight: 700;
+}
+
+.adm-kitchen .is-urgency-0 .adm-age {
+	background: var(--success-tint);
+	color: var(--success);
+}
+
+.adm-kitchen .is-urgency-1 .adm-age {
+	background: var(--saffron-tint);
+	color: #7a4f06;
+}
+
+.adm-kitchen .is-urgency-2 .adm-age {
+	background: var(--warning);
+	color: #fff;
+}
+
+.adm-kitchen .adm-ticket.is-urgency-3 {
+	background: #fff4f2;
+	border-color: #f1c3bd;
+	border-left-color: var(--danger);
+}
+
+.adm-kitchen .is-urgency-3 .adm-age {
+	background: var(--danger);
+	color: #fff;
+}
+
+.adm-kitchen .adm-ticket.is-ready .adm-age {
+	background: var(--cream-deep);
+	color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ start overlay */
+.adm-k-start {
+	position: fixed;
+	inset: 0;
+	z-index: 80;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 14px;
+	padding: 24px;
+	border: none;
+	background: rgba(28, 24, 20, 0.94);
+	color: #fbf7f0;
+	font-family: var(--font-body);
+	text-align: center;
+	cursor: pointer;
+}
+
+.adm-k-start-icon {
+	display: grid;
+	place-items: center;
+	width: 120px;
+	height: 120px;
+	margin-bottom: 8px;
+	border-radius: 50%;
+	background: var(--terracotta);
+	font-size: 3rem;
+	animation: adm-k-alert-pulse 1.2s ease-in-out infinite alternate;
+}
+
+.adm-k-start-title {
+	font-family: var(--font-display);
+	font-size: clamp(2rem, 5vw, 3rem);
+	font-weight: 700;
+}
+
+.adm-k-start-sub {
+	max-width: 32rem;
+	font-size: 1.15rem;
+	color: #d8cfc2;
+}
+
+/* ------------------------------------------------------------ login & help */
+.adm-k-login {
+	display: grid;
+	place-items: center;
+	min-height: 100vh;
+	min-height: 100dvh;
+	padding: 24px 16px;
+	background: var(--charcoal);
+}
+
+.adm-k-login-card {
+	width: 100%;
+	max-width: 420px;
+	padding: 28px;
+}
+
+.adm-k-login-brand {
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 16px;
+	line-height: 1.1;
+}
+
+.adm-k-login-brand .adm-k-brand-name {
+	font-size: 2rem;
+}
+
+.adm-k-login-brand .adm-k-brand-sub {
+	font-size: 0.85rem;
+	color: var(--terracotta);
+}
+
+.adm-k-help ol,
+.adm-k-help ul {
+	padding-left: 1.3em;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.adm-k-help h3 {
+	margin: 20px 0 6px;
+	font-family: var(--font-body);
+	font-size: 1rem;
+}
+
+/* --------------------------------------------------------------- animation */
+@keyframes adm-k-blink {
+	to {
+		opacity: 0.2;
+	}
+}
+
+@keyframes adm-k-alert-pulse {
+	to {
+		background: var(--terracotta-dark);
+	}
+}
+
+@keyframes adm-k-frame {
+	from {
+		opacity: 0.25;
+	}
+}
+
+@keyframes adm-k-ring {
+	0%,
+	50%,
+	100% {
+		transform: rotate(0);
+	}
+	10%,
+	30% {
+		transform: rotate(-14deg);
+	}
+	20%,
+	40% {
+		transform: rotate(14deg);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.adm-k-alert,
+	.adm-k-alert-bell,
+	.adm-kitchen.is-alerting::after,
+	.adm-k-start-icon {
+		animation: none;
+	}
+}

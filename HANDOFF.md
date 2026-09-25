@@ -7,8 +7,8 @@ Context for a new Claude Code session picking up this project. Last updated 2026
 - Family restaurant website + online ordering + admin/kitchen portal for **Mardini's Deli Cafe**, 408 Willow Rd, Menlo Park, CA (a real business run by the owner's family).
 - **Live:** https://mardinismenlopark.com (also https://mardinis.onrender.com). Auto-deploys from `main` on GitHub `Alfredx48/MardinisWebsite`.
 - **Stack:** Ruby 3.4.10 / Rails 8.1.4 API + React 18 SPA built with **Vite**, Postgres on Supabase, photos in Supabase Storage, hosted on Render.
-- **State:** menu photos, menu item sizes, the full ordering-site menu import, refunds and customer cancellation are all done and live. 69 RSpec specs pass.
-- **Next task: the kitchen tablet.** Make the admin **Live Orders** board work seamlessly on a kitchen tablet, installable as an app (PWA) or in the browser. This is how cooks and staff will see incoming orders. See "Next task" below.
+- **State:** menu photos, menu item sizes, the full ordering-site menu import, refunds and customer cancellation are all done and live. 74 RSpec specs pass.
+- **Kitchen screen (`/kitchen`) + Kitchen role: built and committed locally 2026-09-25, not pushed yet.** The owner is testing on their own iPad; the restaurant's tablet may be iPad or Android, so both must keep working. See "Kitchen screen" below.
 
 ## Working with the owner
 
@@ -31,7 +31,7 @@ Context for a new Claude Code session picking up this project. Last updated 2026
 - Local DBs (names kept from the bootcamp template): `react_rails_api_project_template_development` / `_test`. Dev data includes a dev-only admin `admin@example.com` / `password123`, a couple of test orders, and the imported menu. Local item ids for items added after the original seed **don't match production ids**, and item 18 is misspelled "Lam Kabob Plate" locally.
 - `bin/dev` runs Rails on :3000 + the Vite dev server on :4000 (open http://localhost:4000; Vite proxies `/api` to :3000). Stop them by port (`ss -ltnp`), not `pkill -f`, which can match your own shell.
 - **Phone/tablet testing via ngrok:** `ngrok http 4000`. Vite already allows ngrok hosts (`client/vite.config.js`) and so does Rails dev (`config/environments/development.rb`).
-- Tests: `bundle exec rspec` (69 examples). Frontend: `npm run lint --prefix client` and `npm run build --prefix client`. Running the root `npm run build` (what Render runs) rewrites `public/`; restore with `git checkout public && git clean -fq public`.
+- Tests: `bundle exec rspec` (74 examples). Frontend: `npm run lint --prefix client` and `npm run build --prefix client`. Running the root `npm run build` (what Render runs) rewrites `public/`; restore with `git checkout public && git clean -fq public`.
 - `.env.local` (gitignored) holds local secrets, including `SUPABASE_URL` and `SUPABASE_SECRET_KEY`, and dotenv loads it in development. **Never print it.**
 - **Headless browser testing** isn't installed permanently. To recreate: `npm i playwright-core` in a scratch dir, and use the cached Chromium headless shell at `~/.cache/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-linux64/chrome-headless-shell`. It needs `libnspr4 libnss3 libasound2t64`: `apt-get download` them (no sudo), `dpkg-deb -x` them into a dir, and set `LD_LIBRARY_PATH=<dir>/usr/lib/x86_64-linux-gnu`. Log in by POSTing to `/api/login` with `page.request` (it shares the page's cookies). Pillow/ImageMagick aren't installed; crop images with a canvas in that browser. `dig` isn't installed; use `https://dns.google/resolve?name=...&type=A`.
 
@@ -71,7 +71,7 @@ Context for a new Claude Code session picking up this project. Last updated 2026
   - `Category` (`active` = visible), `MenuItem`: `available` = "sold out" switch; `featured`, `vegetarian`, `spicy`, `position`, `image` (URL), and **`sizes`** (jsonb `[{name, price}]`; when present the customer must pick one, and `price` is kept at the lowest size price).
   - `Order`: `awaiting_payment → new → preparing → ready → completed`, plus `cancelled` (`Order::KITCHEN_FLOW`); `refunded_amount`; a random `token` powers public tracking at `/order/:token`.
   - `OrderItem`: snapshots `item_name` (including the size, e.g. "Hummus (Pint)"), `size` and `unit_price`.
-  - `Refund`, `CateringInquiry`, `User` (`admin` boolean; **no staff/kitchen role yet**).
+  - `Refund`, `CateringInquiry`, `User` (`admin` and `kitchen` booleans; `role` = customer / kitchen / admin; `staff?` = either).
 - Controllers: public `api/restaurant` (`/api/restaurant`, `/api/menu`, active categories only), `api/orders`, `api/users`/`api/sessions` (cookie session `_mardinis_session`, `SameSite=Strict`), `api/catering_inquiries`, `api/stripe_webhooks`. Admin, all behind `require_admin`: `api/admin/*` (orders + refund, categories, menu_items + reorder, **photos** upload, restaurant settings, users, catering, stats). `FallbackController` serves the SPA for `/` and every non-API route.
 
 **Frontend** (`client/`, Vite; JSX files use `.jsx`; entry `client/index.html` → `src/index.jsx`)
@@ -86,39 +86,20 @@ Context for a new Claude Code session picking up this project. Last updated 2026
   - `admin.css`: all admin classes are prefixed `adm-`.
 - Conventions: tabs, double quotes, semicolons; function components + hooks; API calls go through `api.js` (throws `ApiError`; `api.upload` for FormData; toast `e.message`). Keep new admin CSS `adm-`-prefixed and use the base.css tokens.
 
-## Next task: kitchen tablet / installable Live Orders
+## Kitchen screen (`/kitchen`)
 
-Goal: a cook opens an app icon on the kitchen tablet and sees incoming orders, reliably, all shift, with a loud alert for each new order and big buttons to move orders along.
+A full-screen Live Orders board for a kitchen tablet, installable as its own app ("Kitchen", dark "M" icon). Code: `client/src/admin/KitchenApp.jsx` + `kitchen.css`, reusing `OrderBoard`/`Ticket` from `LiveOrders.jsx` and `AdminProvider kitchen` from `AdminContext.jsx`.
 
-**How Live Orders works today** (`client/src/admin/LiveOrders.jsx` + `AdminContext.jsx`):
-- Polls `GET /api/admin/orders?scope=active` every **10s** (`ORDER_POLL_MS` in `AdminContext.jsx`), pausing while the tab is hidden and refetching when it becomes visible.
-- Tickets sit in New / Preparing / Ready columns; each has one big "advance" button plus a ⋮ menu (details, print, cancel). Status changes go through `PATCH /api/admin/orders/:id {status}`; `Order::KITCHEN_FLOW` defines the steps. Unpaid card orders never appear on the board.
-- New orders trigger a Web Audio chime (browsers need one tap on "Enable sound" first; `unlockAudio`/`playChime` in `adminUtils.js`), a toast, and a `(N)` prefix on the tab title.
-- On phones the board shows one column at a time. Moves are optimistic with an Undo toast.
-
-**Gaps to address:**
-- **PWA install.**
-  - `client/public/manifest.json` exists (`display: standalone`, `start_url: "."`), but its icons are **Create React App's default React logo** (`favicon.ico`, `logo192.png`, `logo512.png`). Replace them with Mardini's icons. Brand assets available: the old SpotHopper logo at `https://static.spotapps.co/website_images/ab_websites/122678_website/logo.png` (small, red "MARDINI'S DELI CAFE" wordmark); the site's typographic logo lives in `Header.jsx`. Ask the owner which to use.
-  - There's no service worker. Add a minimal one (e.g. `vite-plugin-pwa` or a hand-written `sw.js` in `client/public/`) so Chrome offers install. **Never cache `/api` responses or `index.html`**; the manifest and icons are served with a 1-hour cache.
-  - Consider a separate kitchen manifest / `start_url` (e.g. `/admin/orders` or a new `/kitchen` route) so the installed app opens straight to the board. A new top-level route needs no Rails change (`FallbackController` serves every non-API path).
-- **iPad/iOS specifics:**
-  - "Add to Home Screen" apps have their **own cookie jar**, so staff log in once inside the app.
-  - The session cookie (`_mardinis_session`, `ActionDispatch::Session::CookieStore` in `config/application.rb`) is `SameSite=Strict`, `secure` in production, and has **no `expire_after`**, so it's a browser-session cookie. Check whether it survives the app being closed; consider a long-lived "remember this device" session for the kitchen.
-  - Audio needs a user gesture after every app launch. Make "tap to start" obvious (full-screen overlay), and re-unlock audio on resume (`visibilitychange`).
-- **Keep the screen awake** with the Screen Wake Lock API (`navigator.wakeLock.request("screen")`, re-requested on `visibilitychange`). Needs HTTPS (production or ngrok). Consider a fallback for older iPads.
-- **Kitchen-friendly mode:**
-  - Full screen, landscape layout with all three columns visible on a tablet, big touch targets, larger ticket text.
-  - Show item sizes and special requests prominently (sizes are part of the item name, e.g. "Hummus (Pint)"; `special_request` is per line, `custom_request` per order).
-  - An elapsed-time color scale. Hide the admin sidebar; leave only a way back.
-  - Consider a louder or repeating alert until someone acknowledges the new order.
-- **Reliability:**
-  - A clear offline/"reconnecting" banner and a "last updated Xs ago" indicator.
-  - The free Render instance sleeps after 15 min idle. A tablet polling every 10s keeps it awake while the board is open, but the first load after idle takes ~50s. Render Starter (~$7/mo) removes cold starts.
-- **Staff accounts:** only `admin` exists, so a cook's login can refund, change settings and manage users. Add a limited `staff`/`kitchen` role that can only see and advance orders:
-  - Backend: new column on `users` + authorization in `Api::Admin::OrdersController` (and keep refunds admin-only). Update the access-control specs in `spec/requests/security_spec.rb`.
-  - Frontend: hide the other admin nav for that role (`AdminLayout.jsx`, `AdminApp.jsx`).
-- **Optional:** real-time push instead of polling (Action Cable or Supabase Realtime). Polling every 10s is fine for one restaurant.
-- Test on the actual tablet via the live site (after a push) or ngrok. Ask the owner which tablet (iPad or Android) the kitchen uses; it changes the install and audio details.
+- **Access:** admins and users with `kitchen: true`. Kitchen users can list active orders, view and move orders, edit staff notes, and cancel pay-at-pickup orders. They **can't** refund, cancel orders paid online (403, and the UI says "ask a manager"), browse order history, or reach any other `/api/admin/*` endpoint. They're sent from `/admin` to `/kitchen`. Specs are in `spec/requests/security_spec.rb` ("kitchen staff").
+- **Setting up a cook:** they sign up as a customer, then Admin → Customers → Access → Kitchen (`PATCH /api/admin/users/:id {role}`).
+- **Login:** `/kitchen` has its own sign-in screen, so the installed app never leaves the page. Sessions now have `expire_after: 30.days`, renewed on every request (`config/application.rb`, applies to everyone), so the tablet stays signed in across restarts.
+- **Sound:** a full-screen "Tap to start" on launch, and "Tap to turn sound back on" when iOS suspends audio after the app was in the background. `navigator.audioSession.type = "playback"` makes iOS play even when the device is set to silent. The kitchen chime is louder (triangle wave) and **repeats every 20s** with a flashing banner and screen frame until someone taps "Got it" or starts the order.
+- **Screen:** Screen Wake Lock (re-requested on `visibilitychange`). If it isn't available (e.g. iOS home-screen apps before iOS 18.4), the bar shows "Screen may sleep"; the Install app dialog tells staff to set Auto-Lock / Screen timeout to Never.
+- **Layout:** 3 columns at ≥ 640px wide (portrait and landscape), each scrolling on its own; tabs on phones. Tickets show an elapsed-time color (green < 5 min, yellow < 10, orange < 15, red after), or for scheduled orders how soon they're due.
+- **Reliability:** a "Live · Ns ago" pill; a red banner when the last successful poll is > 35s old or the device is offline.
+- **PWA:** `client/public/kitchen-manifest.json` (`id`/`start_url` `/kitchen`, `display_override: fullscreen`) is swapped into `<head>` by `useKitchenHead`, together with the kitchen apple-touch-icon. It's `.json` because Rack serves `.webmanifest` as octet-stream. `client/public/sw.js` is registered **only from /kitchen**: it caches nothing but `offline.html` and only handles navigations (network first, offline page on failure). It never touches `/api` or the app shell. The main site's `manifest.json` and favicons now use the terracotta "M" icon (CRA logos removed).
+- **Not done / ideas:** Render Free plan cold starts (~50s after 15 min idle; a tablet with the board open keeps it awake; Starter ~$7/mo removes them). Real-time push instead of 10s polling. Kitchen users can't pause online ordering (that needs settings access).
+- **Testing on a tablet:** `bin/dev`, then `ngrok http 4000` and open `https://<id>.ngrok-free.app/kitchen` (local DB; dev kitchen user `cook@example.com` / `password123`). Or push and use https://mardinismenlopark.com/kitchen. Wake lock and the service worker need HTTPS.
 
 ## Applying data changes to production
 

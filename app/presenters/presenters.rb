@@ -65,7 +65,8 @@ module Presenters
   end
 
   def user(u)
-    { id: u.id, name: u.name, email: u.email, phone: u.phone, address: u.address, admin: u.admin }
+    { id: u.id, name: u.name, email: u.email, phone: u.phone, address: u.address, admin: u.admin,
+      kitchen: u.kitchen, role: u.role }
   end
 
   def admin_user(u)
