@@ -1931,6 +1931,39 @@
 	font-size: 0.88rem;
 }
 
+.adm-sizes {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 8px;
+}
+
+.adm-sizes .hint {
+	margin: 0;
+	font-size: 0.8rem;
+	color: var(--ink-faint);
+}
+
+.adm-size-rows {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	width: 100%;
+}
+
+.adm-size-row {
+	display: grid;
+	grid-template-columns: 1fr 110px auto;
+	gap: 8px;
+	align-items: center;
+}
+
+.adm-photo-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
 .adm-img-caption {
 	font-size: 0.8rem;
 	color: var(--ink-faint);
@@ -2443,4 +2476,183 @@
 	margin-top: 4px;
 	font-size: 16pt;
 	font-weight: 700;
+}
+
+/* ---------------------------------------------------------------- refunds */
+.adm-refund-totals {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 10px;
+	margin: 4px 0 18px;
+}
+
+.adm-refund-totals > div {
+	display: flex;
+	flex-direction: column;
+	padding: 10px 12px;
+	border: 1px solid var(--line);
+	border-radius: var(--radius-sm);
+	background: var(--cream);
+	font-variant-numeric: tabular-nums;
+}
+
+.adm-refund-totals strong {
+	font-size: 1.1rem;
+}
+
+.adm-refund-totals > div:last-child {
+	border-color: var(--terracotta);
+	background: var(--terracotta-tint);
+}
+
+.adm-refund-modes {
+	margin-bottom: 14px;
+}
+
+.adm-refund-items {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	border: 1px solid var(--line);
+	border-radius: var(--radius-sm);
+}
+
+.adm-refund-items li {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	min-height: 52px;
+	padding: 8px 12px;
+	border-bottom: 1px solid var(--line);
+}
+
+.adm-refund-items li:last-child {
+	border-bottom: none;
+}
+
+.adm-refund-items li.is-picked {
+	background: var(--terracotta-tint);
+}
+
+.adm-refund-items .checkbox {
+	flex: 1;
+	min-width: 0;
+}
+
+.adm-refund-items-sum {
+	justify-content: flex-end !important;
+	min-height: 0 !important;
+	font-variant-numeric: tabular-nums;
+}
+
+.adm-money-input {
+	position: relative;
+	max-width: 200px;
+}
+
+.adm-money-input span {
+	position: absolute;
+	left: 14px;
+	top: 50%;
+	transform: translateY(-50%);
+	color: var(--ink-faint);
+	font-weight: 600;
+}
+
+.adm-money-input .input {
+	padding-left: 28px;
+	font-variant-numeric: tabular-nums;
+}
+
+.adm-field-error {
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: var(--danger);
+}
+
+.adm-refunds {
+	margin-top: 18px;
+	padding: 12px 14px;
+	border: 1px solid var(--line);
+	border-left: 4px solid var(--info);
+	border-radius: var(--radius-sm);
+	background: var(--info-tint);
+}
+
+.adm-refunds ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 10px;
+}
+
+.adm-refund-line {
+	display: flex;
+	align-items: baseline;
+	gap: 10px;
+	flex-wrap: wrap;
+	font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 520px) {
+	.adm-refund-totals {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* ------------------------------------------------ cancelled-order alerts */
+.adm-cancelled {
+	position: sticky;
+	top: 0;
+	z-index: 31;
+	display: grid;
+	gap: 1px;
+	background: #8f1d17;
+	box-shadow: 0 6px 18px -8px rgba(143, 29, 23, 0.6);
+	animation: adm-cancel-in 0.3s var(--ease);
+}
+
+.adm-cancelled-row {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 14px clamp(16px, 3vw, 40px);
+	background: var(--danger);
+	color: #fff;
+}
+
+.adm-cancelled-row > svg {
+	font-size: 1.5rem;
+	flex-shrink: 0;
+}
+
+.adm-cancelled-text {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.adm-cancelled-text strong {
+	font-size: 1.05rem;
+}
+
+.adm-cancelled-text span {
+	font-size: 0.9rem;
+	opacity: 0.92;
+}
+
+.adm-cancelled-row .btn {
+	min-height: 44px;
+	padding: 0 20px;
+	flex-shrink: 0;
+}
+
+@keyframes adm-cancel-in {
+	from {
+		transform: translateY(-100%);
+	}
 }

@@ -103,7 +103,12 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 		try {
 			const result = await api.post("/orders", {
 				customer: contact,
-				items: items.map((l) => ({ menu_item_id: l.menu_item_id, quantity: l.quantity, special_request: l.special_request })),
+				items: items.map((l) => ({
+					menu_item_id: l.menu_item_id,
+					size: l.size,
+					quantity: l.quantity,
+					special_request: l.special_request,
+				})),
 				pickup_at: when === "asap" ? "asap" : time,
 				tip: tip.toFixed(2),
 				custom_request: notes,
@@ -320,6 +325,10 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 					>
 						{submitting ? "Placing order…" : method === "card" ? "Continue to payment" : `Place order · ${money(total)}`}
 					</button>
+					<p className="small muted summary-fine">
+						By placing your order, you agree to our <Link to="/policies">ordering &amp; refund policy</Link>. You can
+						cancel online until we start preparing it.
+					</p>
 					<p className="small muted summary-fine">
 						<FontAwesomeIcon icon={faLock} /> Final prices are confirmed by the restaurant when you place your order.
 					</p>

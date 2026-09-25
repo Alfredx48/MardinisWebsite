@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRight, faClock, faLocationDot, faPhone } from "@fortawesome/free-solid-svg-icons";
 import { useRestaurant } from "../context/RestaurantContext";
 import { DishImage } from "../components/ui";
-import { DAYS, groupedHours, hoursLabel, money, telHref } from "../format";
+import { DAYS, groupedHours, hoursLabel, priceLabel, telHref } from "../format";
 
 const FALLBACK_HERO = "https://i.imgur.com/SobZND4.jpg";
 
@@ -89,7 +89,7 @@ export default function HomePage() {
 									<DishImage src={item.image} name={item.name} className="featured-img" />
 									<div className="featured-body">
 										<h3>{item.name}</h3>
-										<span className="money">{money(item.price)}</span>
+										<span className="money">{priceLabel(item)}</span>
 									</div>
 								</Link>
 							))}

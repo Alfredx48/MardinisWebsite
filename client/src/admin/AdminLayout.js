@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
 	faArrowUpRightFromSquare,
+	faBan,
 	faBars,
 	faBellConcierge,
 	faChampagneGlasses,
@@ -157,6 +158,33 @@ function PausedBanner() {
 	);
 }
 
+// Big, sticky alert for orders cancelled while the kitchen may be working on them.
+function CancelledBanner() {
+	const { cancelAlerts, dismissCancelAlert } = useAdmin();
+	if (!cancelAlerts.length) return null;
+	return (
+		<div className="adm-cancelled" role="alert">
+			{cancelAlerts.map((o) => (
+				<div key={o.id} className="adm-cancelled-row">
+					<FontAwesomeIcon icon={faBan} />
+					<div className="adm-cancelled-text">
+						<strong>
+							Order #{o.number} for {o.customer_name} was cancelled. Stop making it.
+						</strong>
+						<span>
+							{o.items.map((i) => `${i.quantity}× ${i.name}`).join(", ")}
+							{o.cancel_reason ? ` · ${o.cancel_reason}` : ""}
+						</span>
+					</div>
+					<button type="button" className="btn btn-sm btn-light" onClick={() => dismissCancelAlert(o.id)}>
+						Got it
+					</button>
+				</div>
+			))}
+		</div>
+	);
+}
+
 export default function AdminLayout() {
 	const [menuOpen, setMenuOpen] = useState(false);
 	const { settings, newOrderCount } = useAdmin();
@@ -197,6 +225,7 @@ export default function AdminLayout() {
 			{menuOpen && <MobileDrawer onClose={() => setMenuOpen(false)} />}
 
 			<div className="adm-main-wrap">
+				<CancelledBanner />
 				<PausedBanner />
 				<main id="adm-main" className="adm-main">
 					<Outlet />

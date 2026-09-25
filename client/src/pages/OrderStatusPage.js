@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck, faFireBurner, faBagShopping, faReceipt, faLocationDot, faPhone } from "@fortawesome/free-solid-svg-icons";
 import { api } from "../api";
 import { useCart } from "../context/CartContext";
 import { useRestaurant } from "../context/RestaurantContext";
-import { EmptyState, Spinner } from "../components/ui";
+import { EmptyState, Modal, Spinner } from "../components/ui";
 import { formatDateTime, formatTime, money, ORDER_STATUS_LABELS, telHref } from "../format";
 import { PENDING_ORDER_KEY } from "./CheckoutPage";
 
@@ -89,7 +90,8 @@ export default function OrderStatusPage() {
 			{order.status === "cancelled" ? (
 				<div className="notice">
 					{order.cancel_reason ? `Reason: ${order.cancel_reason}. ` : ""}
-					{order.payment_status === "refunded" && "Your payment has been refunded. "}
+					{Number(order.refunded_amount) > 0 &&
+						`${money(order.refunded_amount)} has been refunded to your card. It usually shows up within 5–10 business days. `}
 					Questions? Call us at <a href={telHref(restaurant?.phone)}>{restaurant?.phone}</a>.
 				</div>
 			) : order.status === "awaiting_payment" ? (
@@ -156,11 +158,21 @@ export default function OrderStatusPage() {
 					<span>Total</span>
 					<span>{money(order.total)}</span>
 				</div>
+				{Number(order.refunded_amount) > 0 && (
+					<div className="summary-row refund-row">
+						<span>Refunded</span>
+						<span>−{money(order.refunded_amount)}</span>
+					</div>
+				)}
 				<p className="small muted" style={{ marginTop: 12 }}>
 					{order.payment_status === "paid"
 						? "Paid online"
 						: order.payment_status === "refunded"
 						? "Refunded"
+						: order.payment_status === "partially_refunded"
+						? "Paid online, partly refunded"
+						: order.status === "cancelled"
+						? "Not charged"
 						: "Pay at the counter when you pick up"}
 					{" · "}
 					{ORDER_STATUS_LABELS[order.status]}
@@ -187,9 +199,90 @@ export default function OrderStatusPage() {
 					</div>
 				</div>
 			)}
+			{order.can_cancel && order.status === "new" && (
+				<CancelOrderCard order={order} onCancelled={setOrder} phone={restaurant?.phone} />
+			)}
+
 			<p className="small muted" style={{ marginTop: 16 }}>
-				Bookmark this page to check on your order anytime.
+				Bookmark this page to check on your order anytime. See our{" "}
+				<Link to="/policies">ordering &amp; refund policy</Link>.
 			</p>
 		</div>
+	);
+}
+
+function CancelOrderCard({ order, onCancelled, phone }) {
+	const [confirming, setConfirming] = useState(false);
+	const [busy, setBusy] = useState(false);
+	const [error, setError] = useState(null);
+	const paidOnline = order.payment_status === "paid";
+
+	const cancel = async () => {
+		setBusy(true);
+		setError(null);
+		try {
+			const updated = await api.post(`/orders/${order.token}/cancel`);
+			onCancelled(updated);
+			setConfirming(false);
+			window.scrollTo({ top: 0, behavior: "smooth" });
+			toast.success(paidOnline ? "Order cancelled and refunded" : "Order cancelled");
+		} catch (e) {
+			setError(e.message);
+			setBusy(false);
+		}
+	};
+
+	return (
+		<>
+			<div className="card cancel-card">
+				<div>
+					<strong>Need to cancel?</strong>
+					<p className="small muted">
+						You can cancel online until we start preparing your order
+						{paidOnline ? ", and we'll refund your card in full." : "."}
+					</p>
+				</div>
+				<button className="btn btn-secondary" onClick={() => setConfirming(true)}>
+					Cancel order
+				</button>
+			</div>
+
+			{confirming && (
+				<Modal onClose={() => !busy && setConfirming(false)} label="Cancel your order" className="cancel-modal">
+					<div className="modal-body">
+						<h2 className="item-modal-title">Cancel order #{order.number}?</h2>
+						{paidOnline ? (
+							<p>
+								We'll refund the full <strong>{money(order.total)}</strong> to your card. Refunds usually appear
+								within 5–10 business days, depending on your bank.
+							</p>
+						) : (
+							<p>You haven't been charged, so there's nothing to refund.</p>
+						)}
+						<p className="small muted">This can't be undone. You're welcome to place a new order anytime.</p>
+						{error && (
+							<div className="form-error" role="alert">
+								{error}
+								{phone && (
+									<>
+										{" "}
+										<a href={telHref(phone)}>Call {phone}</a>
+									</>
+								)}
+							</div>
+						)}
+					</div>
+					<div className="modal-footer">
+						<button className="btn btn-secondary" onClick={() => setConfirming(false)} disabled={busy}>
+							Keep my order
+						</button>
+						<span className="spacer" />
+						<button className="btn btn-danger" onClick={cancel} disabled={busy}>
+							{busy ? "Cancelling…" : paidOnline ? `Cancel & refund ${money(order.total)}` : "Cancel order"}
+						</button>
+					</div>
+				</Modal>
+			)}
+		</>
 	);
 }

@@ -1421,3 +1421,80 @@
 .order-history-items {
 	color: var(--ink-soft);
 }
+
+/* ============================================================= policies */
+.policy-toc ul {
+	margin: 10px 0 0;
+	padding-left: 18px;
+	columns: 2;
+	column-gap: 24px;
+}
+
+.policy-toc li {
+	margin-bottom: 4px;
+}
+
+.policy-section {
+	padding: 26px 0 6px;
+	border-bottom: 1px solid var(--line);
+	scroll-margin-top: calc(var(--header-h) + 16px);
+}
+
+.policy-section h2 {
+	font-size: 1.35rem;
+}
+
+.policy-section p {
+	color: var(--ink-soft);
+	max-width: 68ch;
+}
+
+.policy-contact {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
+	margin-top: 28px;
+}
+
+.policy-contact p {
+	margin: 2px 0 0;
+}
+
+@media (max-width: 560px) {
+	.policy-toc ul {
+		columns: 1;
+	}
+}
+
+/* ====================================================== cancel an order */
+.cancel-card {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
+	margin-top: 20px;
+	border-style: dashed;
+}
+
+.cancel-card p {
+	margin: 2px 0 0;
+}
+
+.refund-row {
+	color: var(--success);
+	font-weight: 600;
+}
+
+/* Size picker in the item dialog */
+.item-sizes {
+	margin: 0 0 16px;
+	padding: 0;
+	border: 0;
+}
+
+.item-sizes legend {
+	margin-bottom: 8px;
+}

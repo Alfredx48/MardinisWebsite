@@ -6,7 +6,7 @@ import { faBagShopping, faLeaf, faMagnifyingGlass, faPepperHot, faPlus, faUtensi
 import { useCart } from "../context/CartContext";
 import { useRestaurant } from "../context/RestaurantContext";
 import { DishImage, EmptyState, Modal, QuantityStepper, Spinner } from "../components/ui";
-import { money, telHref } from "../format";
+import { money, priceLabel, telHref } from "../format";
 
 export default function MenuPage() {
 	const { menu, restaurant, error } = useRestaurant();
@@ -205,6 +205,7 @@ function DishCard({ item, onOpen }) {
 
 	const quickAdd = (e) => {
 		e.stopPropagation();
+		if (item.sizes?.length) return onOpen(); // pick a size first
 		addItem(item, 1);
 		toast.success(`Added ${item.name}`);
 	};
@@ -222,7 +223,7 @@ function DishCard({ item, onOpen }) {
 				</h3>
 				{item.description && <p className="dish-card-desc">{item.description.replace(/^Vegetarian\.\s*/, "")}</p>}
 				<div className="dish-card-meta">
-					<span className="money dish-price">{money(item.price)}</span>
+					<span className="money dish-price">{priceLabel(item)}</span>
 					<DietBadges item={item} />
 					{soldOut && <span className="badge">Sold out</span>}
 				</div>
@@ -241,15 +242,20 @@ function ItemDialog({ item, onClose }) {
 	const { addItem, openDrawer } = useCart();
 	const [quantity, setQuantity] = useState(1);
 	const [request, setRequest] = useState("");
+	const sizes = item.sizes || [];
+	const [sizeName, setSizeName] = useState(sizes[0]?.name || null);
+	const size = sizes.find((s) => s.name === sizeName);
+	const unitPrice = Number(size?.price ?? item.price);
 	const soldOut = !item.available;
 
 	const add = () => {
-		addItem(item, quantity, request);
+		addItem(item, quantity, request, size?.name || null);
 		onClose();
 		toast.success(
 			<span>
 				Added {quantity > 1 ? `${quantity} × ` : ""}
-				{item.name}.{" "}
+				{item.name}
+				{size ? ` (${size.name})` : ""}.{" "}
 				<button className="link-btn" onClick={openDrawer}>
 					View order
 				</button>
@@ -263,10 +269,23 @@ function ItemDialog({ item, onClose }) {
 			<div className="modal-body">
 				<h2 className="item-modal-title">{item.name}</h2>
 				<div className="row">
-					<span className="money dish-price">{money(item.price)}</span>
+					<span className="money dish-price">{money(unitPrice)}</span>
 					<DietBadges item={item} />
 				</div>
 				{item.description && <p className="muted item-modal-desc">{item.description}</p>}
+				{!soldOut && sizes.length > 0 && (
+					<fieldset className="item-sizes">
+						<legend className="label">Size</legend>
+						<div className="segmented">
+							{sizes.map((s) => (
+								<button type="button" key={s.name} aria-pressed={s.name === sizeName} onClick={() => setSizeName(s.name)}>
+									{s.name}
+									<span className="choice-sub">{money(s.price)}</span>
+								</button>
+							))}
+						</div>
+					</fieldset>
+				)}
 				{soldOut ? (
 					<div className="notice">This dish is sold out for now. Check back soon!</div>
 				) : (
@@ -293,7 +312,7 @@ function ItemDialog({ item, onClose }) {
 					<>
 						<QuantityStepper value={quantity} onChange={setQuantity} />
 						<button className="btn btn-primary btn-lg spacer" onClick={add}>
-							<FontAwesomeIcon icon={faBagShopping} /> Add · {money(item.price * quantity)}
+							<FontAwesomeIcon icon={faBagShopping} /> Add · {money(unitPrice * quantity)}
 						</button>
 					</>
 				)}

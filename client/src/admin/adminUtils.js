@@ -1,4 +1,6 @@
 // Helpers shared by the admin screens (no React components here).
+import { money } from "../format";
+
 const TIME_ZONE = "America/Los_Angeles";
 
 export const STATUS_LABELS = {
@@ -60,12 +62,15 @@ export function placedAt(order) {
 }
 
 export function amountDue(order) {
-	if (order.payment_status === "paid" || order.payment_status === "refunded") return 0;
+	if (order.payment_status !== "unpaid") return 0;
 	return Number(order.total) || 0;
 }
 
 export function paymentBadge(order) {
 	if (order.payment_status === "refunded") return { label: "Refunded", className: "badge-info" };
+	if (order.payment_status === "partially_refunded") {
+		return { label: `Partly refunded (${money(order.refunded_amount)})`, className: "badge-info" };
+	}
 	if (order.payment_status === "paid") {
 		return { label: order.payment_method === "card" ? "Paid online" : "Paid", className: "badge-success" };
 	}
@@ -73,13 +78,50 @@ export function paymentBadge(order) {
 	return { label: "Unpaid", className: "badge-danger" };
 }
 
+// Card orders paid online with money left to refund.
 export function canRefund(order) {
-	return order.payment_method === "card" && order.payment_status === "paid";
+	return order.payment_method === "card" && Number(order.refundable_amount ?? 0) > 0;
 }
+
+export const REFUND_REASONS = ["Missing item", "Wrong item", "Quality issue", "Long wait", "Customer cancelled", "Other"];
 
 export function errorList(e) {
 	if (e && Array.isArray(e.errors) && e.errors.length) return e.errors;
 	return [e?.message || "Something went wrong. Please try again."];
+}
+
+function loadImage(file) {
+	return new Promise((resolve, reject) => {
+		const url = URL.createObjectURL(file);
+		const img = new Image();
+		img.onload = () => {
+			URL.revokeObjectURL(url);
+			resolve(img);
+		};
+		img.onerror = () => {
+			URL.revokeObjectURL(url);
+			reject(new Error("Couldn't read that photo. Please use a JPG, PNG or WebP image."));
+		};
+		img.src = url;
+	});
+}
+
+// Scales a photo down to at most `maxSize` px on its longest side and
+// re-encodes it as JPEG, so phone pictures upload and load quickly. Browsers
+// apply the camera's rotation when drawing an <img>, so photos stay upright.
+export async function shrinkPhoto(file, maxSize = 1600, quality = 0.85) {
+	const img = await loadImage(file);
+	const scale = Math.min(1, maxSize / Math.max(img.naturalWidth, img.naturalHeight));
+	const canvas = document.createElement("canvas");
+	canvas.width = Math.round(img.naturalWidth * scale);
+	canvas.height = Math.round(img.naturalHeight * scale);
+	const ctx = canvas.getContext("2d");
+	ctx.fillStyle = "#fff"; // JPEG has no transparency
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
+	ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+	const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
+	if (!blob) throw new Error("Couldn't process that photo. Please try another one.");
+	return blob;
 }
 
 export function downloadFile(filename, content, type = "text/csv;charset=utf-8") {

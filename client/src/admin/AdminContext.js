@@ -25,9 +25,16 @@ export function AdminProvider({ children }) {
 	const [soundOn, setSoundOnState] = useState(() => readPref("sound", true));
 	const [audioReady, setAudioReady] = useState(() => getAudioContext()?.state === "running");
 	const [printing, setPrinting] = useState(null);
+	// Orders cancelled while they were on the board (e.g. by the customer), shown
+	// in a banner until someone in the kitchen acknowledges them.
+	const [cancelAlerts, setCancelAlerts] = useState([]);
 
 	const knownIds = useRef(null);
 	const mutationVersion = useRef(0);
+	// Last list the server sent, and orders this screen took off the board itself,
+	// so orders that vanish for other reasons (e.g. a customer cancelling) stand out.
+	const lastSeen = useRef(new Map());
+	const closedHere = useRef(new Set());
 	const soundOnRef = useRef(soundOn);
 	soundOnRef.current = soundOn;
 
@@ -49,6 +56,21 @@ export function AdminProvider({ children }) {
 	);
 
 	/* --------------------------------------------------------------- orders */
+	// An order left the board without anyone here touching it. If it was cancelled
+	// (usually by the customer), make sure the kitchen doesn't keep cooking it.
+	const checkVanished = useCallback(async (gone) => {
+		for (const order of gone) {
+			try {
+				const fresh = await api.get(`/admin/orders/${order.id}`);
+				if (fresh.status !== "cancelled") continue;
+				if (soundOnRef.current) playChime();
+				setCancelAlerts((list) => (list.some((a) => a.id === fresh.id) ? list : [...list, fresh]));
+			} catch {
+				// The next poll will show the current state anyway.
+			}
+		}
+	}, []);
+
 	const announce = useCallback((fresh) => {
 		if (soundOnRef.current) playChime();
 		if (fresh.length > 3) {
@@ -68,6 +90,12 @@ export function AdminProvider({ children }) {
 			// stale, so drop it and let the next poll reconcile.
 			if (version !== mutationVersion.current) return;
 			const list = data.orders || [];
+			const current = new Set(list.map((o) => o.id));
+			const gone = [...lastSeen.current.values()].filter(
+				(o) => !current.has(o.id) && !closedHere.current.has(o.id)
+			);
+			lastSeen.current = new Map(list.map((o) => [o.id, o]));
+			if (gone.length) checkVanished(gone);
 			if (knownIds.current) {
 				const fresh = list.filter((o) => o.status === "new" && !knownIds.current.has(o.id));
 				if (fresh.length) announce(fresh);
@@ -80,7 +108,7 @@ export function AdminProvider({ children }) {
 		} catch (e) {
 			setOrdersError(e);
 		}
-	}, [announce]);
+	}, [announce, checkVanished]);
 
 	const refreshOrders = usePolling(loadOrders, ORDER_POLL_MS);
 
@@ -88,6 +116,7 @@ export function AdminProvider({ children }) {
 	const applyOrder = useCallback((order) => {
 		mutationVersion.current += 1;
 		knownIds.current?.add(order.id);
+		if (!ACTIVE.includes(order.status)) closedHere.current.add(order.id);
 		setOrders((prev) => {
 			if (!prev) return prev;
 			const without = prev.filter((o) => o.id !== order.id);
@@ -116,9 +145,11 @@ export function AdminProvider({ children }) {
 		[applyOrder, refreshOrders]
 	);
 
+	// { amount, reason, note } for a partial or full refund; { cancel: true, reason }
+	// refunds whatever is left and cancels the order.
 	const refundOrder = useCallback(
-		async (order, reason) => {
-			const updated = await api.post(`/admin/orders/${order.id}/refund`, reason ? { reason } : {});
+		async (order, params = {}) => {
+			const updated = await api.post(`/admin/orders/${order.id}/refund`, params);
 			applyOrder(updated);
 			return updated;
 		},
@@ -196,8 +227,12 @@ export function AdminProvider({ children }) {
 		};
 	}, [printing]);
 
+	const dismissCancelAlert = useCallback((id) => setCancelAlerts((list) => list.filter((a) => a.id !== id)), []);
+
 	const value = useMemo(
 		() => ({
+			cancelAlerts,
+			dismissCancelAlert,
 			settings,
 			saveSettings,
 			orders,
@@ -216,6 +251,8 @@ export function AdminProvider({ children }) {
 			printOrder,
 		}),
 		[
+			cancelAlerts,
+			dismissCancelAlert,
 			settings,
 			saveSettings,
 			orders,

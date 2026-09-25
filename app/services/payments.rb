@@ -44,10 +44,46 @@ module Payments
     order
   end
 
-  def refund!(order)
-    raise ArgumentError, "Only paid card orders can be refunded" unless order.payment_method == "card" && order.payment_status == "paid"
+  # Refunds `amount` (default: everything still refundable) back to the card.
+  # Each refund gets its own row, so its id makes a safe idempotency key, and
+  # the row lock stops two refunds from racing past the order total.
+  def refund!(order, amount: nil, reason: nil, note: nil, user: nil, source: "admin")
+    order.with_lock do
+      available = order.refundable_amount
+      raise ArgumentError, "Only card orders that were paid online can be refunded" unless available.positive?
 
-    Stripe::Refund.create({ payment_intent: order.payment_intent_id }, { idempotency_key: "refund-#{order.token}" })
-    order.update!(payment_status: "refunded")
+      amount = amount.nil? ? available : BigDecimal(amount.to_s).round(2)
+      raise ArgumentError, "Refund amount must be more than $0.00" unless amount.positive?
+      if amount > available
+        raise ArgumentError, "You can refund at most $#{format('%.2f', available)} on this order"
+      end
+
+      refund = order.refunds.create!(amount: amount, reason: reason.presence, note: note.presence,
+                                     refunded_by: user, source: source)
+      stripe_refund = Stripe::Refund.create(
+        {
+          payment_intent: order.payment_intent_id,
+          amount: (amount * 100).round.to_i,
+          metadata: { order_id: order.id, refund_id: refund.id, reason: reason.to_s.first(100) },
+        },
+        { idempotency_key: "refund-#{refund.id}" },
+      )
+      refund.update!(stripe_refund_id: stripe_refund.id)
+
+      refunded = order.refunded_amount + amount
+      order.update!(refunded_amount: refunded,
+                    payment_status: refunded >= order.total_cost ? "refunded" : "partially_refunded")
+      refund
+    end
+  end
+
+  # Stops an unfinished card payment so it can't go through after a cancel.
+  def cancel_intent!(order)
+    return if order.payment_intent_id.blank?
+
+    Stripe::PaymentIntent.cancel(order.payment_intent_id)
+  rescue Stripe::InvalidRequestError
+    # Already cancelled or otherwise finished; nothing left to stop.
+    nil
   end
 end

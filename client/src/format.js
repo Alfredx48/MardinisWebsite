@@ -2,6 +2,11 @@ const TIME_ZONE = "America/Los_Angeles";
 
 const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 
+// "$5.88", or "from $5.88" for items that come in several sizes.
+export function priceLabel(item) {
+	return item.sizes?.length ? `from ${money(item.price)}` : money(item.price);
+}
+
 export function money(value) {
 	return currency.format(Number(value) || 0);
 }

@@ -54,6 +54,7 @@ module Presenters
       name: i.name,
       description: i.description,
       price: money(i.price),
+      sizes: i.sizes.map { |sz| { name: sz["name"], price: money(sz["price"]) } },
       image: i.image,
       available: i.available,
       featured: i.featured,
@@ -90,6 +91,8 @@ module Presenters
       tax: money(o.tax),
       tip: money(o.tip),
       total: money(o.total_cost),
+      refunded_amount: money(o.refunded_amount),
+      can_cancel: o.customer_cancellable?,
       total_items: o.total_items,
       custom_request: o.custom_request,
       cancel_reason: o.cancel_reason,
@@ -104,7 +107,21 @@ module Presenters
       user_id: o.user_id,
       admin_notes: o.admin_notes,
       payment_intent_id: o.payment_intent_id,
+      refundable_amount: money(o.refundable_amount),
+      refunds: o.refunds.map { |r| refund(r) },
     )
+  end
+
+  def refund(r)
+    {
+      id: r.id,
+      amount: money(r.amount),
+      reason: r.reason,
+      note: r.note,
+      source: r.source,
+      refunded_by: r.refunded_by&.name,
+      created_at: r.created_at,
+    }
   end
 
   def order_item(oi)
@@ -112,6 +129,7 @@ module Presenters
       id: oi.id,
       menu_item_id: oi.menu_item_id,
       name: oi.name,
+      size: oi.size,
       quantity: oi.quantity,
       unit_price: money(oi.unit_price || 0),
       line_total: money(oi.line_total),

@@ -5,12 +5,16 @@ class Order < ApplicationRecord
   ACTIVE_STATUSES = %w[new preparing ready].freeze
   KITCHEN_FLOW = { "new" => "preparing", "preparing" => "ready", "ready" => "completed" }.freeze
   PAYMENT_METHODS = %w[card in_store].freeze
-  PAYMENT_STATUSES = %w[unpaid paid refunded].freeze
+  PAYMENT_STATUSES = %w[unpaid paid partially_refunded refunded].freeze
+  REFUNDABLE_PAYMENT_STATUSES = %w[paid partially_refunded].freeze
+  # Customers may cancel online until the kitchen starts on the order.
+  CUSTOMER_CANCELLABLE_STATUSES = %w[awaiting_payment new].freeze
 
   belongs_to :user, optional: true
   belongs_to :restaurant
   has_many :order_items, dependent: :destroy
   has_many :menu_items, through: :order_items
+  has_many :refunds, -> { order(:created_at) }, dependent: :destroy
 
   validates :status, inclusion: { in: STATUSES }
   validates :payment_method, inclusion: { in: PAYMENT_METHODS }
@@ -33,6 +37,16 @@ class Order < ApplicationRecord
 
   def amount_cents
     (total_cost * 100).round.to_i
+  end
+
+  def refundable_amount
+    return 0 unless payment_method == "card" && REFUNDABLE_PAYMENT_STATUSES.include?(payment_status)
+
+    [total_cost - refunded_amount, 0].max
+  end
+
+  def customer_cancellable?
+    CUSTOMER_CANCELLABLE_STATUSES.include?(status)
   end
 
   def asap?

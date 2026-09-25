@@ -58,7 +58,8 @@ function OrderHistory() {
 		let skipped = 0;
 		order.items.forEach((line) => {
 			const item = index[line.menu_item_id];
-			if (item && item.available) addItem(item, line.quantity, line.special_request || "");
+			const sizeOk = item?.sizes?.length ? item.sizes.some((s) => s.name === line.size) : true;
+			if (item && item.available && sizeOk) addItem(item, line.quantity, line.special_request || "", line.size || null);
 			else skipped += 1;
 		});
 		if (skipped) toast.info(`${skipped} item${skipped > 1 ? "s are" : " is"} no longer available and was left out.`);

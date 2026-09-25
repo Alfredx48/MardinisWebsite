@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
 	faArrowDown,
 	faArrowUp,
+	faCamera,
 	faEyeSlash,
 	faMagnifyingGlass,
 	faPen,
@@ -12,14 +13,15 @@ import {
 	faStar,
 	faTrash,
 	faUtensils,
+	faXmark,
 	faLeaf,
 } from "@fortawesome/free-solid-svg-icons";
 import { api } from "../api";
-import { money } from "../format";
+import { priceLabel } from "../format";
 import { DishImage, EmptyState, Modal, Spinner, Switch } from "../components/ui";
 import { useRestaurant } from "../context/RestaurantContext";
 import { ConfirmDialog, FormErrors, OverflowMenu, PageHeader } from "./adminUi";
-import { errorList } from "./adminUtils";
+import { errorList, shrinkPhoto } from "./adminUtils";
 
 /* ---------------------------------------------------------------- editors */
 function CategoryEditor({ category, onClose, onSaved }) {
@@ -114,11 +116,77 @@ function ImagePreview({ url, name }) {
 	);
 }
 
+const MAX_SIZES = 8;
+
+// Optional sizes (e.g. 1/4 Pint, Pint). Customers must pick one, and the
+// lowest size price becomes the item's "from" price.
+function SizesEditor({ sizes, onChange, disabled }) {
+	const update = (index, key) => (e) =>
+		onChange(sizes.map((s, i) => (i === index ? { ...s, [key]: e.target.value } : s)));
+	const add = () => onChange([...sizes, { name: "", price: "" }]);
+	const remove = (index) => onChange(sizes.filter((_, i) => i !== index));
+
+	return (
+		<fieldset className="adm-fieldset adm-sizes">
+			<legend className="label">Sizes</legend>
+			{sizes.length === 0 ? (
+				<p className="hint">One price. Add sizes if this is sold in several, like 1/4 pint and pint.</p>
+			) : (
+				<div className="adm-size-rows">
+					{sizes.map((s, i) => (
+						<div className="adm-size-row" key={i}>
+							<input
+								className="input"
+								aria-label={`Size ${i + 1} name`}
+								placeholder="e.g. 1/2 Pint"
+								maxLength={30}
+								value={s.name}
+								onChange={update(i, "name")}
+								disabled={disabled}
+								required
+							/>
+							<input
+								className="input"
+								aria-label={`Size ${i + 1} price`}
+								placeholder="Price"
+								type="number"
+								inputMode="decimal"
+								min="0.01"
+								max="999.99"
+								step="0.01"
+								value={s.price}
+								onChange={update(i, "price")}
+								disabled={disabled}
+								required
+							/>
+							<button
+								type="button"
+								className="btn btn-ghost btn-sm"
+								onClick={() => remove(i)}
+								disabled={disabled}
+								aria-label={`Remove size ${s.name || i + 1}`}
+							>
+								<FontAwesomeIcon icon={faXmark} />
+							</button>
+						</div>
+					))}
+				</div>
+			)}
+			{sizes.length < MAX_SIZES && (
+				<button type="button" className="btn btn-secondary btn-sm" onClick={add} disabled={disabled}>
+					<FontAwesomeIcon icon={faPlus} /> {sizes.length ? "Add another size" : "Add sizes"}
+				</button>
+			)}
+		</fieldset>
+	);
+}
+
 function ItemEditor({ item, categoryId, categories, onClose, onSaved, onDeleted }) {
 	const [form, setForm] = useState({
 		name: item?.name || "",
 		description: item?.description || "",
 		price: item?.price || "",
+		sizes: item?.sizes || [],
 		image: item?.image || "",
 		category_id: item?.category_id || categoryId || categories[0]?.id || "",
 		featured: item?.featured || false,
@@ -127,16 +195,40 @@ function ItemEditor({ item, categoryId, categories, onClose, onSaved, onDeleted 
 		available: item ? item.available : true,
 	});
 	const [saving, setSaving] = useState(false);
+	const [uploading, setUploading] = useState(false);
 	const [confirmDelete, setConfirmDelete] = useState(false);
 	const [errors, setErrors] = useState(null);
+	const fileInput = useRef(null);
 	const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 	const check = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.checked }));
+
+	// Uploads straight away and fills in the photo link; the item itself
+	// changes only when the form is saved.
+	const uploadPhoto = async (e) => {
+		const file = e.target.files[0];
+		e.target.value = "";
+		if (!file) return;
+		setUploading(true);
+		setErrors(null);
+		try {
+			const data = new FormData();
+			data.append("photo", await shrinkPhoto(file), "photo.jpg");
+			const { url } = await api.upload("/admin/photos", data);
+			setForm((f) => ({ ...f, image: url }));
+		} catch (err) {
+			setErrors(errorList(err));
+		} finally {
+			setUploading(false);
+		}
+	};
 
 	const submit = async (e) => {
 		e.preventDefault();
 		setSaving(true);
 		setErrors(null);
-		const body = { ...form, name: form.name.trim(), image: form.image.trim(), category_id: Number(form.category_id) };
+		const sizes = form.sizes.map((s) => ({ name: s.name.trim(), price: s.price }));
+		const body = { ...form, sizes, name: form.name.trim(), image: form.image.trim(), category_id: Number(form.category_id) };
+		if (sizes.length) delete body.price; // the server uses the lowest size price
 		try {
 			const saved = item
 				? await api.patch(`/admin/menu_items/${item.id}`, body)
@@ -183,18 +275,22 @@ function ItemEditor({ item, categoryId, categories, onClose, onSaved, onDeleted 
 							<div className="grid-2">
 								<div className="field">
 									<label htmlFor="item-price">Price ($)</label>
-									<input
-										id="item-price"
-										className="input"
-										type="number"
-										inputMode="decimal"
-										min="0.01"
-										max="999.99"
-										step="0.01"
-										value={form.price}
-										onChange={set("price")}
-										required
-									/>
+									{form.sizes.length ? (
+										<input id="item-price" className="input" value="Set by sizes below" disabled />
+									) : (
+										<input
+											id="item-price"
+											className="input"
+											type="number"
+											inputMode="decimal"
+											min="0.01"
+											max="999.99"
+											step="0.01"
+											value={form.price}
+											onChange={set("price")}
+											required
+										/>
+									)}
 								</div>
 								<div className="field">
 									<label htmlFor="item-category">Category</label>
@@ -213,6 +309,11 @@ function ItemEditor({ item, categoryId, categories, onClose, onSaved, onDeleted 
 									</select>
 								</div>
 							</div>
+							<SizesEditor
+								sizes={form.sizes}
+								onChange={(sizes) => setForm((f) => ({ ...f, sizes }))}
+								disabled={saving}
+							/>
 							<div className="field">
 								<label htmlFor="item-desc">Description</label>
 								<textarea
@@ -224,7 +325,32 @@ function ItemEditor({ item, categoryId, categories, onClose, onSaved, onDeleted 
 								/>
 							</div>
 							<div className="field">
-								<label htmlFor="item-image">Photo link</label>
+								<span className="label">Photo</span>
+								<div className="adm-photo-actions">
+									<button
+										type="button"
+										className="btn btn-secondary btn-sm"
+										onClick={() => fileInput.current.click()}
+										disabled={uploading || saving}
+									>
+										<FontAwesomeIcon icon={faCamera} />{" "}
+										{uploading ? "Uploading…" : form.image ? "Replace photo" : "Upload photo"}
+									</button>
+									{form.image && (
+										<button
+											type="button"
+											className="btn btn-ghost btn-sm"
+											onClick={() => setForm((f) => ({ ...f, image: "" }))}
+											disabled={uploading || saving}
+										>
+											Remove photo
+										</button>
+									)}
+									<input ref={fileInput} type="file" accept="image/*" hidden onChange={uploadPhoto} />
+								</div>
+								<label htmlFor="item-image" className="hint">
+									Or paste a link to a photo
+								</label>
 								<input
 									id="item-image"
 									className="input"
@@ -292,7 +418,7 @@ function ItemEditor({ item, categoryId, categories, onClose, onSaved, onDeleted 
 					<button type="button" className="btn btn-secondary" onClick={onClose} disabled={saving}>
 						Cancel
 					</button>
-					<button type="submit" className="btn btn-primary" disabled={saving}>
+					<button type="submit" className="btn btn-primary" disabled={saving || uploading}>
 						{saving ? "Saving…" : item ? "Save changes" : "Add item"}
 					</button>
 				</div>
@@ -351,7 +477,7 @@ function ItemRow({ item, index, count, canMove, onMove, onToggle, onEdit }) {
 			<div className="adm-item-main">
 				<div className="adm-item-name">{item.name}</div>
 				<div className="adm-item-meta">
-					<span className="money">{money(item.price)}</span>
+					<span className="money">{priceLabel(item)}</span>
 					{item.featured && (
 						<span className="badge badge-terracotta">
 							<FontAwesomeIcon icon={faStar} /> Featured

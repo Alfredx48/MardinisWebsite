@@ -34,6 +34,10 @@ class Api::Admin::MenuItemsController < Api::Admin::BaseController
   end
 
   def item_params
-    params.permit(:name, :description, :price, :image, :category_id, :available, :featured, :vegetarian, :spicy)
+    permitted = params.permit(:name, :description, :price, :image, :category_id, :available, :featured, :vegetarian, :spicy,
+                              sizes: [:name, :price])
+    # `sizes: []` means "no sizes"; Rails drops empty arrays from permitted params.
+    permitted[:sizes] = [] if params.key?(:sizes) && params[:sizes].blank?
+    permitted
   end
 end

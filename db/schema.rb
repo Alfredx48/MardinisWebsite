@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_25_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_25_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -56,6 +56,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_000001) do
     t.boolean "vegetarian", default: false, null: false
     t.boolean "spicy", default: false, null: false
     t.integer "position", default: 0, null: false
+    t.jsonb "sizes", default: [], null: false
     t.index ["category_id"], name: "index_menu_items_on_category_id"
     t.index ["restaurant_id"], name: "index_menu_items_on_restaurant_id"
   end
@@ -70,6 +71,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_000001) do
     t.datetime "updated_at", null: false
     t.string "item_name"
     t.decimal "unit_price", precision: 8, scale: 2
+    t.string "size"
     t.index ["menu_item_id"], name: "index_order_items_on_menu_item_id"
     t.index ["order_id"], name: "index_order_items_on_order_id"
   end
@@ -99,10 +101,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_000001) do
     t.datetime "placed_at", precision: nil
     t.datetime "ready_at", precision: nil
     t.datetime "completed_at", precision: nil
+    t.decimal "refunded_amount", precision: 10, scale: 2, default: "0.0", null: false
     t.index ["placed_at"], name: "index_orders_on_placed_at"
     t.index ["status"], name: "index_orders_on_status"
     t.index ["token"], name: "index_orders_on_token", unique: true
     t.index ["user_id"], name: "index_orders_on_user_id"
+  end
+
+  create_table "refunds", force: :cascade do |t|
+    t.bigint "order_id", null: false
+    t.decimal "amount", precision: 10, scale: 2, null: false
+    t.string "reason"
+    t.text "note"
+    t.string "source", default: "admin", null: false
+    t.bigint "refunded_by_id"
+    t.string "stripe_refund_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["order_id"], name: "index_refunds_on_order_id"
+    t.index ["refunded_by_id"], name: "index_refunds_on_refunded_by_id"
   end
 
   create_table "restaurants", force: :cascade do |t|
@@ -145,4 +162,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_000001) do
   add_foreign_key "menu_items", "restaurants"
   add_foreign_key "order_items", "menu_items"
   add_foreign_key "order_items", "orders"
+  add_foreign_key "refunds", "orders"
+  add_foreign_key "refunds", "users", column: "refunded_by_id"
 end

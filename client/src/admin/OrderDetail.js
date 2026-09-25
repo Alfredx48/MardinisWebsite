@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBan, faPrint, faRotateLeft } from "@fortawesome/free-solid-svg-icons";
+import { faBan, faPrint, faRotateLeft, faUser } from "@fortawesome/free-solid-svg-icons";
 import { api } from "../api";
 import { formatDateTime, formatTime, money, telHref, todayInRestaurant } from "../format";
-import { Modal } from "../components/ui";
+import { Modal, QuantityStepper } from "../components/ui";
 import { useAdmin } from "./AdminContext";
 import { FormErrors, PaymentBadge, StatusBadge } from "./adminUi";
 import {
 	NEXT_ACTION_LABELS,
 	NEXT_STATUS,
 	PAYMENT_LABELS,
+	REFUND_REASONS,
 	STATUS_LABELS,
 	amountDue,
 	canRefund,
@@ -45,7 +46,7 @@ function CancelForm({ order, onDone, onBack }) {
 		setErrors(null);
 		try {
 			const updated = refund
-				? await refundOrder(order, reason.trim() || undefined)
+				? await refundOrder(order, { cancel: true, reason: reason.trim() || undefined })
 				: await updateOrder(order, { status: "cancelled", cancel_reason: reason.trim() });
 			toast.success(refund ? `Order #${order.number} refunded and cancelled` : `Order #${order.number} cancelled`);
 			onDone(updated);
@@ -95,8 +96,8 @@ function CancelForm({ order, onDone, onBack }) {
 				</div>
 				{paidOnline && (
 					<div className="notice adm-mt">
-						This order was paid online ({money(order.total)}). Cancelling alone does <strong>not</strong> refund the
-						card — choose “Refund &amp; cancel” to return the money.
+						This order was paid online. Cancelling alone does <strong>not</strong> refund the card. Choose
+						“Refund &amp; cancel” to return the remaining {money(order.refundable_amount)}.
 					</div>
 				)}
 				<FormErrors errors={errors} />
@@ -139,17 +140,56 @@ export function CancelDialog({ order, onClose, onDone }) {
 	);
 }
 
-function RefundConfirm({ order, onBack, onDone }) {
+const cents = (n) => Math.round(Number(n) * 100);
+
+// Full, per-item or custom-amount refund through Stripe.
+function RefundForm({ order, onBack, onDone }) {
 	const { refundOrder } = useAdmin();
+	const available = Number(order.refundable_amount);
+	const [mode, setMode] = useState("full");
+	const [picked, setPicked] = useState({}); // item id -> quantity to refund
+	const [custom, setCustom] = useState("");
+	const [reason, setReason] = useState("");
+	const [note, setNote] = useState("");
+	const [cancelToo, setCancelToo] = useState(order.status !== "completed" && order.status !== "cancelled");
 	const [busy, setBusy] = useState(false);
 	const [errors, setErrors] = useState(null);
 
-	const refund = async () => {
+	// Refunded items carry their share of the tax charged on the order.
+	const taxRate = Number(order.subtotal) > 0 ? Number(order.tax) / Number(order.subtotal) : 0;
+	const itemsSubtotal = order.items.reduce((sum, i) => sum + (picked[i.id] || 0) * Number(i.unit_price), 0);
+	const itemsTax = Math.round(itemsSubtotal * taxRate * 100) / 100;
+
+	let amount = 0;
+	if (mode === "full") amount = available;
+	else if (mode === "items") amount = Math.min(available, Math.round((itemsSubtotal + itemsTax) * 100) / 100);
+	else amount = Number(custom) || 0;
+
+	const tooMuch = cents(amount) > cents(available);
+	const cancelling = mode === "full" && cancelToo;
+	const valid = amount > 0 && !tooMuch && (mode !== "items" || itemsSubtotal > 0);
+
+	const togglePick = (item) =>
+		setPicked((p) => {
+			const next = { ...p };
+			if (next[item.id]) delete next[item.id];
+			else next[item.id] = item.quantity;
+			return next;
+		});
+
+	const submit = async () => {
 		setBusy(true);
 		setErrors(null);
 		try {
-			const updated = await refundOrder(order);
-			toast.success(`Refunded ${money(order.total)} to ${order.customer_name}`);
+			const params = cancelling
+				? { cancel: true, reason: reason.trim() || undefined }
+				: { amount: amount.toFixed(2), reason: reason.trim() || undefined, note: note.trim() || undefined };
+			const updated = await refundOrder(order, params);
+			toast.success(
+				cancelling
+					? `Refunded ${money(amount)} and cancelled order #${order.number}`
+					: `Refunded ${money(amount)} to ${order.customer_name}`
+			);
 			onDone(updated);
 		} catch (e) {
 			setErrors(errorList(e));
@@ -160,12 +200,129 @@ function RefundConfirm({ order, onBack, onDone }) {
 	return (
 		<>
 			<div className="modal-body">
-				<h2 className="adm-modal-title">Refund order #{order.number}?</h2>
-				<p>
-					This refunds the full <strong>{money(order.total)}</strong> to {order.customer_name}'s card through Stripe
-					and marks the order as cancelled. It can't be undone.
+				<h2 className="adm-modal-title">Refund order #{order.number}</h2>
+				<div className="adm-refund-totals">
+					<div>
+						<span className="adm-kicker">Paid</span>
+						<strong>{money(order.total)}</strong>
+					</div>
+					<div>
+						<span className="adm-kicker">Already refunded</span>
+						<strong>{money(order.refunded_amount)}</strong>
+					</div>
+					<div>
+						<span className="adm-kicker">Can refund</span>
+						<strong>{money(available)}</strong>
+					</div>
+				</div>
+
+				<div className="segmented adm-refund-modes" role="group" aria-label="Refund type">
+					<button type="button" aria-pressed={mode === "full"} onClick={() => setMode("full")}>
+						Everything
+					</button>
+					<button type="button" aria-pressed={mode === "items"} onClick={() => setMode("items")}>
+						Pick items
+					</button>
+					<button type="button" aria-pressed={mode === "custom"} onClick={() => setMode("custom")}>
+						Custom amount
+					</button>
+				</div>
+
+				{mode === "items" && (
+					<ul className="adm-refund-items">
+						{order.items.map((item) => {
+							const qty = picked[item.id] || 0;
+							return (
+								<li key={item.id} className={qty ? "is-picked" : ""}>
+									<label className="checkbox">
+										<input type="checkbox" checked={!!qty} onChange={() => togglePick(item)} />
+										<span>
+											{item.name}
+											<span className="muted small"> · {money(item.unit_price)} each</span>
+										</span>
+									</label>
+									{qty > 0 && item.quantity > 1 && (
+										<QuantityStepper
+											small
+											value={qty}
+											min={1}
+											max={item.quantity}
+											onChange={(q) => setPicked((p) => ({ ...p, [item.id]: q }))}
+											label={`How many ${item.name} to refund`}
+										/>
+									)}
+								</li>
+							);
+						})}
+						{itemsSubtotal > 0 && (
+							<li className="adm-refund-items-sum muted small">
+								{money(itemsSubtotal)} + {money(itemsTax)} tax
+							</li>
+						)}
+					</ul>
+				)}
+
+				{mode === "custom" && (
+					<div className="field adm-refund-custom">
+						<label htmlFor={`refund-amount-${order.id}`}>Amount to refund</label>
+						<div className="adm-money-input">
+							<span aria-hidden="true">$</span>
+							<input
+								id={`refund-amount-${order.id}`}
+								className="input"
+								type="number"
+								inputMode="decimal"
+								min="0.01"
+								step="0.01"
+								max={available}
+								value={custom}
+								onChange={(e) => setCustom(e.target.value)}
+								placeholder={available.toFixed(2)}
+							/>
+						</div>
+						{tooMuch && <span className="adm-field-error">That's more than the {money(available)} left to refund.</span>}
+					</div>
+				)}
+
+				<div className="field adm-mt">
+					<span className="label" id={`refund-reason-${order.id}`}>
+						Reason
+					</span>
+					<div className="adm-chips" role="group" aria-labelledby={`refund-reason-${order.id}`}>
+						{REFUND_REASONS.map((r) => (
+							<button type="button" key={r} className="adm-chip" aria-pressed={reason === r} onClick={() => setReason(r)}>
+								{r}
+							</button>
+						))}
+					</div>
+				</div>
+
+				{cancelling ? null : (
+					<div className="field adm-mt">
+						<label htmlFor={`refund-note-${order.id}`}>Note for staff (optional)</label>
+						<textarea
+							id={`refund-note-${order.id}`}
+							className="textarea"
+							rows={2}
+							maxLength={1000}
+							value={note}
+							onChange={(e) => setNote(e.target.value)}
+							placeholder="e.g. Customer called, hummus was missing"
+						/>
+					</div>
+				)}
+
+				{mode === "full" && order.status !== "cancelled" && order.status !== "completed" && (
+					<label className="checkbox adm-mt">
+						<input type="checkbox" checked={cancelToo} onChange={(e) => setCancelToo(e.target.checked)} />
+						Also cancel this order and take it off the kitchen board
+					</label>
+				)}
+
+				<p className="muted small adm-mt">
+					Goes back to {order.customer_name}'s card through Stripe, usually within 5–10 business days. Refunds
+					can't be undone.
 				</p>
-				<p className="muted small">Refunds usually show up on the customer's statement within 5–10 business days.</p>
 				<FormErrors errors={errors} />
 			</div>
 			<div className="modal-footer">
@@ -173,11 +330,37 @@ function RefundConfirm({ order, onBack, onDone }) {
 					Go back
 				</button>
 				<span className="spacer" />
-				<button type="button" className="btn btn-danger" onClick={refund} disabled={busy}>
-					{busy ? "Refunding…" : `Refund ${money(order.total)}`}
+				<button type="button" className="btn btn-danger" onClick={submit} disabled={busy || !valid}>
+					{busy ? "Refunding…" : `Refund ${money(amount)}${cancelling ? " & cancel" : ""}`}
 				</button>
 			</div>
 		</>
+	);
+}
+
+function RefundHistory({ order }) {
+	if (!order.refunds?.length) return null;
+	return (
+		<div className="adm-refunds">
+			<div className="adm-kicker">Refunds</div>
+			<ul>
+				{order.refunds.map((r) => (
+					<li key={r.id}>
+						<div className="adm-refund-line">
+							<strong>{money(r.amount)}</strong>
+							<span>{r.reason || "No reason given"}</span>
+							<span className="spacer" />
+							<span className="muted small">{formatDateTime(r.created_at)}</span>
+						</div>
+						<div className="muted small">
+							<FontAwesomeIcon icon={faUser} />{" "}
+							{r.source === "customer" ? "Customer cancelled online" : `By ${r.refunded_by || "staff"}`}
+							{r.note && <> · {r.note}</>}
+						</div>
+					</li>
+				))}
+			</ul>
+		</div>
 	);
 }
 
@@ -315,7 +498,7 @@ export default function OrderDetail({ order: initial, onClose, onUpdated }) {
 		);
 	} else if (mode === "refund") {
 		content = (
-			<RefundConfirm
+			<RefundForm
 				order={order}
 				onBack={() => setMode("view")}
 				onDone={(u) => {
@@ -422,6 +605,8 @@ export default function OrderDetail({ order: initial, onClose, onUpdated }) {
 							</div>
 						)}
 					</div>
+
+					<RefundHistory order={order} />
 
 					<Timeline order={order} />
 

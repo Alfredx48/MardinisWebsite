@@ -6,7 +6,7 @@ class Api::Admin::OrdersController < Api::Admin::BaseController
   # Kitchen board: GET /api/admin/orders?scope=active
   # History:       GET /api/admin/orders?status=completed&from=2026-09-01&to=2026-09-22&q=smith&page=2
   def index
-    orders = current_restaurant.orders.includes(:order_items)
+    orders = current_restaurant.orders.includes(:order_items, refunds: :refunded_by)
     orders = params[:include_unpaid] == "true" ? orders : orders.placed
 
     if params[:scope] == "active"
@@ -58,18 +58,31 @@ class Api::Admin::OrdersController < Api::Admin::BaseController
     render_errors e.message
   end
 
+  # POST { amount: "4.25", reason: "Missing item", note: "...", cancel: false }
+  # Leave out `amount` to refund everything still refundable. `cancel: true`
+  # refunds in full and cancels the order.
   def refund
-    Payments.refund!(order)
-    order.advance_to!("cancelled", reason: params[:reason].presence || "Refunded") unless order.status == "cancelled"
-    render json: Presenters.admin_order(order)
-  rescue ArgumentError => e
+    reason = params[:reason].to_s.strip.first(120).presence
+    if ActiveModel::Type::Boolean.new.cast(params[:cancel])
+      OrderCancellation.call!(order, reason: reason || "Refunded", user: current_user)
+    else
+      amount = params[:amount].presence
+      if amount && BigDecimal(amount.to_s, exception: false).nil?
+        return render_errors "Enter a valid refund amount"
+      end
+
+      Payments.refund!(order, amount: amount, reason: reason, note: params[:note].to_s.strip.first(1000),
+                              user: current_user)
+    end
+    render json: Presenters.admin_order(order.reload)
+  rescue ArgumentError, OrderCancellation::NotAllowed => e
     render_errors e.message
   end
 
   private
 
   def order
-    @order ||= current_restaurant.orders.includes(:order_items).find(params[:id])
+    @order ||= current_restaurant.orders.includes(:order_items, refunds: :refunded_by).find(params[:id])
   end
 
   def parse_date(value)

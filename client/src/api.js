@@ -10,7 +10,9 @@ export class ApiError extends Error {
 
 async function request(method, path, body) {
 	const options = { method, headers: { Accept: "application/json" }, credentials: "same-origin" };
-	if (body !== undefined) {
+	if (body instanceof FormData) {
+		options.body = body; // the browser sets the multipart Content-Type
+	} else if (body !== undefined) {
 		options.headers["Content-Type"] = "application/json";
 		options.body = JSON.stringify(body);
 	}
@@ -36,6 +38,7 @@ export const api = {
 	post: (path, body = {}) => request("POST", path, body),
 	patch: (path, body = {}) => request("PATCH", path, body),
 	delete: (path) => request("DELETE", path),
+	upload: (path, formData) => request("POST", path, formData),
 };
 
 export function queryString(params) {

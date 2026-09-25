@@ -1,6 +1,7 @@
 class Api::OrdersController < ApplicationController
   skip_before_action :authorize, except: [:index]
   rescue_from Checkout::Error, with: ->(e) { render_errors e.messages }
+  rescue_from OrderCancellation::NotAllowed, with: ->(e) { render_errors e.message }
   rescue_from Stripe::StripeError, with: :rescue_stripe
 
   # The signed-in customer's order history.
@@ -46,6 +47,13 @@ class Api::OrdersController < ApplicationController
     end
   end
 
+  # Customers can cancel from their tracking page until the kitchen starts.
+  # Card payments are refunded in full.
+  def cancel
+    order = OrderCancellation.call!(find_by_token, reason: "Cancelled by customer", source: "customer", customer: true)
+    render json: Presenters.order(order.reload)
+  end
+
   private
 
   def find_by_token
@@ -56,7 +64,7 @@ class Api::OrdersController < ApplicationController
     params.permit(
       :payment_method, :pickup_at, :tip, :custom_request,
       customer: %i[name phone email],
-      items: %i[menu_item_id quantity special_request],
+      items: %i[menu_item_id size quantity special_request],
     )
   end
 

@@ -7,7 +7,7 @@ class Api::Admin::StatsController < Api::Admin::BaseController
     placed_on = Arel.sql("DATE(COALESCE(orders.placed_at, orders.created_at) AT TIME ZONE 'UTC' AT TIME ZONE '#{tz}')")
 
     by_day = between(orders, (today - (TREND_DAYS - 1)).beginning_of_day, today.end_of_day)
-                   .group(placed_on).pluck(placed_on, Arel.sql("COUNT(*)"), Arel.sql("SUM(total_cost)"))
+                   .group(placed_on).pluck(placed_on, Arel.sql("COUNT(*)"), Arel.sql("SUM(total_cost - refunded_amount)"))
                    .to_h { |date, count, sum| [date.to_date, [count, sum]] }
     trend = (0...TREND_DAYS).map do |i|
       date = today - (TREND_DAYS - 1 - i)
@@ -49,7 +49,8 @@ class Api::Admin::StatsController < Api::Admin::BaseController
 
   def summary(scope)
     count = scope.count
-    revenue = scope.sum(:total_cost)
+    # Net of refunds, so partial refunds on completed orders come off revenue.
+    revenue = scope.sum(:total_cost) - scope.sum(:refunded_amount)
     {
       orders: count,
       revenue: Presenters.money(revenue),

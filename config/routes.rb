@@ -15,6 +15,7 @@ Rails.application.routes.draw do
     resources :orders, only: [:index, :create]
     get "/orders/:token", to: "orders#show", as: :order_tracking
     post "/orders/:token/confirm_payment", to: "orders#confirm_payment"
+    post "/orders/:token/cancel", to: "orders#cancel"
     post "/stripe/webhook", to: "stripe_webhooks#create"
 
     resources :catering_inquiries, only: [:create]
@@ -31,6 +32,7 @@ Rails.application.routes.draw do
       resources :menu_items, only: [:create, :update, :destroy] do
         patch :reorder, on: :collection
       end
+      resources :photos, only: [:create]
       resources :users, only: [:index, :update]
       resources :catering_inquiries, only: [:index, :update, :destroy]
     end

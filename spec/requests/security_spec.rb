@@ -38,6 +38,14 @@ RSpec.describe "Access control", type: :request do
     end
   end
 
+  it "blocks photo uploads for guests and customers" do
+    post "/api/admin/photos"
+    expect(response).to have_http_status(:unauthorized)
+    log_in(customer)
+    post "/api/admin/photos"
+    expect(response).to have_http_status(:forbidden)
+  end
+
   it "lets admins in" do
     log_in(admin)
     get "/api/admin/stats"

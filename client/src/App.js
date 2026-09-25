@@ -18,6 +18,7 @@ import CateringPage from "./pages/CateringPage";
 import LoginPage from "./pages/LoginPage";
 import AccountPage from "./pages/AccountPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import PolicyPage from "./pages/PolicyPage";
 
 const AdminApp = lazy(() => import("./admin/AdminApp"));
 
@@ -81,6 +82,7 @@ export default function App() {
 							<Route path="order/:token" element={<OrderStatusPage />} />
 							<Route path="about" element={<AboutPage />} />
 							<Route path="catering" element={<CateringPage />} />
+							<Route path="policies" element={<PolicyPage />} />
 							<Route path="login" element={<LoginPage />} />
 							<Route
 								path="account"

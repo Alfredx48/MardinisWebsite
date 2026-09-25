@@ -16,7 +16,7 @@ function loadCart() {
 	}
 }
 
-const lineKey = (menuItemId, request) => `${menuItemId}:${(request || "").trim().toLowerCase()}`;
+const lineKey = (menuItemId, request, size) => `${menuItemId}:${size || ""}:${(request || "").trim().toLowerCase()}`;
 
 // The cart lives in the browser. Prices shown here are for display only; the
 // server re-prices everything at checkout.
@@ -44,19 +44,25 @@ export function CartProvider({ children }) {
 		() =>
 			lines.map((line) => {
 				const live = menuIndex[line.menu_item_id];
+				// A sized item needs a size that's still on the menu (and vice versa).
+				const liveSize = line.size ? live?.sizes?.find((s) => s.name === line.size) : null;
+				const sizeGone = live ? (live.sizes?.length ? !liveSize : Boolean(line.size)) : false;
+				const baseName = live?.name || line.name;
 				return {
 					...line,
-					name: live?.name || line.name,
-					price: live ? Number(live.price) : Number(line.price),
+					name: line.size ? `${baseName} (${line.size})` : baseName,
+					price: liveSize ? Number(liveSize.price) : live && !sizeGone ? Number(live.price) : Number(line.price),
 					image: live?.image ?? line.image,
-					unavailable: menu ? !live || !live.available : false,
+					unavailable: menu ? !live || !live.available || sizeGone : false,
 				};
 			}),
 		[lines, menuIndex, menu]
 	);
 
-	const addItem = useCallback((menuItem, quantity = 1, specialRequest = "") => {
-		const key = lineKey(menuItem.id, specialRequest);
+	// `size` is a size name, required for items that come in sizes.
+	const addItem = useCallback((menuItem, quantity = 1, specialRequest = "", size = null) => {
+		const key = lineKey(menuItem.id, specialRequest, size);
+		const sizePrice = menuItem.sizes?.find((s) => s.name === size)?.price;
 		setLines((prev) => {
 			const existing = prev.find((l) => l.key === key);
 			if (existing) {
@@ -70,7 +76,8 @@ export function CartProvider({ children }) {
 					key,
 					menu_item_id: menuItem.id,
 					name: menuItem.name,
-					price: Number(menuItem.price),
+					size,
+					price: Number(sizePrice ?? menuItem.price),
 					image: menuItem.image,
 					quantity: Math.min(MAX_QUANTITY, quantity),
 					special_request: specialRequest.trim(),

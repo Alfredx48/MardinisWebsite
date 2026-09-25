@@ -37,6 +37,34 @@ RSpec.describe "Checkout", type: :request do
     expect(Order.last.order_items.find_by(menu_item: wrap).unit_price).to eq(10.00)
   end
 
+  describe "sizes" do
+    let!(:hummus) do
+      create_item(restaurant, name: "Hummus", price: 1, sizes: [{ name: "1/4 Pint", price: "5.88" }, { name: "Pint", price: "12.63" }])
+    end
+
+    it "prices each line at the chosen size and names it on the ticket" do
+      place(items: [{ menu_item_id: hummus.id, size: "Pint", quantity: 2 }, { menu_item_id: hummus.id, size: "1/4 Pint", quantity: 1 }])
+
+      expect(response).to have_http_status(:created), response.body
+      lines = Order.last.order_items.order(:id)
+      expect(lines.map { |l| [l.item_name, l.size, l.unit_price] }).to eq([["Hummus (Pint)", "Pint", 12.63], ["Hummus (1/4 Pint)", "1/4 Pint", 5.88]])
+      expect(Order.last.subtotal).to eq(31.14)
+      expect(json.dig("order", "items", 0)).to include("name" => "Hummus (Pint)", "size" => "Pint", "unit_price" => "12.63")
+    end
+
+    it "requires a size that exists" do
+      place(items: [{ menu_item_id: hummus.id, quantity: 1 }])
+      expect(json["errors"]).to eq(["Please choose a size for Hummus"])
+      place(items: [{ menu_item_id: hummus.id, size: "Gallon", quantity: 1 }])
+      expect(json["errors"]).to eq(["Please choose a size for Hummus"])
+    end
+
+    it "ignores a size sent for an item without sizes" do
+      place(items: [{ menu_item_id: wrap.id, size: "Pint", quantity: 1 }])
+      expect(Order.last.order_items.first).to have_attributes(item_name: "Falafel Wrap", size: nil, unit_price: 10.00)
+    end
+  end
+
   it "rejects sold-out items" do
     wrap.update!(available: false)
     place

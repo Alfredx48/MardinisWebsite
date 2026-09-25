@@ -1,5 +1,5 @@
 # Turns a browser cart into a priced Order. Prices, tax and totals are always
-# computed here from the database; the client only sends ids and quantities.
+# computed here from the database; the client only sends ids, sizes and quantities.
 class Checkout
   class Error < StandardError
     attr_reader :messages
@@ -46,7 +46,8 @@ class Checkout
     lines.each do |l|
       order.order_items.build(
         menu_item: l[:menu_item],
-        item_name: l[:menu_item].name,
+        item_name: l[:size] ? "#{l[:menu_item].name} (#{l[:size]})" : l[:menu_item].name,
+        size: l[:size],
         unit_price: l[:unit_price],
         quantity: l[:quantity],
         special_request: l[:special_request],
@@ -121,9 +122,19 @@ class Checkout
       quantity = line[:quantity].to_i
       raise Error, "Quantity for #{item.name} must be between 1 and #{MAX_QUANTITY}" unless quantity.between?(1, MAX_QUANTITY)
 
+      size = nil
+      unit_price = item.price
+      if item.sized?
+        size = item.size_named(line[:size])
+        raise Error, "Please choose a size for #{item.name}" unless size
+
+        unit_price = size["price"].to_d
+      end
+
       {
         menu_item: item,
-        unit_price: item.price,
+        size: size && size["name"],
+        unit_price: unit_price,
         quantity: quantity,
         special_request: line[:special_request].to_s.strip.first(200).presence,
       }

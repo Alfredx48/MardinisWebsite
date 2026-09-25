@@ -56,6 +56,9 @@ export default function Footer() {
 						<li>
 							<Link to="/account">Your orders</Link>
 						</li>
+						<li>
+							<Link to="/policies">Ordering &amp; refund policy</Link>
+						</li>
 					</ul>
 				</div>
 			</div>
