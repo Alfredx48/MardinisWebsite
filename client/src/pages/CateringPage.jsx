@@ -6,10 +6,10 @@ import { useRestaurant } from "../context/RestaurantContext";
 import { shiftDate, telHref, todayInRestaurant } from "../format";
 
 const PHOTOS = [
-	"https://i.imgur.com/7Zzqmqq.jpg",
-	"https://i.imgur.com/MZNrVS9.jpg",
-	"https://i.imgur.com/zSAyfuu.jpg",
-	"https://i.imgur.com/0EQmUKa.jpg",
+	"https://jyazfpwyxwqpkbjkengj.supabase.co/storage/v1/object/public/menu-photos/items/20260925-103ddf422955651c.jpg",
+	"https://jyazfpwyxwqpkbjkengj.supabase.co/storage/v1/object/public/menu-photos/items/20260925-ae2876ce939e99b1.jpg",
+	"https://jyazfpwyxwqpkbjkengj.supabase.co/storage/v1/object/public/menu-photos/items/20260925-550e1ba0e3e08d62.jpg",
+	"https://jyazfpwyxwqpkbjkengj.supabase.co/storage/v1/object/public/menu-photos/items/20260925-d5c5177f74bb8c2d.jpg",
 ];
 
 const EMPTY = { name: "", email: "", phone: "", event_date: "", guest_count: "", message: "" };

@@ -142,7 +142,7 @@ Menu and settings data live in the production DB, not in the seeds (never hand-e
 - **Appetizers section is hidden** (the import reused an existing inactive category). The owner needs to turn it on in Admin → Menu.
 - Photos: 28 items have one, all in the Supabase bucket, mostly from the restaurant's own old SpotHopper site (professional shoot). About 95 items have none; the owner plans to photograph them and use Admin → Menu → Upload photo.
 - 6 dead DoorDash photo links (4 wraps, Beef Kabob and Kufta Kabob plates) may still be set if the owner hasn't run the clearing script yet; the placeholder shows either way.
-- Unused photos in the bucket (owner may want them): catering spread (suggested home banner: `https://jyazfpwyxwqpkbjkengj.supabase.co/storage/v1/object/public/menu-photos/items/20260925-13fdad5aadd568e8.jpg`), two storefront shots, mujadara, and extra combo-kabob / garlic-sauce shots. The home banner (`hero_image`) still loads from imgur.
+- Unused photos in the bucket (owner may want them): catering spread (suggested home banner: `https://jyazfpwyxwqpkbjkengj.supabase.co/storage/v1/object/public/menu-photos/items/20260925-13fdad5aadd568e8.jpg`), two storefront shots, mujadara, and extra combo-kabob / garlic-sauce shots. The home banner, logo and Catering page photos were moved from imgur to the bucket on 2026-09-25 (code in the "Host the home banner, logo and catering photos on Supabase" commit; the two settings via an owner-run script).
 
 ## Open items
 

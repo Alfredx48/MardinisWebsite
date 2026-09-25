@@ -6,14 +6,14 @@ restaurant = Restaurant.first || Restaurant.create!(
   tagline: "Mediterranean & American favorites in Menlo Park",
   address: "408 Willow Rd, Menlo Park, CA 94025",
   phone: "(650) 324-4316",
-  hero_image: "https://i.imgur.com/SobZND4.jpg",
-  logo_image: "https://i.imgur.com/Scnc7hH.png",
+  hero_image: "https://jyazfpwyxwqpkbjkengj.supabase.co/storage/v1/object/public/menu-photos/items/20260925-f5a0b62b53aaeefd.jpg",
+  logo_image: "https://jyazfpwyxwqpkbjkengj.supabase.co/storage/v1/object/public/menu-photos/items/20260925-6b9762c5e911cd0c.png",
   description: "Mardini's Deli Cafe is a family-run Mediterranean and American eatery serving falafel, kabobs and lamb gyros alongside burgers, sandwiches and fresh salads. Come for the food, stay for the warm, friendly service.",
 )
 
 MENU = {
   "Wraps" => [
-    { name: "Chicken Shawarma Wrap", price: 17.50, description: "Hummus, cucumbers, tomatoes, onions, pickles, tahini sauce & garlic sauce. Served on lavash bread.", image: "https://i.imgur.com/lypIHOa.jpg" },
+    { name: "Chicken Shawarma Wrap", price: 17.50, description: "Hummus, cucumbers, tomatoes, onions, pickles, tahini sauce & garlic sauce. Served on lavash bread.", image: "https://jyazfpwyxwqpkbjkengj.supabase.co/storage/v1/object/public/menu-photos/items/20260925-fc5cd836f5961519.jpg" },
     { name: "Falafel Wrap", price: 14.75, description: "Vegetarian. Hummus, cucumbers, tomatoes, onions, pickles & tahini sauce. Served on lavash bread.", image: "https://img.cdn4dd.com/p/fit=cover,width=600,format=auto,quality=50/media/photosV2/f4c56adf-203b-43bd-aa73-cf85958a5de2-retina-large.JPG" },
     { name: "Lamb and Beef Gyro Wrap", price: 16.25, description: "Tzatziki sauce, lettuce, tomatoes and onions.", image: "https://s3-media0.fl.yelpcdn.com/bphoto/-yKYMrCbJcmSrdf-Depflg/o.jpg" },
     { name: "Chicken Gyro Wrap", price: 17.50, description: "Tzatziki sauce, lettuce, tomatoes & onions. Served on lavash bread.", image: "https://img.cdn4dd.com/p/fit=cover,width=600,format=auto,quality=50/media/photosV2/1ab6f457-1be1-42f4-bf43-25e48d40e01d-retina-large.JPG" },

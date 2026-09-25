@@ -6,7 +6,7 @@ import { useRestaurant } from "../context/RestaurantContext";
 import { DishImage } from "../components/ui";
 import { DAYS, groupedHours, hoursLabel, priceLabel, telHref } from "../format";
 
-const FALLBACK_HERO = "https://i.imgur.com/SobZND4.jpg";
+const FALLBACK_HERO = "https://jyazfpwyxwqpkbjkengj.supabase.co/storage/v1/object/public/menu-photos/items/20260925-f5a0b62b53aaeefd.jpg";
 
 function todayKey() {
 	const index = new Date().toLocaleDateString("en-US", { weekday: "short", timeZone: "America/Los_Angeles" });
