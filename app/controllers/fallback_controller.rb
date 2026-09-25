@@ -1,8 +1,7 @@
-# Controller logic: fallback requests for React Router.
-# Leave this here to help deploy your app later!
+# Serves the React app for every non-API page (e.g. refreshing /menu or /admin),
+# so React Router can take over in the browser.
 class FallbackController < ActionController::Base
   def index
-    # React app index page
-    render file: ("public/index.html")
+    render file: Rails.public_path.join("index.html"), layout: false
   end
 end

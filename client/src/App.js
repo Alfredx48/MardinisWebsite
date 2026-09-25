@@ -1,147 +1,101 @@
-import "./App.css";
-import { useEffect, useState } from "react";
-import HomePage from "./components/HomePage";
-import { Routes, Route } from "react-router-dom";
-import AboutPage from "./components/AboutPage";
-import NavBar from "./components/NavBar";
-import LoginPage from "./components/LoginPage";
-import MenuItems from "./components/MenuItems";
-import Cart from "./components/Cart";
-import AdminPage from "./components/AdminPage";
-import Catering from "./components/Catering";
+import { lazy, Suspense, useEffect } from "react";
+import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import UserOrders from "./components/UserOrders";
-import { loadStripe } from "@stripe/stripe-js";
-import { Elements } from "@stripe/react-stripe-js";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
+import { RestaurantProvider } from "./context/RestaurantContext";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import CartDrawer from "./components/CartDrawer";
+import { Spinner } from "./components/ui";
+import "./styles/site.css";
+import HomePage from "./pages/HomePage";
+import MenuPage from "./pages/MenuPage";
+import CheckoutPage from "./pages/CheckoutPage";
+import OrderStatusPage from "./pages/OrderStatusPage";
+import AboutPage from "./pages/AboutPage";
+import CateringPage from "./pages/CateringPage";
+import LoginPage from "./pages/LoginPage";
+import AccountPage from "./pages/AccountPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
+const AdminApp = lazy(() => import("./admin/AdminApp"));
 
-function App() {
-	const [currentUser, setCurrentUser] = useState({});
-	const [restaurant, setRestaurant] = useState([]);
-	const [cartId, setCartId] = useState([]);
-	const [cart, setCart] = useState([]);
-	const [newOrder, setNewOrder] = useState(false);
-	const [dataFetched, setDataFetched] = useState(false);
-	
-	
-	const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY)
-
+function ScrollToTop() {
+	const { pathname } = useLocation();
 	useEffect(() => {
-		if (newOrder || !dataFetched) {
-			fetch("/api/me").then((r) => {
-				if (r.ok) {
-					r.json().then((user) => {
-						setCurrentUser(user);
-						setNewOrder(false);
-					});
-				}
-			});
-		}
-	}, [newOrder, dataFetched, setNewOrder, setDataFetched]);
+		window.scrollTo(0, 0);
+	}, [pathname]);
+	return null;
+}
 
-	useEffect(() => {
-		if (newOrder || !dataFetched) {
-			fetch("/api/restaurants/1").then((r) => {
-				if (r.ok) {
-					r.json().then((rest) => {
-						setRestaurant(rest);
-						setNewOrder(false);
-					});
-				}
-			});
-		}
-	}, [newOrder, dataFetched, setNewOrder, setDataFetched]);
-
+function SiteLayout() {
 	return (
 		<>
-			<ToastContainer
-				position="top-center"
-				autoClose={2000}
-				// limit={1}
-				hideProgressBar={false}
-				newestOnTop
-				closeOnClick
-				rtl={false}
-				pauseOnFocusLoss
-				draggable
-				pauseOnHover
-				theme="light"
-			/>
-			<div className=".header-top"></div>
-			<div className="App">
-				<NavBar
-					setCart={setCart}
-					setCartId={setCartId}
-					currentUser={currentUser}
-					setCurrentUser={setCurrentUser}
-				/>
-
-				<Routes>
-					<Route
-						path="/admin"
-						element={
-							<AdminPage
-								setNewOrder={setNewOrder}
-								restaurant={restaurant}
-								currentUser={currentUser}
-							/>
-						}
-					/>
-					<Route
-						path="/my-orders"
-						element={<UserOrders currentUser={currentUser} />}
-					/>
-					<Route path="/catering" element={<Catering rest={restaurant} />} />
-					<Route
-						path="/"
-						element={
-							<HomePage
-								className="home"
-								currentUser={currentUser}
-								setCurrentUser={setCurrentUser}
-							/>
-						}
-					/>
-					<Route
-						path="/about"
-						element={<AboutPage restaurant={restaurant} />}
-					/>
-					<Route
-						path="/login"
-						element={
-							<LoginPage
-								currentUser={currentUser}
-								setCurrentUser={setCurrentUser}
-							/>
-						}
-					/>
-					<Route
-						path="/order-now"
-						element={
-							<MenuItems  restaurant={restaurant} setCartId={setCartId} />
-						}
-					/>
-					<Route
-						path="/cart"
-						element={(
-							
-							<Elements stripe={stripePromise}>
-              <Cart
-                setNewOrder={setNewOrder}
-                cart={cart}
-                setCart={setCart}
-                currentUser={currentUser}
-                cartId={cartId}
-                setCartId={setCartId}
-								/>
-            </Elements>
-								)
-						}
-					/>
-				</Routes>
-			</div>
+			<a className="skip-link" href="#main">
+				Skip to content
+			</a>
+			<Header />
+			<main id="main">
+				<Outlet />
+			</main>
+			<Footer />
+			<CartDrawer />
 		</>
 	);
 }
 
-export default App;
+function RequireUser({ admin = false, children }) {
+	const { user, loading } = useAuth();
+	const location = useLocation();
+	if (loading) return <Spinner />;
+	if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+	if (admin && !user.admin) return <Navigate to="/" replace />;
+	return children;
+}
+
+export default function App() {
+	return (
+		<AuthProvider>
+			<RestaurantProvider>
+				<CartProvider>
+					<ScrollToTop />
+					<ToastContainer position="bottom-center" autoClose={2500} hideProgressBar newestOnTop theme="light" />
+					<Routes>
+						<Route
+							path="/admin/*"
+							element={
+								<RequireUser admin>
+									<Suspense fallback={<Spinner />}>
+										<AdminApp />
+									</Suspense>
+								</RequireUser>
+							}
+						/>
+						<Route element={<SiteLayout />}>
+							<Route index element={<HomePage />} />
+							<Route path="menu" element={<MenuPage />} />
+							<Route path="order-now" element={<Navigate to="/menu" replace />} />
+							<Route path="checkout" element={<CheckoutPage />} />
+							<Route path="cart" element={<Navigate to="/checkout" replace />} />
+							<Route path="order/:token" element={<OrderStatusPage />} />
+							<Route path="about" element={<AboutPage />} />
+							<Route path="catering" element={<CateringPage />} />
+							<Route path="login" element={<LoginPage />} />
+							<Route
+								path="account"
+								element={
+									<RequireUser>
+										<AccountPage />
+									</RequireUser>
+								}
+							/>
+							<Route path="my-orders" element={<Navigate to="/account" replace />} />
+							<Route path="*" element={<NotFoundPage />} />
+						</Route>
+					</Routes>
+				</CartProvider>
+			</RestaurantProvider>
+		</AuthProvider>
+	);
+}

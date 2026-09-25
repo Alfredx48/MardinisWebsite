@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Runs the Rails API on :3000 and the React dev server on :4000 together.
+# Open http://localhost:4000. Ctrl-C stops both.
+set -e
+cd "$(dirname "$0")/.."
+
+trap 'kill 0' EXIT
+bin/rails server -p 3000 &
+BROWSER=none PORT=4000 npm start --prefix client &
+wait

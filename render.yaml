@@ -1,0 +1,43 @@
+# Render Blueprint: creates the web service and its Postgres database.
+# Dashboard → New → Blueprint → pick this repo. Values marked `sync: false`
+# are prompted for on first deploy and never stored in git.
+databases:
+  - name: mardinis-db
+    databaseName: mardinis
+    user: mardinis
+    plan: basic-256mb
+    region: oregon
+
+services:
+  - type: web
+    name: mardinis
+    runtime: ruby
+    plan: starter # always on; the free plan sleeps and makes the first visitor wait
+    region: oregon
+    branch: main
+    buildCommand: ./bin/render-build.sh
+    startCommand: bundle exec puma -C config/puma.rb
+    healthCheckPath: /up
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mardinis-db
+          property: connectionString
+      - key: RAILS_ENV
+        value: production
+      - key: SECRET_KEY_BASE
+        generateValue: true
+      - key: BUNDLE_WITHOUT
+        value: development:test
+      - key: NODE_VERSION
+        value: "22"
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false

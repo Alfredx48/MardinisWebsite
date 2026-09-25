@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
-# exit on error
+# Render build: install gems, build the React app into public/, then migrate.
 set -o errexit
 
-# builds the front end code
-rm -rf public
-npm install --prefix client && npm run build --prefix client
-cp -a client/build/. public/
-
-# builds the back end code
 bundle install
-bundle exec rake db:migrate
-bundle exec rake db:seed # if you have seed data, run this command for the initial deploy only
- 
+
+# Front end: React is compiled to static files that Rails serves from public/.
+npm run build
+
+# Seeds are idempotent: they only fill an empty database and never delete data.
+bundle exec rails db:migrate
+bundle exec rails db:seed

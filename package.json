@@ -1,13 +1,11 @@
 {
-  "name": "phase-4-deploying-app-demo",
-  "description": "Build scripts for Heroku",
+  "name": "mardinis",
+  "private": true,
+  "description": "Build scripts for the React front end, used by bin/render-build.sh",
   "engines": {
-    "node": "16.x"
+    "node": "22.x"
   },
   "scripts": {
-    "build": "npm install --prefix client && npm run build --prefix client",
-    "clean": "rm -rf public",
-    "deploy": "cp -a client/build/. public/",
-    "heroku-postbuild": "npm run clean && npm run build && npm run deploy"
+    "build": "npm ci --prefix client && npm run build --prefix client && rm -rf public && cp -a client/build/. public/"
   }
 }

@@ -1,28 +1,29 @@
 class Api::UsersController < ApplicationController
-  skip_before_action :authorize
+  skip_before_action :authorize, only: [:show, :create]
 
-  def index
-    render json: User.all
-  end
-
+  # Returns null for guests so the browser can check login state without a 401.
   def show
-    render json: current_user
+    render json: current_user && Presenters.user(current_user)
   end
 
   def create
-    user = User.create!(user_params)
-    restaurant_id = Restaurant.first.try(:id)
-    cart = current_cart || Cart.create(restaurant_id: restaurant_id)
-    user.carts << cart
-    user.save!
+    # `admin` is deliberately not permitted; admins are promoted from the admin portal.
+    user = User.create!(params.permit(:email, :password, :password_confirmation, :name, :address, :phone))
+    reset_session
     session[:user_id] = user.id
-    session[:cart_id] = cart.id
-    render json: user, status: :created
+    render json: Presenters.user(user), status: :created
   end
 
-  private
-
-  def user_params
-    params.permit(:email, :password, :password_confirmation, :name, :address, :phone, :admin)
+  def update
+    attrs = params.permit(:name, :email, :phone, :address, :password, :password_confirmation)
+    if attrs[:password].present? || attrs[:email].to_s.strip.downcase != current_user.email
+      unless current_user.authenticate(params[:current_password].to_s)
+        return render_errors "Current password is incorrect"
+      end
+    end
+    attrs.delete(:password) if attrs[:password].blank?
+    attrs.delete(:password_confirmation) if attrs[:password].blank?
+    current_user.update!(attrs)
+    render json: Presenters.user(current_user)
   end
 end

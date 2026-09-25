@@ -1,47 +1,67 @@
 class Api::OrdersController < ApplicationController
-  
-  skip_before_action :authorize
+  skip_before_action :authorize, except: [:index]
+  rescue_from Checkout::Error, with: ->(e) { render_errors e.messages }
+  rescue_from Stripe::StripeError, with: :rescue_stripe
 
+  # The signed-in customer's order history.
   def index
-    render json: Order.all.reverse
+    orders = current_user.orders.placed.includes(:order_items).limit(50)
+    render json: orders.map { |o| Presenters.order(o) }
+  end
+
+  # Anyone with the order's unguessable token can follow its status.
+  def show
+    order = find_by_token
+    Payments.sync!(order) if order.payment_method == "card" && !order.placed?
+    render json: Presenters.order(order)
   end
 
   def create
-    cart = current_cart || current_user.carts.first
-    user_id = current_user&.id
-    order = Order.create_from_cart(cart, user_id, order_params[:status], order_params[:custom_request], order_params[:payment_intent_id], order_params[:total_cost])
-    order.restaurant_id = Restaurant.first.id
+    order = Checkout.new(restaurant: current_restaurant, user: current_user, params: checkout_params).call
+
+    if order.payment_method == "in_store"
+      order.save!
+      order.mark_placed!
+      return render json: { order: Presenters.order(order) }, status: :created
+    end
+
     order.save!
-    payment_intent = order.create_payment_intent
-  
-    order.payment_intent_id = payment_intent.id
-    order.save!
-    
-    session.delete(:cart_id)
-    render json: { message: "Order placed successfully.", order: order }, status: :created
-  end
-  
-  def update 
-    order = Order.find_by(id: params[:id])
-    order.update(order_params)
-    render json: order, status: :accepted 
+    begin
+      intent = Payments.create_intent!(order)
+    rescue Stripe::StripeError
+      order.destroy
+      raise
+    end
+    order.update!(payment_intent_id: intent.id)
+    render json: { order: Presenters.order(order), client_secret: intent.client_secret }, status: :created
   end
 
-  def create_payment_intent
-    amount = (order_params[:total_cost].to_f * 100).to_i
-    payment_intent = Stripe::PaymentIntent.create(
-      amount: amount,
-      currency: 'usd',
-      payment_method_types: ['card'],
-    )
-  
-    render json: { client_secret: payment_intent.client_secret }
+  # Called by the browser after Stripe confirms the card; we re-check with Stripe.
+  def confirm_payment
+    order = Payments.sync!(find_by_token)
+    if order.payment_status == "paid"
+      render json: Presenters.order(order)
+    else
+      render_errors "We couldn't confirm your payment yet. If you were charged, please call us.", :payment_required
+    end
   end
-  
 
   private
 
-  def order_params
-    params.require(:order).permit(:status, :custom_request, :total_cost, :user_id, :restaurant_id, :payment_method_id)
+  def find_by_token
+    Order.includes(:order_items).find_by!(token: params[:token].to_s)
+  end
+
+  def checkout_params
+    params.permit(
+      :payment_method, :pickup_at, :tip, :custom_request,
+      customer: %i[name phone email],
+      items: %i[menu_item_id quantity special_request],
+    )
+  end
+
+  def rescue_stripe(error)
+    Rails.logger.error("[stripe] #{error.class}: #{error.message}")
+    render_errors "Our payment processor had a problem: #{error.message}", :bad_gateway
   end
 end
