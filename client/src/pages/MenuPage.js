@@ -295,7 +295,7 @@ function ItemDialog({ item, onClose }) {
 							id="special-request"
 							className="textarea"
 							maxLength={200}
-							placeholder="No onions, extra garlic sauce…"
+							placeholder="No onions, no pickles…"
 							value={request}
 							onChange={(e) => setRequest(e.target.value)}
 						/>
