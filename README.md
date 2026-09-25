@@ -9,7 +9,7 @@ Ruby 3.4 / Rails 8.1 API (`app/`) + React 18 single-page app (`client/`), Postgr
 
 ## Running locally
 
-Requirements: Ruby 3.4.11 (see `.ruby-version`), Node 22, PostgreSQL.
+Requirements: Ruby 3.4.10 (see `.ruby-version`), Node 22, PostgreSQL.
 
 ```bash
 bundle install
