@@ -131,7 +131,7 @@ Menu and settings data live in the production DB, not in the seeds (never hand-e
 
 - Confirm `SECRET_KEY_BASE` is spelled right in Render (a screenshot once showed `SECRETE_KEY_BASE`).
 - Confirm Stripe mode (live vs test) and the Card payments setting; decide on the refund-fee question for customer cancellations.
-- Check the tax rate in Admin → Settings: still **9.5%**, a legacy value; Menlo Park's actual rate is unverified. Also hours (Mon–Sat 9–9, Sun 10–8 by default) and prep time (20 min).
+- Check the tax rate in Admin → Settings: still **9.5%**, a legacy value; Menlo Park's actual rate is unverified. Also the prep time (20 min). Hours (Mon–Sat 9am–9pm, Sun 10am–8pm) were confirmed by the owner on 2026-09-27.
 - Admin login = `ADMIN_EMAIL`/`ADMIN_PASSWORD` from Render (first seed). No password-reset flow; an admin can't be recovered without console or DB access.
 - Unclear item names copied from the ordering site: "Mexican" and "Izee" (Bottled Drinks), "Turkish" (Snacks).
 - Returning visitors who loaded the home page before 2026-09-25 may have the old page cached for a year (the bug fixed in `cce50a8`); a refresh fixes it.
