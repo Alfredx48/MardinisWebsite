@@ -11,6 +11,7 @@ import { useCart } from "../context/CartContext";
 import { useRestaurant } from "../context/RestaurantContext";
 import { DishImage, EmptyState, QuantityStepper, Spinner } from "../components/ui";
 import { cents, dayLabel, formatTime, money, telHref } from "../format";
+import { modifierText } from "../modifiers";
 
 export const PENDING_ORDER_KEY = "mardinis-pending-order";
 const TIP_PERCENTS = [0, 10, 15, 20];
@@ -106,6 +107,7 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 				items: items.map((l) => ({
 					menu_item_id: l.menu_item_id,
 					size: l.size,
+					modifiers: l.modifiers || [],
 					quantity: l.quantity,
 					special_request: l.special_request,
 				})),
@@ -149,6 +151,7 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 										<strong>{line.name}</strong>
 										<span className="money">{money(line.price * line.quantity)}</span>
 									</div>
+									{line.options_label && <p className="cart-line-options">{line.options_label}</p>}
 									{line.special_request && <p className="cart-line-note">“{line.special_request}”</p>}
 									{line.unavailable && <p className="cart-line-warn">Sold out, please remove to continue</p>}
 									<div className="cart-line-actions">
@@ -377,6 +380,7 @@ function PaymentStep({ payment, restaurant, onBack }) {
 						<div className="summary-row" key={i.id}>
 							<span>
 								{i.quantity} × {i.name}
+								{i.modifiers?.length > 0 && <span className="summary-options">{modifierText(i.modifiers)}</span>}
 							</span>
 							<span>{money(i.line_total)}</span>
 						</div>

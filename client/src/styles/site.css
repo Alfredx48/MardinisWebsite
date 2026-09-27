@@ -1498,3 +1498,100 @@
 .item-sizes legend {
 	margin-bottom: 8px;
 }
+
+/* Option groups in the item dialog (bread choice, extras, "no onions"...) */
+.item-options {
+	margin: 0 0 18px;
+	padding: 0;
+	border: 0;
+	min-width: 0;
+}
+
+.item-options legend {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+
+.option-rule {
+	font-size: 0.78rem;
+	color: var(--ink-faint);
+}
+
+.option-rule.is-required {
+	color: var(--terracotta-dark);
+	font-weight: 600;
+}
+
+.option-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.option-chip {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	min-height: 40px;
+	padding: 6px 12px;
+	border: 1.5px solid var(--line-strong);
+	border-radius: 999px;
+	background: var(--paper);
+	font-size: 0.9rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: border-color 0.15s, background 0.15s;
+}
+
+.option-chip input {
+	position: absolute;
+	inset: 0;
+	margin: 0;
+	opacity: 0;
+	cursor: pointer;
+}
+
+.option-chip:hover {
+	border-color: var(--ink-faint);
+}
+
+.option-chip.is-on {
+	border-color: var(--terracotta);
+	background: var(--terracotta-tint);
+	color: var(--terracotta-dark);
+}
+
+.option-chip:has(input:focus-visible) {
+	outline: 3px solid var(--terracotta);
+	outline-offset: 2px;
+}
+
+.option-chip:has(input:disabled) {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+
+.option-price {
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: var(--olive);
+}
+
+.option-chip.is-on .option-price {
+	color: inherit;
+}
+
+.cart-line-options {
+	margin: 4px 0 0;
+	font-size: 0.85rem;
+	color: var(--ink-soft);
+}
+
+.summary-options {
+	display: block;
+	font-size: 0.8rem;
+	color: var(--ink-faint);
+}

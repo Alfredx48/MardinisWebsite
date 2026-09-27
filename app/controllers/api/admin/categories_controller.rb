@@ -1,7 +1,7 @@
 class Api::Admin::CategoriesController < Api::Admin::BaseController
   # Full menu, including hidden categories and sold-out items.
   def index
-    categories = current_restaurant.categories.includes(:menu_items)
+    categories = current_restaurant.categories.includes(menu_items: :modifier_groups)
     render json: categories.map { |c| Presenters.category(c, items: c.menu_items) }
   end
 

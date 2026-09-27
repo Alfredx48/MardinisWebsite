@@ -55,6 +55,7 @@ module Presenters
       description: i.description,
       price: money(i.price),
       sizes: i.sizes.map { |sz| { name: sz["name"], price: money(sz["price"]) } },
+      modifier_groups: i.modifier_groups.map { |g| modifier_group(g) },
       image: i.image,
       available: i.available,
       featured: i.featured,
@@ -62,6 +63,21 @@ module Presenters
       spicy: i.spicy,
       position: i.position,
     }
+  end
+
+  def modifier_group(g)
+    {
+      id: g.id,
+      name: g.name,
+      min: g.min_select,
+      max: g.max_select,
+      options: g.options.map { |o| { name: o["name"], price: money(o["price"]) } },
+    }
+  end
+
+  # Admin list: also which items use the group.
+  def admin_modifier_group(g)
+    modifier_group(g).merge(menu_item_ids: g.menu_item_modifier_groups.map(&:menu_item_id))
   end
 
   def user(u)
@@ -131,6 +147,7 @@ module Presenters
       menu_item_id: oi.menu_item_id,
       name: oi.name,
       size: oi.size,
+      modifiers: oi.modifiers.map { |m| { group_id: m["group_id"], group: m["group"], option: m["option"], price: money(m["price"]) } },
       quantity: oi.quantity,
       unit_price: money(oi.unit_price || 0),
       line_total: money(oi.line_total),

@@ -20,6 +20,7 @@ import {
 	placedAt,
 	restaurantDate,
 } from "./adminUtils";
+import { modifierText } from "../modifiers";
 
 const CANCEL_REASONS = ["Customer asked to cancel", "Item sold out", "Closing early", "Duplicate order", "No-show"];
 
@@ -591,6 +592,7 @@ export default function OrderDetail({ order: initial, onClose, onUpdated }) {
 									<td className="adm-qty">{item.quantity}×</td>
 									<td>
 										{item.name}
+										{item.modifiers?.length > 0 && <div className="adm-modifiers">{modifierText(item.modifiers)}</div>}
 										{item.special_request && <div className="adm-special">{item.special_request}</div>}
 									</td>
 									<td className="num">{money(item.unit_price)}</td>

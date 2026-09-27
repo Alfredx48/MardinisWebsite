@@ -323,6 +323,11 @@
 	padding: 3px 10px;
 }
 
+.adm-kitchen .adm-modifiers {
+	font-size: 1.05rem;
+	font-weight: 600;
+}
+
 .adm-kitchen .adm-request {
 	font-size: 1.05rem;
 	font-weight: 600;

@@ -65,6 +65,53 @@ RSpec.describe "Checkout", type: :request do
     end
   end
 
+  describe "options" do
+    let!(:bread) { restaurant.modifier_groups.create!(name: "Bread Choice", min_select: 1, max_select: 1, options: [{ name: "Dutch Crunch" }, { name: "Rye" }]) }
+    let!(:extras) { restaurant.modifier_groups.create!(name: "Extras", options: [{ name: "Extra Bacon", price: "3" }, { name: "Extra Avocado", price: "2.25" }]) }
+    let!(:sandwich) do
+      create_item(restaurant, name: "Turkey Sandwich", price: 13.68).tap { |i| i.assign_modifier_groups!([bread.id, extras.id]) }
+    end
+
+    def order_sandwich(modifiers)
+      place(items: [{ menu_item_id: sandwich.id, quantity: 2, modifiers: modifiers }])
+    end
+
+    it "adds option prices on the server and records the choices on the ticket" do
+      order_sandwich([{ group_id: bread.id, options: ["Rye"] }, { group_id: extras.id, options: ["Extra Bacon", "Extra Avocado"] }])
+
+      expect(response).to have_http_status(:created), response.body
+      line = Order.last.order_items.first
+      expect(line.unit_price).to eq(18.93) # 13.68 + 3.00 + 2.25
+      expect(Order.last.subtotal).to eq(37.86)
+      expect(line.modifiers.map { |m| [m["group"], m["option"], m["price"]] }).to eq(
+        [["Bread Choice", "Rye", "0.00"], ["Extras", "Extra Bacon", "3.00"], ["Extras", "Extra Avocado", "2.25"]],
+      )
+      expect(json.dig("order", "items", 0, "modifiers", 1)).to eq("group_id" => extras.id, "group" => "Extras", "option" => "Extra Bacon", "price" => "3.00")
+    end
+
+    it "requires required choices and respects the limit" do
+      order_sandwich([])
+      expect(json["errors"]).to eq(["Please choose an option for Bread Choice (Turkey Sandwich)"])
+
+      order_sandwich([{ group_id: bread.id, options: ["Rye", "Dutch Crunch"] }])
+      expect(json["errors"]).to eq(["Choose up to 1 for Bread Choice (Turkey Sandwich)"])
+    end
+
+    it "rejects options that don't exist or belong to other items" do
+      order_sandwich([{ group_id: bread.id, options: ["Pretzel Bun"] }])
+      expect(json["errors"].first).to include("Pretzel Bun is no longer an option")
+
+      other = restaurant.modifier_groups.create!(name: "Spice Level", options: [{ name: "Hot" }])
+      order_sandwich([{ group_id: bread.id, options: ["Rye"] }, { group_id: other.id, options: ["Hot"] }])
+      expect(json["errors"].first).to include("options for Turkey Sandwich have changed")
+    end
+
+    it "ignores option picks sent for an item without options" do
+      place(items: [{ menu_item_id: wrap.id, quantity: 1, modifiers: [] }])
+      expect(Order.last.order_items.first).to have_attributes(unit_price: 10.00, modifiers: [])
+    end
+  end
+
   it "rejects sold-out items" do
     wrap.update!(available: false)
     place

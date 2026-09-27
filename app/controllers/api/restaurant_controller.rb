@@ -6,7 +6,7 @@ class Api::RestaurantController < ApplicationController
   end
 
   def menu
-    categories = current_restaurant.categories.active.includes(:menu_items)
+    categories = current_restaurant.categories.active.includes(menu_items: :modifier_groups)
     render json: categories.map { |c| Presenters.category(c, items: c.menu_items) }
   end
 end

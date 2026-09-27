@@ -52,6 +52,7 @@ function DrawerContents({ onClose }) {
 											<strong>{line.name}</strong>
 											<span className="money">{money(line.price * line.quantity)}</span>
 										</div>
+										{line.options_label && <p className="cart-line-options">{line.options_label}</p>}
 										{line.special_request && <p className="cart-line-note">“{line.special_request}”</p>}
 										{line.unavailable && <p className="cart-line-warn">Sold out, please remove</p>}
 										<div className="cart-line-actions">

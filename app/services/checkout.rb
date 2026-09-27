@@ -48,6 +48,7 @@ class Checkout
         menu_item: l[:menu_item],
         item_name: l[:size] ? "#{l[:menu_item].name} (#{l[:size]})" : l[:menu_item].name,
         size: l[:size],
+        modifiers: l[:modifiers],
         unit_price: l[:unit_price],
         quantity: l[:quantity],
         special_request: l[:special_request],
@@ -104,13 +105,42 @@ class Checkout
     tip.round(2)
   end
 
+  # Checks the customer's choices against each of the item's option groups and
+  # returns them as priced snapshots: [{ "group_id", "group", "option", "price" }].
+  def chosen_modifiers(item, raw)
+    picks = Array(raw).each_with_object({}) do |sel, h|
+      h[sel[:group_id].to_i] = Array(sel[:options]).map(&:to_s).map(&:strip).reject(&:empty?)
+    end
+
+    chosen = item.modifier_groups.flat_map do |group|
+      names = picks.delete(group.id) || []
+      raise Error, "Please choose each option once for #{item.name}" unless names.uniq.size == names.size
+      if names.size < group.min_select
+        raise Error, "Please choose #{group.min_select == 1 ? 'an option' : "#{group.min_select} options"} for #{group.name} (#{item.name})"
+      end
+      if group.max_select && names.size > group.max_select
+        raise Error, "Choose up to #{group.max_select} for #{group.name} (#{item.name})"
+      end
+
+      names.map do |name|
+        option = group.option_named(name)
+        raise Error, "#{name} is no longer an option for #{item.name}. Please update your cart." unless option
+
+        { "group_id" => group.id, "group" => group.name, "option" => option["name"], "price" => option["price"] }
+      end
+    end
+    raise Error, "The options for #{item.name} have changed. Please update your cart." if picks.values.any?(&:present?)
+
+    chosen
+  end
+
   def priced_lines
     raw = Array(@params[:items]).first(MAX_LINES + 1)
     raise Error, "Your cart is empty" if raw.empty?
     raise Error, "Too many different items in one order" if raw.size > MAX_LINES
 
     ids = raw.map { |i| i[:menu_item_id].to_i }
-    items = @restaurant.menu_items.includes(:category).where(id: ids).index_by(&:id)
+    items = @restaurant.menu_items.includes(:category, :modifier_groups).where(id: ids).index_by(&:id)
 
     raw.map do |line|
       item = items[line[:menu_item_id].to_i]
@@ -130,11 +160,14 @@ class Checkout
 
         unit_price = size["price"].to_d
       end
+      modifiers = chosen_modifiers(item, line[:modifiers])
+      unit_price += modifiers.sum { |m| m["price"].to_d }
 
       {
         menu_item: item,
         size: size && size["name"],
         unit_price: unit_price,
+        modifiers: modifiers,
         quantity: quantity,
         special_request: line[:special_request].to_s.strip.first(200).presence,
       }

@@ -1,6 +1,10 @@
 class Api::Admin::MenuItemsController < Api::Admin::BaseController
   def create
-    item = current_restaurant.menu_items.create!(item_params)
+    item = current_restaurant.menu_items.new(item_params)
+    MenuItem.transaction do
+      item.save!
+      item.assign_modifier_groups!(params[:modifier_group_ids]) if params.key?(:modifier_group_ids)
+    end
     render json: Presenters.menu_item(item), status: :created
   end
 
@@ -8,7 +12,11 @@ class Api::Admin::MenuItemsController < Api::Admin::BaseController
     moving = item_params.key?(:category_id) && item_params[:category_id].to_i != item.category_id
     item.assign_attributes(item_params)
     item.position = (item.category.menu_items.maximum(:position) || 0) + 1 if moving
-    item.save!
+    MenuItem.transaction do
+      item.save!
+      # `modifier_group_ids: []` removes every option group.
+      item.assign_modifier_groups!(params[:modifier_group_ids]) if params.key?(:modifier_group_ids)
+    end
     render json: Presenters.menu_item(item)
   end
 

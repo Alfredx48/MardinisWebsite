@@ -9,6 +9,7 @@ import { EmptyState, Spinner } from "../components/ui";
 import OrderDetail, { pickupLabel } from "./OrderDetail";
 import { PageHeader, PaymentBadge, StatusBadge, useDebounced } from "./adminUi";
 import { PAYMENT_LABELS, STATUS_LABELS, downloadFile, placedAt, toCsv } from "./adminUtils";
+import { modifierText } from "../modifiers";
 
 const EXPORT_CAP = 1000;
 
@@ -65,7 +66,12 @@ function csvFor(orders) {
 		pickupLabel(o),
 		PAYMENT_LABELS[o.payment_method] || o.payment_method,
 		o.payment_status,
-		o.items.map((i) => `${i.quantity}x ${i.name}${i.special_request ? ` (${i.special_request})` : ""}`).join("; "),
+		o.items
+			.map((i) => {
+				const extras = [modifierText(i.modifiers), i.special_request].filter(Boolean).join("; ");
+				return `${i.quantity}x ${i.name}${extras ? ` (${extras})` : ""}`;
+			})
+			.join("; "),
 		o.subtotal,
 		o.tax,
 		o.tip,

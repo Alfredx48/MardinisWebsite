@@ -8,6 +8,7 @@ import { useCart } from "../context/CartContext";
 import { useRestaurant } from "../context/RestaurantContext";
 import { EmptyState, Spinner } from "../components/ui";
 import { formatDateTime, money, ORDER_STATUS_LABELS } from "../format";
+import { apiToPicks, picksProblem, picksToApi } from "../modifiers";
 
 const STATUS_BADGE = {
 	new: "badge-info",
@@ -59,8 +60,13 @@ function OrderHistory() {
 		order.items.forEach((line) => {
 			const item = index[line.menu_item_id];
 			const sizeOk = item?.sizes?.length ? item.sizes.some((s) => s.name === line.size) : true;
-			if (item && item.available && sizeOk) addItem(item, line.quantity, line.special_request || "", line.size || null);
-			else skipped += 1;
+			const picks = apiToPicks(line.modifiers);
+			const optionsOk = item && !picksProblem(item, picks);
+			if (item && item.available && sizeOk && optionsOk) {
+				addItem(item, line.quantity, line.special_request || "", line.size || null, picksToApi(item, picks));
+			} else {
+				skipped += 1;
+			}
 		});
 		if (skipped) toast.info(`${skipped} item${skipped > 1 ? "s are" : " is"} no longer available and was left out.`);
 		openDrawer();

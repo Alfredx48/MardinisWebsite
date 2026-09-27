@@ -214,6 +214,46 @@ RSpec.describe "Admin portal API", type: :request do
     end
   end
 
+  describe "option groups" do
+    it "creates a group, attaches it to items in order, and edits it for every item at once" do
+      post "/api/admin/modifier_groups", params: { name: "Bread Choice", min_select: 1, max_select: 1, options: [{ name: " Rye " }, { name: "Dutch Crunch", price: "0" }] }, as: :json
+      expect(response).to have_http_status(:created)
+      bread = json
+      expect(bread).to include("name" => "Bread Choice", "min" => 1, "max" => 1)
+      expect(bread["options"]).to eq([{ "name" => "Rye", "price" => "0.00" }, { "name" => "Dutch Crunch", "price" => "0.00" }])
+
+      post "/api/admin/modifier_groups", params: { name: "Extras", min_select: 0, max_select: "", options: [{ name: "Bacon", price: "3" }] }, as: :json
+      extras = json
+      expect(extras["max"]).to be_nil
+
+      patch "/api/admin/menu_items/#{item.id}", params: { modifier_group_ids: [extras["id"], bread["id"]] }, as: :json
+      expect(json["modifier_groups"].map { |g| g["name"] }).to eq(["Extras", "Bread Choice"])
+
+      patch "/api/admin/modifier_groups/#{bread['id']}", params: { options: [{ name: "Ciabatta" }] }, as: :json
+      get "/api/menu"
+      groups = json.flat_map { |c| c["items"] }.find { |i| i["id"] == item.id }["modifier_groups"]
+      expect(groups.last["options"].map { |o| o["name"] }).to eq(["Ciabatta"])
+
+      patch "/api/admin/menu_items/#{item.id}", params: { modifier_group_ids: [] }, as: :json
+      expect(json["modifier_groups"]).to eq([])
+    end
+
+    it "rejects groups that make no sense" do
+      post "/api/admin/modifier_groups", params: { name: "Bread", min_select: 2, options: [{ name: "Rye" }] }, as: :json
+      expect(response).to have_http_status(:unprocessable_content)
+      post "/api/admin/modifier_groups", params: { name: "Bread", options: [{ name: "Rye" }, { name: "rye" }] }, as: :json
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    it "deletes a group and detaches it from items" do
+      group = restaurant.modifier_groups.create!(name: "Extras", options: [{ name: "Bacon", price: "3" }])
+      item.assign_modifier_groups!([group.id])
+      delete "/api/admin/modifier_groups/#{group.id}"
+      expect(response).to have_http_status(:no_content)
+      expect(item.reload.modifier_groups).to be_empty
+    end
+  end
+
   describe "users" do
     it "promotes customers but won't let admins demote themselves" do
       customer = create_user

@@ -20,6 +20,7 @@ import { useAdmin } from "./AdminContext";
 import OrderDetail, { CancelDialog, nextActionLabel } from "./OrderDetail";
 import { OverflowMenu, PageHeader, PaymentBadge, useNow } from "./adminUi";
 import { NEXT_STATUS, STATUS_LABELS, amountDue, placedAt, restaurantDate } from "./adminUtils";
+import { modifierText } from "../modifiers";
 
 const COLUMNS = [
 	{ status: "new", title: "New", empty: "No new orders. You'll hear a chime when one arrives." },
@@ -162,6 +163,7 @@ function Ticket({ order, onOpen, onCancel }) {
 						<span className="adm-ticket-qty">{item.quantity}×</span>
 						<span>
 							{item.name}
+							{item.modifiers?.length > 0 && <span className="adm-modifiers">{modifierText(item.modifiers)}</span>}
 							{item.special_request && <span className="adm-special">{item.special_request}</span>}
 						</span>
 					</li>

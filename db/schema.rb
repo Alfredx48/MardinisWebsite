@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_25_000004) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_27_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -41,6 +41,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_000004) do
     t.index ["status"], name: "index_catering_inquiries_on_status"
   end
 
+  create_table "menu_item_modifier_groups", force: :cascade do |t|
+    t.bigint "menu_item_id", null: false
+    t.bigint "modifier_group_id", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["menu_item_id", "modifier_group_id"], name: "index_menu_item_modifier_groups_unique", unique: true
+    t.index ["menu_item_id"], name: "index_menu_item_modifier_groups_on_menu_item_id"
+    t.index ["modifier_group_id"], name: "index_menu_item_modifier_groups_on_modifier_group_id"
+  end
+
   create_table "menu_items", force: :cascade do |t|
     t.string "name"
     t.text "description"
@@ -61,6 +72,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_000004) do
     t.index ["restaurant_id"], name: "index_menu_items_on_restaurant_id"
   end
 
+  create_table "modifier_groups", force: :cascade do |t|
+    t.bigint "restaurant_id", null: false
+    t.string "name", null: false
+    t.integer "min_select", default: 0, null: false
+    t.integer "max_select"
+    t.jsonb "options", default: [], null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["restaurant_id"], name: "index_modifier_groups_on_restaurant_id"
+  end
+
   create_table "order_items", force: :cascade do |t|
     t.integer "quantity"
     t.text "special_request"
@@ -72,6 +95,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_000004) do
     t.string "item_name"
     t.decimal "unit_price", precision: 8, scale: 2
     t.string "size"
+    t.jsonb "modifiers", default: [], null: false
     t.index ["menu_item_id"], name: "index_order_items_on_menu_item_id"
     t.index ["order_id"], name: "index_order_items_on_order_id"
   end
@@ -159,8 +183,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_000004) do
 
   add_foreign_key "categories", "restaurants"
   add_foreign_key "catering_inquiries", "restaurants"
+  add_foreign_key "menu_item_modifier_groups", "menu_items"
+  add_foreign_key "menu_item_modifier_groups", "modifier_groups"
   add_foreign_key "menu_items", "categories"
   add_foreign_key "menu_items", "restaurants"
+  add_foreign_key "modifier_groups", "restaurants"
   add_foreign_key "order_items", "menu_items"
   add_foreign_key "order_items", "orders"
   add_foreign_key "refunds", "orders"

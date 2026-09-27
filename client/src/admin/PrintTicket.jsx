@@ -1,5 +1,6 @@
 import { formatDateTime, formatTime, money, todayInRestaurant } from "../format";
 import { PAYMENT_LABELS, amountDue, paymentBadge, placedAt, restaurantDate } from "./adminUtils";
+import { modifierText } from "../modifiers";
 
 // Kitchen ticket. Only rendered into a body-level portal while printing; the
 // print stylesheet in admin.css hides everything else on the page.
@@ -30,6 +31,7 @@ export default function PrintTicket({ order, restaurantName }) {
 							<span className="adm-tp-item">{item.name}</span>
 							<span>{money(item.line_total)}</span>
 						</div>
+						{item.modifiers?.length > 0 && <div className="adm-tp-mods">{modifierText(item.modifiers)}</div>}
 						{item.special_request && <div className="adm-tp-note">** {item.special_request}</div>}
 					</li>
 				))}

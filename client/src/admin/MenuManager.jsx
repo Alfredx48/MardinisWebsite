@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -17,7 +18,8 @@ import {
 	faLeaf,
 } from "@fortawesome/free-solid-svg-icons";
 import { api } from "../api";
-import { priceLabel } from "../format";
+import { money, priceLabel } from "../format";
+import { ruleLabel } from "../modifiers";
 import { DishImage, EmptyState, Modal, Spinner, Switch } from "../components/ui";
 import { useRestaurant } from "../context/RestaurantContext";
 import { ConfirmDialog, FormErrors, OverflowMenu, PageHeader } from "./adminUi";
@@ -187,6 +189,7 @@ function ItemEditor({ item, categoryId, categories, onClose, onSaved, onDeleted 
 		description: item?.description || "",
 		price: item?.price || "",
 		sizes: item?.sizes || [],
+		modifier_group_ids: (item?.modifier_groups || []).map((g) => g.id),
 		image: item?.image || "",
 		category_id: item?.category_id || categoryId || categories[0]?.id || "",
 		featured: item?.featured || false,
@@ -199,6 +202,19 @@ function ItemEditor({ item, categoryId, categories, onClose, onSaved, onDeleted 
 	const [confirmDelete, setConfirmDelete] = useState(false);
 	const [errors, setErrors] = useState(null);
 	const fileInput = useRef(null);
+	const [groups, setGroups] = useState(null);
+
+	useEffect(() => {
+		api.get("/admin/modifier_groups").then(setGroups, () => setGroups([]));
+	}, []);
+
+	const toggleGroup = (id) =>
+		setForm((f) => ({
+			...f,
+			modifier_group_ids: f.modifier_group_ids.includes(id)
+				? f.modifier_group_ids.filter((g) => g !== id)
+				: [...f.modifier_group_ids, id],
+		}));
 	const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 	const check = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.checked }));
 
@@ -229,6 +245,9 @@ function ItemEditor({ item, categoryId, categories, onClose, onSaved, onDeleted 
 		const sizes = form.sizes.map((s) => ({ name: s.name.trim(), price: s.price }));
 		const body = { ...form, sizes, name: form.name.trim(), image: form.image.trim(), category_id: Number(form.category_id) };
 		if (sizes.length) delete body.price; // the server uses the lowest size price
+		// Keep option groups in the same order as the Options page.
+		if (groups) body.modifier_group_ids = groups.map((g) => g.id).filter((id) => form.modifier_group_ids.includes(id));
+		else delete body.modifier_group_ids;
 		try {
 			const saved = item
 				? await api.patch(`/admin/menu_items/${item.id}`, body)
@@ -363,6 +382,39 @@ function ItemEditor({ item, categoryId, categories, onClose, onSaved, onDeleted 
 						</div>
 						<ImagePreview url={form.image.trim()} name={form.name} />
 					</div>
+
+					<fieldset className="adm-fieldset">
+						<legend className="label">Options</legend>
+						{groups === null ? (
+							<p className="hint">Loading option groups…</p>
+						) : groups.length === 0 ? (
+							<p className="hint">
+								No option groups yet. Create them on the <Link to="/admin/options">Options</Link> page.
+							</p>
+						) : (
+							<div className="adm-item-options">
+								{groups.map((g) => (
+									<label key={g.id} className="adm-item-option">
+										<input
+											type="checkbox"
+											checked={form.modifier_group_ids.includes(g.id)}
+											onChange={() => toggleGroup(g.id)}
+										/>
+										<span>
+											<strong>{g.name}</strong> · {ruleLabel(g)}
+											<small>
+												{g.options
+													.slice(0, 5)
+													.map((o) => (Number(o.price) > 0 ? `${o.name} +${money(o.price)}` : o.name))
+													.join(", ")}
+												{g.options.length > 5 ? `, and ${g.options.length - 5} more` : ""}
+											</small>
+										</span>
+									</label>
+								))}
+							</div>
+						)}
+					</fieldset>
 
 					<fieldset className="adm-fieldset">
 						<legend className="label">Labels</legend>

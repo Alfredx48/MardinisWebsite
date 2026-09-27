@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { cents } from "../format";
+import { apiToPicks, picksLabel, picksProblem, picksTotal } from "../modifiers";
 import { useRestaurant } from "./RestaurantContext";
 
 const STORAGE_KEY = "mardinis-cart-v1";
@@ -16,7 +17,8 @@ function loadCart() {
 	}
 }
 
-const lineKey = (menuItemId, request, size) => `${menuItemId}:${size || ""}:${(request || "").trim().toLowerCase()}`;
+const lineKey = (menuItemId, request, size, modifiers) =>
+	`${menuItemId}:${size || ""}:${JSON.stringify(modifiers || [])}:${(request || "").trim().toLowerCase()}`;
 
 // The cart lives in the browser. Prices shown here are for display only; the
 // server re-prices everything at checkout.
@@ -48,21 +50,28 @@ export function CartProvider({ children }) {
 				const liveSize = line.size ? live?.sizes?.find((s) => s.name === line.size) : null;
 				const sizeGone = live ? (live.sizes?.length ? !liveSize : Boolean(line.size)) : false;
 				const baseName = live?.name || line.name;
+				// Options are re-checked and re-priced against the live menu too.
+				const picks = apiToPicks(line.modifiers);
+				const optionsChanged = live ? Boolean(picksProblem(live, picks)) : false;
+				const basePrice = liveSize ? Number(liveSize.price) : live && !sizeGone ? Number(live.price) : null;
 				return {
 					...line,
 					name: line.size ? `${baseName} (${line.size})` : baseName,
-					price: liveSize ? Number(liveSize.price) : live && !sizeGone ? Number(live.price) : Number(line.price),
+					price: basePrice === null || optionsChanged ? Number(line.price) : basePrice + picksTotal(live, picks),
+					options_label: live && !optionsChanged ? picksLabel(live, picks) : line.options_label || "",
 					image: live?.image ?? line.image,
-					unavailable: menu ? !live || !live.available || sizeGone : false,
+					unavailable: menu ? !live || !live.available || sizeGone || optionsChanged : false,
 				};
 			}),
 		[lines, menuIndex, menu]
 	);
 
-	// `size` is a size name, required for items that come in sizes.
-	const addItem = useCallback((menuItem, quantity = 1, specialRequest = "", size = null) => {
-		const key = lineKey(menuItem.id, specialRequest, size);
+	// `size` is a size name, required for items that come in sizes. `modifiers`
+	// are the chosen options in API form: [{ group_id, options: [name] }].
+	const addItem = useCallback((menuItem, quantity = 1, specialRequest = "", size = null, modifiers = []) => {
+		const key = lineKey(menuItem.id, specialRequest, size, modifiers);
 		const sizePrice = menuItem.sizes?.find((s) => s.name === size)?.price;
+		const picks = apiToPicks(modifiers);
 		setLines((prev) => {
 			const existing = prev.find((l) => l.key === key);
 			if (existing) {
@@ -77,7 +86,9 @@ export function CartProvider({ children }) {
 					menu_item_id: menuItem.id,
 					name: menuItem.name,
 					size,
-					price: Number(sizePrice ?? menuItem.price),
+					modifiers,
+					options_label: picksLabel(menuItem, picks),
+					price: Number(sizePrice ?? menuItem.price) + picksTotal(menuItem, picks),
 					image: menuItem.image,
 					quantity: Math.min(MAX_QUANTITY, quantity),
 					special_request: specialRequest.trim(),

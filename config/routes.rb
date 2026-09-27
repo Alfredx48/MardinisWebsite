@@ -33,6 +33,7 @@ Rails.application.routes.draw do
         patch :reorder, on: :collection
       end
       resources :photos, only: [:create]
+      resources :modifier_groups, only: [:index, :create, :update, :destroy]
       resources :users, only: [:index, :update]
       resources :catering_inquiries, only: [:index, :update, :destroy]
     end

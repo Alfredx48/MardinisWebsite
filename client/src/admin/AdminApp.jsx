@@ -5,6 +5,7 @@ import Dashboard from "./Dashboard";
 import LiveOrders from "./LiveOrders";
 import OrderHistory from "./OrderHistory";
 import MenuManager from "./MenuManager";
+import OptionsManager from "./OptionsManager";
 import CateringInbox from "./CateringInbox";
 import Customers from "./Customers";
 import Settings from "./Settings";
@@ -19,6 +20,7 @@ export default function AdminApp() {
 					<Route path="orders" element={<LiveOrders />} />
 					<Route path="history" element={<OrderHistory />} />
 					<Route path="menu" element={<MenuManager />} />
+					<Route path="options" element={<OptionsManager />} />
 					<Route path="catering" element={<CateringInbox />} />
 					<Route path="users" element={<Customers />} />
 					<Route path="settings" element={<Settings />} />

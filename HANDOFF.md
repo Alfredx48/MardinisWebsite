@@ -70,17 +70,19 @@ Context for a new Claude Code session picking up this project. Last updated 2026
   - `Restaurant`: settings; `hours` jsonb keyed `sun..sat` `{open, close, closed}`; tax, prep time, open-now, pickup slots; `hero_image` (home banner URL); timezone Pacific.
   - `Category` (`active` = visible), `MenuItem`: `available` = "sold out" switch; `featured`, `vegetarian`, `spicy`, `position`, `image` (URL), and **`sizes`** (jsonb `[{name, price}]`; when present the customer must pick one, and `price` is kept at the lowest size price).
   - `Order`: `awaiting_payment → new → preparing → ready → completed`, plus `cancelled` (`Order::KITCHEN_FLOW`); `refunded_amount`; a random `token` powers public tracking at `/order/:token`.
-  - `OrderItem`: snapshots `item_name` (including the size, e.g. "Hummus (Pint)"), `size` and `unit_price`.
+  - `ModifierGroup` (+ `MenuItemModifierGroup` join): reusable option groups such as "Bread Choice" (`min_select`/`max_select`, nil max = no limit, `options` jsonb `[{name, price}]`), attached to items in order via `MenuItem#assign_modifier_groups!`. Checkout validates every group's limits and adds option prices to the line.
+  - `OrderItem`: snapshots `item_name` (including the size, e.g. "Hummus (Pint)"), `size`, `unit_price` (including options) and `modifiers` (jsonb `[{group_id, group, option, price}]`, shown on tickets under the item).
   - `Refund`, `CateringInquiry`, `User` (`admin` and `kitchen` booleans; `role` = customer / kitchen / admin; `staff?` = either).
-- Controllers: public `api/restaurant` (`/api/restaurant`, `/api/menu`, active categories only), `api/orders`, `api/users`/`api/sessions` (cookie session `_mardinis_session`, `SameSite=Strict`), `api/catering_inquiries`, `api/stripe_webhooks`. Admin, all behind `require_admin`: `api/admin/*` (orders + refund, categories, menu_items + reorder, **photos** upload, restaurant settings, users, catering, stats). `FallbackController` serves the SPA for `/` and every non-API route.
+- Controllers: public `api/restaurant` (`/api/restaurant`, `/api/menu`, active categories only), `api/orders`, `api/users`/`api/sessions` (cookie session `_mardinis_session`, `SameSite=Strict`), `api/catering_inquiries`, `api/stripe_webhooks`. Admin, all behind `require_admin`: `api/admin/*` (orders + refund, categories, menu_items + reorder, **photos** upload, **modifier_groups**, restaurant settings, users, catering, stats). `FallbackController` serves the SPA for `/` and every non-API route.
 
 **Frontend** (`client/`, Vite; JSX files use `.jsx`; entry `client/index.html` → `src/index.jsx`)
-- `context/`: `AuthContext`, `RestaurantContext` (restaurant + menu, refreshed every 5 min), `CartContext` (localStorage cart; lines keyed by item + size + request).
+- `context/`: `AuthContext`, `RestaurantContext` (restaurant + menu, refreshed every 5 min), `CartContext` (localStorage cart; lines keyed by item + size + options + request).
+- `modifiers.js`: option helpers shared by the menu dialog, cart and order displays (`picksProblem`, `picksTotal`, `modifierText`...).
 - `pages/`: Home, Menu (item dialog with size picker), Checkout (Stripe Payment Element via `@stripe/stripe-js/pure`), OrderStatus (customer cancel), About, Catering, Policy, Login, Account, NotFound.
 - `components/ui.jsx`: `DishImage` (gradient + initials placeholder when a photo is missing or fails), `Modal`, `QuantityStepper`, `Switch`. `format.js`: `money`, `priceLabel` ("from $X" for sized items).
 - `styles/base.css` holds design tokens (cream/terracotta/olive; Fraunces + DM Sans); `styles/site.css` the public site.
 - `admin/`: lazy-loaded bundle at `/admin/*` (`AdminApp.jsx` routes: `/admin`, `/admin/orders` = Live Orders, `/admin/history`, `/admin/menu`, `/admin/catering`, `/admin/users`, `/admin/settings`).
-  - `AdminLayout` (sidebar; top bar under 900px), `Dashboard`, `LiveOrders`, `OrderDetail` (refunds), `PrintTicket`, `OrderHistory`, `MenuManager` (sizes editor, photo upload), `CateringInbox`, `Customers`, `Settings`.
+  - `AdminLayout` (sidebar; top bar under 900px), `Dashboard`, `LiveOrders`, `OrderDetail` (refunds), `PrintTicket`, `OrderHistory`, `MenuManager` (sizes editor, photo upload, option groups per item), `OptionsManager` (`/admin/options`, edit option groups), `CateringInbox`, `Customers`, `Settings`.
   - `AdminContext` owns order polling and the new-order chime, so the chime rings on every admin page.
   - `adminUi.jsx`: shared UI + `usePolling`. `adminUtils.js`: prefs in `localStorage` under `mardinis.admin.*`, Web Audio chime, CSV export, `shrinkPhoto`.
   - `admin.css`: all admin classes are prefixed `adm-`.

@@ -2,6 +2,8 @@ class MenuItem < ApplicationRecord
   belongs_to :restaurant
   belongs_to :category
   has_many :order_items, dependent: :restrict_with_error
+  has_many :menu_item_modifier_groups, -> { order(:position, :id) }, dependent: :destroy
+  has_many :modifier_groups, through: :menu_item_modifier_groups
 
   validates :name, presence: true, length: { maximum: 80 }
   validates :price, presence: true, numericality: { greater_than: 0, less_than: 1000 }
@@ -17,6 +19,23 @@ class MenuItem < ApplicationRecord
 
   scope :ordered, -> { order(:position, :id) }
   scope :available, -> { where(available: true) }
+
+  # Attaches option groups in the given order, replacing any others.
+  def assign_modifier_groups!(ids)
+    ids = Array(ids).map(&:to_i).uniq
+    groups = restaurant.modifier_groups.where(id: ids).index_by(&:id)
+    raise ActiveRecord::RecordNotFound, "Option group not found" unless groups.size == ids.size
+
+    transaction do
+      menu_item_modifier_groups.where.not(modifier_group_id: ids).destroy_all
+      ids.each_with_index do |id, index|
+        link = menu_item_modifier_groups.find_or_initialize_by(modifier_group_id: id)
+        link.update!(position: index + 1)
+      end
+    end
+    menu_item_modifier_groups.reset
+    modifier_groups.reset
+  end
 
   def sized?
     sizes.present?

@@ -6,6 +6,7 @@ class Restaurant < ApplicationRecord
 
   has_many :categories, -> { order(:position, :id) }, dependent: :destroy
   has_many :menu_items, dependent: :destroy
+  has_many :modifier_groups, -> { order(:position, :id) }, dependent: :destroy
   has_many :orders, dependent: :destroy
   has_many :order_items, through: :orders
   has_many :catering_inquiries, dependent: :destroy

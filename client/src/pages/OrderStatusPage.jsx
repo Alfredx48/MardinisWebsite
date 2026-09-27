@@ -9,6 +9,7 @@ import { useRestaurant } from "../context/RestaurantContext";
 import { EmptyState, Modal, Spinner } from "../components/ui";
 import { formatDateTime, formatTime, money, ORDER_STATUS_LABELS, telHref } from "../format";
 import { PENDING_ORDER_KEY } from "./CheckoutPage";
+import { modifierText } from "../modifiers";
 
 const STEPS = [
 	["new", "Received", faReceipt],
@@ -135,6 +136,7 @@ export default function OrderStatusPage() {
 							</span>
 							<span>{money(i.line_total)}</span>
 						</div>
+						{i.modifiers?.length > 0 && <p className="cart-line-options">{modifierText(i.modifiers)}</p>}
 						{i.special_request && <p className="cart-line-note">“{i.special_request}”</p>}
 					</div>
 				))}

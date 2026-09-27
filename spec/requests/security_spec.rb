@@ -46,6 +46,18 @@ RSpec.describe "Access control", type: :request do
     expect(response).to have_http_status(:forbidden)
   end
 
+  it "keeps option groups admin-only, including for kitchen staff" do
+    get "/api/admin/modifier_groups"
+    expect(response).to have_http_status(:unauthorized)
+    log_in(customer)
+    get "/api/admin/modifier_groups"
+    expect(response).to have_http_status(:forbidden)
+    cook = create_user(kitchen: true)
+    log_in(cook)
+    post "/api/admin/modifier_groups", params: { name: "X", options: [{ name: "Y" }] }, as: :json
+    expect(response).to have_http_status(:forbidden)
+  end
+
   it "lets admins in" do
     log_in(admin)
     get "/api/admin/stats"

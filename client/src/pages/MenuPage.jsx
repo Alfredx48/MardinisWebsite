@@ -7,6 +7,7 @@ import { useCart } from "../context/CartContext";
 import { useRestaurant } from "../context/RestaurantContext";
 import { DishImage, EmptyState, Modal, QuantityStepper, Spinner } from "../components/ui";
 import { money, priceLabel, telHref } from "../format";
+import { picksLabel, picksProblem, picksToApi, picksTotal, ruleLabel } from "../modifiers";
 
 export default function MenuPage() {
 	const { menu, restaurant, error } = useRestaurant();
@@ -205,7 +206,8 @@ function DishCard({ item, onOpen }) {
 
 	const quickAdd = (e) => {
 		e.stopPropagation();
-		if (item.sizes?.length) return onOpen(); // pick a size first
+		// Items with sizes or required options open the dialog to choose first.
+		if (item.sizes?.length || item.modifier_groups?.some((g) => g.min > 0)) return onOpen();
 		addItem(item, 1);
 		toast.success(`Added ${item.name}`);
 	};
@@ -245,17 +247,21 @@ function ItemDialog({ item, onClose }) {
 	const sizes = item.sizes || [];
 	const [sizeName, setSizeName] = useState(sizes[0]?.name || null);
 	const size = sizes.find((s) => s.name === sizeName);
-	const unitPrice = Number(size?.price ?? item.price);
+	const [picks, setPicks] = useState({});
+	const problem = picksProblem(item, picks);
+	const unitPrice = Number(size?.price ?? item.price) + picksTotal(item, picks);
 	const soldOut = !item.available;
 
 	const add = () => {
-		addItem(item, quantity, request, size?.name || null);
+		if (problem) return;
+		addItem(item, quantity, request, size?.name || null, picksToApi(item, picks));
 		onClose();
 		toast.success(
 			<span>
 				Added {quantity > 1 ? `${quantity} × ` : ""}
 				{item.name}
-				{size ? ` (${size.name})` : ""}.{" "}
+				{size ? ` (${size.name})` : ""}
+				{picksLabel(item, picks) ? ` with ${picksLabel(item, picks)}` : ""}.{" "}
 				<button className="link-btn" onClick={openDrawer}>
 					View order
 				</button>
@@ -286,6 +292,15 @@ function ItemDialog({ item, onClose }) {
 						</div>
 					</fieldset>
 				)}
+				{!soldOut &&
+					(item.modifier_groups || []).map((group) => (
+						<OptionGroup
+							key={group.id}
+							group={group}
+							chosen={picks[group.id] || []}
+							onChange={(names) => setPicks((p) => ({ ...p, [group.id]: names }))}
+						/>
+					))}
 				{soldOut ? (
 					<div className="notice">This dish is sold out for now. Check back soon!</div>
 				) : (
@@ -311,12 +326,58 @@ function ItemDialog({ item, onClose }) {
 				) : (
 					<>
 						<QuantityStepper value={quantity} onChange={setQuantity} />
-						<button className="btn btn-primary btn-lg spacer" onClick={add}>
-							<FontAwesomeIcon icon={faBagShopping} /> Add · {money(unitPrice * quantity)}
+						<button className="btn btn-primary btn-lg spacer" onClick={add} disabled={Boolean(problem)}>
+							{problem ? (
+								problem
+							) : (
+								<>
+									<FontAwesomeIcon icon={faBagShopping} /> Add · {money(unitPrice * quantity)}
+								</>
+							)}
 						</button>
 					</>
 				)}
 			</div>
 		</Modal>
+	);
+}
+
+// One option group: single-choice groups swap the choice; others toggle, up
+// to the group's limit. Tapping a chosen single option clears it if optional.
+function OptionGroup({ group, chosen, onChange }) {
+	const single = group.max === 1;
+	const full = Boolean(group.max) && chosen.length >= group.max;
+	const toggle = (name) => {
+		if (chosen.includes(name)) {
+			if (single && group.min > 0) return;
+			onChange(chosen.filter((n) => n !== name));
+		} else {
+			onChange(single ? [name] : [...chosen, name]);
+		}
+	};
+	return (
+		<fieldset className="item-options">
+			<legend>
+				<span className="label">{group.name}</span>
+				<span className={`option-rule${group.min > 0 ? " is-required" : ""}`}>{ruleLabel(group)}</span>
+			</legend>
+			<div className="option-list">
+				{group.options.map((o) => {
+					const on = chosen.includes(o.name);
+					return (
+						<label key={o.name} className={`option-chip${on ? " is-on" : ""}`}>
+							<input
+								type="checkbox"
+								checked={on}
+								disabled={!on && full && !single}
+								onChange={() => toggle(o.name)}
+							/>
+							{o.name}
+							{Number(o.price) > 0 && <span className="option-price">+{money(o.price)}</span>}
+						</label>
+					);
+				})}
+			</div>
+		</fieldset>
 	);
 }
