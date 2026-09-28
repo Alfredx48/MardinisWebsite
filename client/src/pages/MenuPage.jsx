@@ -9,6 +9,22 @@ import { DishImage, EmptyState, Modal, QuantityStepper, Spinner } from "../compo
 import { money, priceLabel, telHref } from "../format";
 import { picksLabel, picksProblem, picksToApi, picksTotal, ruleLabel } from "../modifiers";
 
+// Where the sticky header + category bar end once they're stuck to the top.
+function stickyBottom() {
+	const toolbar = document.querySelector(".menu-toolbar");
+	if (!toolbar) return 0;
+	return parseFloat(getComputedStyle(toolbar).top) + toolbar.offsetHeight;
+}
+
+// Scrolls so the category starts just below the sticky bars. Measured rather than
+// left to scroll-margin, since the bars' height changes with the screen width.
+function scrollToCategory(id, behavior = "auto") {
+	const section = document.getElementById(`category-${id}`);
+	if (!section) return;
+	const top = section.getBoundingClientRect().top + window.scrollY - stickyBottom() - 12;
+	window.scrollTo({ top: Math.max(0, top), behavior });
+}
+
 export default function MenuPage() {
 	const { menu, restaurant, error } = useRestaurant();
 	const { count, subtotal, openDrawer } = useCart();
@@ -18,6 +34,9 @@ export default function MenuPage() {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const location = useLocation();
 	const navRef = useRef(null);
+	// While the page glides to a tapped category, the scroll spy stays quiet so the
+	// categories passing by don't take over the highlight.
+	const jumpingUntil = useRef(0);
 
 	const allItems = useMemo(() => (menu || []).flatMap((c) => c.items), [menu]);
 	const selected = allItems.find((i) => String(i.id) === searchParams.get("item"));
@@ -42,7 +61,7 @@ export default function MenuPage() {
 	// Jump to a category when arriving from /menu#category-3
 	useEffect(() => {
 		if (!menu || !location.hash) return;
-		document.getElementById(location.hash.slice(1))?.scrollIntoView();
+		scrollToCategory(location.hash.replace("#category-", ""));
 	}, [menu, location.hash]);
 
 	// Highlight the category currently on screen.
@@ -51,20 +70,33 @@ export default function MenuPage() {
 		if (!sections.length) return;
 		const observer = new IntersectionObserver(
 			(entries) => {
+				if (Date.now() < jumpingUntil.current) return;
 				const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
 				if (visible[0]) setActiveId(visible[0].target.dataset.id);
 			},
-			{ rootMargin: "-140px 0px -60% 0px" }
+			{ rootMargin: `-${Math.round(stickyBottom()) + 16}px 0px -55% 0px` }
 		);
 		sections.forEach((s) => observer.observe(s));
 		return () => observer.disconnect();
 	}, [categories]);
 
-	// Keep the active chip visible in the horizontally scrolling nav.
+	// Keep the active chip centered in the horizontally scrolling nav. This scrolls
+	// only the nav: scrollIntoView would also scroll the page, which cancels a
+	// smooth scroll to a category halfway (landing on the wrong one).
 	useEffect(() => {
-		const chip = navRef.current?.querySelector(`[data-id="${activeId}"]`);
-		chip?.scrollIntoView({ block: "nearest", inline: "center" });
+		const nav = navRef.current;
+		const chip = nav?.querySelector(`[data-id="${activeId}"]`);
+		if (!chip) return;
+		const offset = chip.getBoundingClientRect().left - nav.getBoundingClientRect().left;
+		nav.scrollTo({ left: nav.scrollLeft + offset - (nav.clientWidth - chip.offsetWidth) / 2, behavior: "smooth" });
 	}, [activeId]);
+
+	const jumpTo = (id) => {
+		setActiveId(String(id));
+		jumpingUntil.current = Date.now() + 1500;
+		window.addEventListener("scrollend", () => (jumpingUntil.current = 0), { once: true });
+		scrollToCategory(id, "smooth");
+	};
 
 	if (error && !menu) {
 		return (
@@ -98,7 +130,7 @@ export default function MenuPage() {
 								className={`chip${String(c.id) === String(activeId) ? " is-active" : ""}`}
 								onClick={(e) => {
 									e.preventDefault();
-									document.getElementById(`category-${c.id}`)?.scrollIntoView({ behavior: "smooth" });
+									jumpTo(c.id);
 								}}
 							>
 								{c.name}
@@ -206,8 +238,8 @@ function DishCard({ item, onOpen }) {
 
 	const quickAdd = (e) => {
 		e.stopPropagation();
-		// Items with sizes or required options open the dialog to choose first.
-		if (item.sizes?.length || item.modifier_groups?.some((g) => g.min > 0)) return onOpen();
+		// Items with sizes or options open the dialog, so customers see their choices.
+		if (item.sizes?.length || item.modifier_groups?.length) return onOpen();
 		addItem(item, 1);
 		toast.success(`Added ${item.name}`);
 	};

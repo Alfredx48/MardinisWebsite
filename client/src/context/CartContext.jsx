@@ -61,6 +61,8 @@ export function CartProvider({ children }) {
 					options_label: live && !optionsChanged ? picksLabel(live, picks) : line.options_label || "",
 					image: live?.image ?? line.image,
 					unavailable: menu ? !live || !live.available || sizeGone || optionsChanged : false,
+					// Still on the menu, but its options changed (or it has new required ones).
+					needsOptions: Boolean(menu && live && live.available && !sizeGone && optionsChanged),
 				};
 			}),
 		[lines, menuIndex, menu]

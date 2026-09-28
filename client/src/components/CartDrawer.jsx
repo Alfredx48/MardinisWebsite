@@ -54,7 +54,22 @@ function DrawerContents({ onClose }) {
 										</div>
 										{line.options_label && <p className="cart-line-options">{line.options_label}</p>}
 										{line.special_request && <p className="cart-line-note">“{line.special_request}”</p>}
-										{line.unavailable && <p className="cart-line-warn">Sold out, please remove</p>}
+										{line.needsOptions ? (
+											<p className="cart-line-warn">
+												This dish's options changed.{" "}
+												<button
+													className="link-btn"
+													onClick={() => {
+														removeItem(line.key);
+														go(`/menu?item=${line.menu_item_id}`);
+													}}
+												>
+													Choose options
+												</button>
+											</p>
+										) : (
+											line.unavailable && <p className="cart-line-warn">Sold out, please remove</p>
+										)}
 										<div className="cart-line-actions">
 											<QuantityStepper
 												small
