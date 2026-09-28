@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -31,7 +31,7 @@ const LATE_MINUTES = 15;
 
 // 0 (on track) to 3 (overdue): colors the kitchen screen's tickets. ASAP orders go by
 // how long ago they were placed; scheduled ones by how soon they're due.
-function urgency(order) {
+export function urgency(order) {
 	if (order.status === "ready") return 0;
 	if (order.pickup_at) {
 		const minutesLeft = (new Date(order.pickup_at).getTime() - Date.now()) / 60000;
@@ -49,7 +49,7 @@ function urgency(order) {
 // finger could be another order's button. Swallow taps that follow too quickly.
 let lastAdvanceAt = 0;
 
-function PickupInfo({ order }) {
+export function PickupInfo({ order }) {
 	if (!order.pickup_at) {
 		return <span className="adm-pickup is-asap">ASAP</span>;
 	}
@@ -70,56 +70,70 @@ function PickupInfo({ order }) {
 	);
 }
 
+// Moves an order to its next kitchen status with an Undo toast. `busyId` is the order
+// being moved, so its button can be disabled.
+export function useAdvanceOrder() {
+	const { updateOrder } = useAdmin();
+	const [busyId, setBusyId] = useState(null);
+
+	const advance = useCallback(
+		async (order) => {
+			if (Date.now() - lastAdvanceAt < 700) return;
+			lastAdvanceAt = Date.now();
+			const previous = order.status;
+			const next = NEXT_STATUS[previous];
+			if (!next) return;
+			const undo = async (updated) => {
+				try {
+					await updateOrder(updated, { status: previous });
+					toast.info(`#${order.number} moved back to ${STATUS_LABELS[previous]}`);
+				} catch (e) {
+					toast.error(e.message);
+				}
+			};
+			setBusyId(order.id);
+			try {
+				const updated = await updateOrder(order, { status: next });
+				toast.success(
+					({ closeToast }) => (
+						<span className="adm-toast-undo">
+							#{order.number} → {STATUS_LABELS[next]}
+							<button
+								type="button"
+								className="link-btn"
+								onClick={() => {
+									closeToast();
+									undo(updated);
+								}}
+							>
+								Undo
+							</button>
+						</span>
+					),
+					{ autoClose: 5000 }
+				);
+			} catch (e) {
+				toast.error(e.message);
+			} finally {
+				setBusyId(null);
+			}
+		},
+		[updateOrder]
+	);
+
+	return { advance, busyId };
+}
+
 function Ticket({ order, onOpen, onCancel }) {
-	const { updateOrder, printOrder } = useAdmin();
-	const [busy, setBusy] = useState(false);
+	const { printOrder } = useAdmin();
+	const { advance, busyId } = useAdvanceOrder();
+	const busy = busyId === order.id;
 	const age = minutesAgo(placedAt(order));
 	const next = NEXT_STATUS[order.status];
 	const due = amountDue(order);
 	const scheduledLater = order.pickup_at && new Date(order.pickup_at).getTime() - Date.now() > 45 * 60000;
 	const late = order.status === "new" && age >= LATE_MINUTES && !scheduledLater;
 	const readyAge = order.status === "ready" && order.ready_at ? minutesAgo(order.ready_at) : null;
-
-	const undo = async (updated, previous) => {
-		try {
-			await updateOrder(updated, { status: previous });
-			toast.info(`#${order.number} moved back to ${STATUS_LABELS[previous]}`);
-		} catch (e) {
-			toast.error(e.message);
-		}
-	};
-
-	const advance = async () => {
-		if (Date.now() - lastAdvanceAt < 700) return;
-		lastAdvanceAt = Date.now();
-		setBusy(true);
-		const previous = order.status;
-		try {
-			const updated = await updateOrder(order, { status: next });
-			toast.success(
-				({ closeToast }) => (
-					<span className="adm-toast-undo">
-						#{order.number} → {STATUS_LABELS[next]}
-						<button
-							type="button"
-							className="link-btn"
-							onClick={() => {
-								closeToast();
-								undo(updated, previous);
-							}}
-						>
-							Undo
-						</button>
-					</span>
-				),
-				{ autoClose: 5000 }
-			);
-		} catch (e) {
-			toast.error(e.message);
-		} finally {
-			setBusy(false);
-		}
-	};
 
 	return (
 		<article
@@ -191,7 +205,7 @@ function Ticket({ order, onOpen, onCancel }) {
 				<button
 					type="button"
 					className={`btn btn-lg btn-block adm-advance is-${order.status}`}
-					onClick={advance}
+					onClick={() => advance(order)}
 					disabled={busy}
 				>
 					{nextActionLabel(order)}

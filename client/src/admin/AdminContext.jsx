@@ -174,7 +174,11 @@ export function AdminProvider({ children, kitchen = false, title }) {
 		() => (orders || []).filter((o) => o.status === "new" && unackedIds.includes(o.id)),
 		[orders, unackedIds]
 	);
-	const acknowledgeAlerts = useCallback(() => setUnackedIds([]), []);
+	// Acknowledge some alerts (by order id), or all of them.
+	const acknowledgeAlerts = useCallback(
+		(ids) => setUnackedIds((list) => (ids ? list.filter((id) => !ids.includes(id)) : [])),
+		[]
+	);
 
 	useEffect(() => {
 		if (!newAlerts.length) return undefined;

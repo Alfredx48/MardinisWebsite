@@ -61,3 +61,15 @@ export function apiToPicks(list) {
 export function modifierText(modifiers) {
 	return (modifiers || []).map((m) => m.option).join(" · ");
 }
+
+// An order line's choices grouped for the kitchen:
+// [{ group: "Bread Choice", options: ["Sliced Rye"] }, { group: "Removed Ingredients", options: ["No Onion", "No Mayo"] }]
+export function modifierGroups(modifiers) {
+	const groups = [];
+	(modifiers || []).forEach((m) => {
+		const group = groups.find((g) => g.group === m.group);
+		if (group) group.options.push(m.option);
+		else groups.push({ group: m.group, options: [m.option] });
+	});
+	return groups;
+}

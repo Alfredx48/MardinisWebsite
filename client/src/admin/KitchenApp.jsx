@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-	faBell,
 	faDownload,
 	faExpand,
 	faGaugeHigh,
@@ -16,7 +15,7 @@ import { Modal, Spinner } from "../components/ui";
 import { useAuth } from "../context/AuthContext";
 import { AdminProvider, useAdmin } from "./AdminContext";
 import { CancelledBanner } from "./AdminLayout";
-import { OrderBoard } from "./LiveOrders";
+import KitchenOrders from "./KitchenOrders";
 import { ConfirmDialog, OverflowMenu, useNow } from "./adminUi";
 import "./admin.css";
 import "./kitchen.css";
@@ -201,29 +200,6 @@ function Clock() {
 	);
 }
 
-function NewOrderAlert() {
-	const { newAlerts, acknowledgeAlerts } = useAdmin();
-	if (!newAlerts.length) return null;
-	const [first] = newAlerts;
-	const itemCount = (o) => o.items.reduce((n, i) => n + i.quantity, 0);
-	return (
-		<div className="adm-k-alert" role="alert">
-			<FontAwesomeIcon icon={faBell} className="adm-k-alert-bell" />
-			<div className="adm-k-alert-text">
-				<strong>{newAlerts.length === 1 ? `New order #${first.number}` : `${newAlerts.length} new orders`}</strong>
-				<span>
-					{newAlerts.length === 1
-						? `${first.customer_name} · ${itemCount(first)} ${itemCount(first) === 1 ? "item" : "items"}`
-						: newAlerts.map((o) => `#${o.number}`).join(", ")}
-				</span>
-			</div>
-			<button type="button" className="btn btn-lg btn-light" onClick={acknowledgeAlerts}>
-				Got it
-			</button>
-		</div>
-	);
-}
-
 // Browsers only play sound after a tap, and iPads take that back whenever the app
 // goes to the background, so the screen asks for a tap on launch and on return.
 function StartOverlay({ resuming, onStart }) {
@@ -381,11 +357,10 @@ function KitchenScreen() {
 			</header>
 
 			<CancelledBanner />
-			<NewOrderAlert />
 			<OfflineBanner />
 
 			<main className="adm-k-main">
-				<OrderBoard />
+				<KitchenOrders />
 			</main>
 
 			{needsTap && <StartOverlay resuming={started} onStart={start} />}
