@@ -8,7 +8,7 @@ Context for a new Claude Code session picking up this project. Last updated 2026
 - **Live:** https://mardinismenlopark.com (also https://mardinis.onrender.com). Auto-deploys from `main` on GitHub `Alfredx48/MardinisWebsite`.
 - **Stack:** Ruby 3.4.10 / Rails 8.1.4 API + React 18 SPA built with **Vite**, Postgres on Supabase, photos in Supabase Storage, hosted on Render.
 - **State:** menu photos, menu item sizes, the full ordering-site menu import, refunds and customer cancellation are all done and live. 74 RSpec specs pass.
-- **Kitchen screen (`/kitchen`) + Kitchen role: built and committed locally 2026-09-25, not pushed yet.** The owner is testing on their own iPad; the restaurant's tablet may be iPad or Android, so both must keep working. See "Kitchen screen" below.
+- **Kitchen screen (`/kitchen`) + Kitchen role: live since 2026-09-27** (DoorDash-style redesign included). The owner tests on their own iPad; the restaurant's tablet may be iPad or Android, so both must keep working. Still to do: set up a real kitchen account and install the app on the restaurant tablet. See "Kitchen screen" below.
 
 ## Working with the owner
 
