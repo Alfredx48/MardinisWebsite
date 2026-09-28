@@ -56,6 +56,10 @@ Context for a new Claude Code session picking up this project. Last updated 2026
 - The owner's Stripe dashboard showed a real $1.76 charge + refund (balance −$0.35, the fee Stripe keeps on refunds), so **live keys may now be in Render**. Confirm with the owner before assuming test mode.
 - The owner wanted pay-at-pickup only at one point: check Admin → Settings → Card payments.
 - Every refunded card order costs the restaurant Stripe's fee (~2.9% + $0.30). Customers can cancel their own orders until the kitchen starts them; the owner hasn't decided whether to absorb that fee.
+- **Apple Pay / Google Pay** show as tabs in the Payment Element once `mardinismenlopark.com` (and `www.`) are registered under Stripe → Settings → Payment method domains, and Apple Pay / Google Pay are on under Payment methods. They only show in Safari with a card in Apple Wallet, or Chrome with a saved Google Pay card. On 2026-09-28 the owner reported they weren't showing; asked them to register the domains.
+- **Link "$5 back" (Instant Bank Payments):** Stripe funds it and the restaurant gets the full amount. It confirms instantly. The owner wanted the offer hidden (Stripe → Settings → Link). **Keep ACH Direct Debit off**: it takes days to confirm, and those orders would stay `awaiting_payment`, hidden from the kitchen.
+- Checkout starts downloading Stripe.js when the page opens (`getStripe` in `CheckoutPage`), and shows a loading state until the Payment Element is ready. A faster option is Stripe's deferred-intent flow (render the Payment Element before the order exists), which hasn't been built.
+- **Local `.env.local` has LIVE Stripe keys** (2026-09-28). Card checkout on localhost would charge real cards. Swap them for `sk_test_`/`pk_test_` keys.
 - Webhook (optional): `STRIPE_WEBHOOK_SECRET` + endpoint `https://mardinismenlopark.com/api/stripe/webhook`.
 
 ## Architecture

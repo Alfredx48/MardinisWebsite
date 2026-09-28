@@ -28,6 +28,13 @@ export default function CheckoutPage() {
 	const { items } = useCart();
 	const [payment, setPayment] = useState(null); // { order, clientSecret } once the order exists
 
+	// Start downloading Stripe while the customer fills in their details, so the
+	// payment form is ready sooner after they continue.
+	const cardKey = restaurant?.payments?.card ? restaurant.payments.stripe_publishable_key : null;
+	useEffect(() => {
+		getStripe(cardKey)?.catch(() => {});
+	}, [cardKey]);
+
 	if (!restaurant) return <Spinner />;
 
 	if (!payment && items.length === 0) {
@@ -433,6 +440,7 @@ function PaymentForm({ order, onBack }) {
 	const navigate = useNavigate();
 	const [paying, setPaying] = useState(false);
 	const [error, setError] = useState(null);
+	const [ready, setReady] = useState(false);
 
 	const pay = async (e) => {
 		e.preventDefault();
@@ -468,13 +476,28 @@ function PaymentForm({ order, onBack }) {
 			<button type="button" className="btn btn-ghost btn-sm back-btn" onClick={onBack} disabled={paying}>
 				<FontAwesomeIcon icon={faArrowLeft} /> Edit order
 			</button>
-			<PaymentElement options={{ layout: "tabs" }} />
+			{!ready && (
+				<div className="payment-loading">
+					<Spinner label="Loading secure payment form" />
+					<span className="small muted" aria-hidden="true">
+						Loading secure payment form…
+					</span>
+				</div>
+			)}
+			<PaymentElement
+				options={{ layout: "tabs", wallets: { applePay: "auto", googlePay: "auto" } }}
+				onReady={() => setReady(true)}
+				onLoadError={(e) => {
+					setReady(true);
+					setError(e.error?.message || "The payment form couldn't load. Please refresh the page.");
+				}}
+			/>
 			{error && (
 				<div className="form-error" role="alert">
 					{error}
 				</div>
 			)}
-			<button type="submit" className="btn btn-primary btn-lg btn-block" disabled={!stripe || paying}>
+			<button type="submit" className="btn btn-primary btn-lg btn-block" disabled={!stripe || !ready || paying}>
 				<FontAwesomeIcon icon={faLock} /> {paying ? "Processing…" : `Pay ${money(order.total)}`}
 			</button>
 			<p className="small muted">Payments are processed securely by Stripe. We never see your card number.</p>
