@@ -1,9 +1,9 @@
 class User < ApplicationRecord
   has_many :orders, -> { order(created_at: :desc) }, dependent: :nullify
 
-  # Emailed "Forgot password?" links work for an hour. Like every reset link, they
-  # stop working once the password changes, so each can be used only once.
-  has_secure_password reset_token: { expires_in: 1.hour }
+  # Emailed "Forgot password?" links work for 30 minutes. Like every reset link,
+  # they stop working once the password changes, so each can be used only once.
+  has_secure_password reset_token: { expires_in: 30.minutes }
 
   # Links an admin makes in Admin → Customers and texts to someone last a day.
   STAFF_RESET_EXPIRES_IN = 24.hours

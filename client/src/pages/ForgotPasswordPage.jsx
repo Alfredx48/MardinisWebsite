@@ -34,7 +34,7 @@ export default function ForgotPasswordPage() {
 					<>
 						<p>
 							If there's an account for <strong>{email}</strong>, we just emailed it a link to choose a new
-							password. The link works for 1 hour.
+							password. The link works for 30 minutes.
 						</p>
 						<p className="muted small">Nothing there? Check your spam folder, or try again in a minute.</p>
 						<Link to="/login" className="btn btn-secondary btn-block">

@@ -58,15 +58,25 @@ RSpec.describe "Passwords", type: :request do
 
       post "/api/password/reset", params: { token: token, password: "another1234", password_confirmation: "another1234" }, as: :json
       expect(response).to have_http_status(:unprocessable_content)
-      expect(json["errors"].first).to include("expired or was already used")
+      expect(json["errors"].first).to include("already used")
     end
 
-    it "expires emailed links after an hour" do
+    it "expires emailed links after 30 minutes, and says so" do
       token
-      travel 61.minutes do
+      travel 29.minutes do
+        get "/api/password/reset", params: { token: token }
+        expect(response).to have_http_status(:ok)
+      end
+      travel 31.minutes do
         get "/api/password/reset", params: { token: token }
         expect(response).to have_http_status(:unprocessable_content)
+        expect(json["errors"]).to eq(["This reset link has expired. Please ask for a new one."])
       end
+    end
+
+    it "explains a garbled link" do
+      get "/api/password/reset", params: { token: "not-a-real-link" }
+      expect(json["errors"]).to eq(["This reset link isn't valid. Please ask for a new one."])
     end
 
     it "rejects bad tokens, blank and mismatched passwords" do
@@ -135,6 +145,7 @@ RSpec.describe "Passwords", type: :request do
       end
       post "/api/password/reset", params: { token: token, password: "again12345", password_confirmation: "again12345" }, as: :json
       expect(response).to have_http_status(:unprocessable_content)
+      expect(json["errors"].first).to include("already used")
     end
 
     it "expires admin links after a day" do
@@ -144,6 +155,7 @@ RSpec.describe "Passwords", type: :request do
       travel 25.hours do
         get "/api/password/reset", params: { token: token }
         expect(response).to have_http_status(:unprocessable_content)
+        expect(json["errors"].first).to include("expired")
       end
     end
 
