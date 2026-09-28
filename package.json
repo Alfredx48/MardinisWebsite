@@ -6,6 +6,7 @@
     "node": "22.x"
   },
   "scripts": {
+    "dev": "bin/dev",
     "build": "npm ci --prefix client && npm run build --prefix client && rm -rf public && cp -a client/build/. public/"
   }
 }

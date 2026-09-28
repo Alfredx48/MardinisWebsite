@@ -13,6 +13,7 @@
     "react-toastify": "^9.1.1"
   },
   "scripts": {
+    "dev": "../bin/dev",
     "start": "vite",
     "build": "vite build",
     "preview": "vite preview",
