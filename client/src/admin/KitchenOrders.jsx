@@ -205,7 +205,6 @@ export default function KitchenOrders() {
 		) : (
 			<div className="adm-k-loading">
 				<Spinner label="Loading orders" />
-				<p className="muted">The first load after a quiet spell can take up to a minute.</p>
 			</div>
 		);
 	}

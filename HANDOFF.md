@@ -37,7 +37,7 @@ Context for a new Claude Code session picking up this project. Last updated 2026
 
 ## Production setup
 
-**Render** (web service "Mardinis", id `srv-ceucbikgqg40d6hgobe0`, **Free plan**: sleeps after ~15 min idle, and the first request then takes ~50s)
+**Render** (web service "Mardinis", id `srv-ceucbikgqg40d6hgobe0`, **Starter plan**, ~$7/mo per the owner on 2026-09-27: always on, no cold starts; outbound SMTP isn't blocked, unlike the free plan)
 - Build `./bin/render-build.sh`: bundle install → root `npm run build` (`npm ci` + `vite build` into `client/build`, copied to `public/`) → `rails db:migrate` → `rails db:seed` (idempotent).
 - Start `bundle exec puma -C config/puma.rb`, health check `/up`. A failed build keeps the previous version live.
 - Env vars set in Render: `DATABASE_URL`, `RAILS_ENV=production`, `BUNDLE_WITHOUT=development:test`, `NODE_VERSION=22`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `RAILS_MASTER_KEY` (unused 2023 leftover), a secret-key var, and for photo uploads `SUPABASE_URL` + `SUPABASE_SECRET_KEY` (the owner was asked to add these two; confirm by trying an upload in Admin → Menu).
@@ -101,7 +101,7 @@ A full-screen order screen for a kitchen tablet, installable as its own app ("Ki
 - **Layout:** left: tabs New / Preparing / Ready (opens on Preparing; the New tab pulses when orders wait there) and that status's order cards. Right: the selected order large: order note, then each item with a quantity box (dark when > 1), options grouped by group (`modifierGroups` in `client/src/modifiers.js`; "No …" options in red), and special requests, with one big action button. When an order moves on, the next one in the tab opens. Elapsed-time colors: green < 5 min, yellow < 10, orange < 15, red after (scheduled orders go by how soon they're due). Phones: the list becomes a swipeable row above the order.
 - **Reliability:** a "Live · Ns ago" pill; a red banner when the last successful poll is > 35s old or the device is offline.
 - **PWA:** `client/public/kitchen-manifest.json` (`id`/`start_url` `/kitchen`, `display_override: fullscreen`) is swapped into `<head>` by `useKitchenHead`, together with the kitchen apple-touch-icon. It's `.json` because Rack serves `.webmanifest` as octet-stream. `client/public/sw.js` is registered **only from /kitchen**: it caches nothing but `offline.html` and only handles navigations (network first, offline page on failure). It never touches `/api` or the app shell. The main site's `manifest.json` and favicons now use the terracotta "M" icon (CRA logos removed).
-- **Not done / ideas:** Render Free plan cold starts (~50s after 15 min idle; a tablet with the board open keeps it awake; Starter ~$7/mo removes them). Real-time push instead of 10s polling. Kitchen users can't pause online ordering (that needs settings access).
+- **Not done / ideas:** Real-time push instead of 10s polling. Kitchen users can't pause online ordering (that needs settings access).
 - **Testing on a tablet:** `bin/dev`, then `ngrok http 4000` and open `https://<id>.ngrok-free.app/kitchen` (local DB; dev kitchen user `cook@example.com` / `password123`). Or push and use https://mardinismenlopark.com/kitchen. Wake lock and the service worker need HTTPS.
 
 ## Passwords
