@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
 	faBell,
@@ -314,6 +314,7 @@ function KitchenScreen() {
 	const [audioBlocked, setAudioBlocked] = useState(false);
 	const [showInstall, setShowInstall] = useState(false);
 	const [confirmLogout, setConfirmLogout] = useState(false);
+	const navigate = useNavigate();
 	const installPrompt = useInstallPrompt();
 	const awake = useWakeLock(started);
 
@@ -327,6 +328,7 @@ function KitchenScreen() {
 
 	const menuItems = [
 		{ label: "Refresh now", icon: faRotate, onClick: refreshOrders },
+		...(user.admin ? [{ label: "Open admin", icon: faGaugeHigh, onClick: () => navigate("/admin/orders") }] : []),
 		...(canFullscreen() ? [{ label: "Full screen", icon: faExpand, onClick: toggleFullscreen }] : []),
 		...(installed ? [] : [{ label: "Install app", icon: faDownload, onClick: () => setShowInstall(true) }]),
 		{ label: "Log out", icon: faRightFromBracket, onClick: () => setConfirmLogout(true) },
