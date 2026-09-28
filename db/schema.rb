@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_27_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_28_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -126,6 +126,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_000001) do
     t.datetime "ready_at", precision: nil
     t.datetime "completed_at", precision: nil
     t.decimal "refunded_amount", precision: 10, scale: 2, default: "0.0", null: false
+    t.datetime "confirmation_sent_at"
     t.index ["placed_at"], name: "index_orders_on_placed_at"
     t.index ["status"], name: "index_orders_on_status"
     t.index ["token"], name: "index_orders_on_token", unique: true
@@ -166,6 +167,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_000001) do
     t.string "announcement"
     t.string "hero_image"
     t.string "logo_image"
+  end
+
+  create_table "sent_emails", force: :cascade do |t|
+    t.string "kind", null: false
+    t.datetime "created_at", null: false
+    t.index ["created_at"], name: "index_sent_emails_on_created_at"
   end
 
   create_table "users", force: :cascade do |t|

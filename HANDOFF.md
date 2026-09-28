@@ -113,6 +113,12 @@ A full-screen order screen for a kitchen tablet, installable as its own app ("Ki
 - **Email setup (the owner still needs to do this):** create a free Resend account, add the domain `mardinismenlopark.com` there, add the DNS records it shows at GoDaddy, then set `RESEND_API_KEY` and `MAIL_FROM` (e.g. `Mardini's Deli Cafe <no-reply@mardinismenlopark.com>`) in Render. Until then, "Forgot password?" tells people to call, and admin reset links still work. Links always use `https://mardinismenlopark.com` in production (`APP_URL` overrides it), never the request's Host.
 - **Development:** without a Resend key, emails (including reset links) are written to `log/development.log`. The Vite proxy forwards the original host, so links point at :4000 or the ngrok URL.
 
+## Email
+
+- **Provider:** Resend, set up 2026-09-27 (domain verified, DKIM + DMARC `p=none` in GoDaddy). Render has `RESEND_API_KEY` and `MAIL_FROM`. `EmailSender.deliver!(kind:, …)` posts to Resend's API; in development without a key it logs instead.
+- **Order confirmations** (`OrderConfirmation`, templates in `app/views/emails/`): sent once per order when it reaches the kitchen, via `Order` `after_commit` on `placed_at`. Pay-at-pickup orders send at checkout; card orders send after Stripe confirms. `orders.confirmation_sent_at` is claimed atomically, so the webhook and the browser can't both send. Only sent if the customer entered an email. Failures are logged and never affect the order.
+- **Daily budget:** Resend's free plan allows 100 emails a day. `sent_emails` (kind + time, no content) counts the last 24 hours. Order confirmations stop at 80, and password resets can use the last 20. `EMAIL_DAILY_LIMIT` in Render overrides the 100 (`0` = no limit, e.g. after upgrading to Resend Pro, $20/mo for 50,000/month).
+
 ## Applying data changes to production
 
 Menu and settings data live in the production DB, not in the seeds (never hand-edit the seeds for this; production is already seeded). Options:
@@ -145,4 +151,4 @@ Menu and settings data live in the production DB, not in the seeds (never hand-e
 - Admin login = `ADMIN_EMAIL`/`ADMIN_PASSWORD` from Render (first seed). Forgotten passwords: see "Passwords" below.
 - Unclear item names copied from the ordering site: "Mexican" and "Izee" (Bottled Drinks), "Turkish" (Snacks).
 - Returning visitors who loaded the home page before 2026-09-25 may have the old page cached for a year (the bug fixed in `cce50a8`); a refresh fixes it.
-- Transactional email exists only for password resets (`EmailSender`, Resend). No order confirmation or catering notifications yet. Stripe sends receipts for card payments only.
+- Transactional email: password resets and order confirmations (`EmailSender`, Resend; see "Email" below). No catering notifications yet. Stripe also sends its own receipt for card payments.

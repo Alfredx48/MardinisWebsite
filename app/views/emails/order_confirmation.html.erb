@@ -1,0 +1,49 @@
+<div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;color:#231d17;max-width:520px">
+  <p style="margin:0 0 4px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#b4452c;font-weight:bold">Order confirmed</p>
+  <h1 style="margin:0 0 16px;font-family:Georgia,serif;font-size:26px">Order #<%= @order.number %></h1>
+  <p style="margin:0 0 16px">Hi <%= @order.customer_name.to_s.split.first %>, thanks for your order! We'll have it ready for pickup.</p>
+
+  <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 16px;background:#fbf7f0;border-radius:10px">
+    <tr><td style="padding:14px 16px">
+      <div style="font-size:13px;color:#8d8276;text-transform:uppercase;letter-spacing:.06em">Pickup</div>
+      <div style="font-weight:bold;font-size:17px"><%= @pickup %></div>
+      <div style="color:#5b5147"><%= @restaurant.name %> · <%= @restaurant.address %></div>
+    </td></tr>
+  </table>
+
+  <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse">
+    <% @items.each do |item| %>
+      <tr>
+        <td style="padding:10px 8px 10px 0;border-bottom:1px solid #e6dccb;vertical-align:top;width:32px;font-weight:bold"><%= item.quantity %>×</td>
+        <td style="padding:10px 8px;border-bottom:1px solid #e6dccb;vertical-align:top">
+          <div style="font-weight:bold"><%= item.name %></div>
+          <% if item.modifiers.present? %>
+            <div style="color:#5b5147;font-size:14px"><%= item.modifiers.map { |m| m["option"] }.join(", ") %></div>
+          <% end %>
+          <% if item.special_request.present? %>
+            <div style="color:#7a4f06;font-size:14px">“<%= item.special_request %>”</div>
+          <% end %>
+        </td>
+        <td style="padding:10px 0 10px 8px;border-bottom:1px solid #e6dccb;vertical-align:top;text-align:right;white-space:nowrap">$<%= format("%.2f", item.line_total) %></td>
+      </tr>
+    <% end %>
+  </table>
+
+  <% if @order.custom_request.present? %>
+    <p style="margin:12px 0 0;padding:10px 12px;background:#fbf0d8;border-radius:8px;color:#6b4507"><strong>Note:</strong> <%= @order.custom_request %></p>
+  <% end %>
+
+  <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:12px 0 0;color:#5b5147">
+    <tr><td>Subtotal</td><td style="text-align:right">$<%= format("%.2f", @order.subtotal) %></td></tr>
+    <tr><td>Tax</td><td style="text-align:right">$<%= format("%.2f", @order.tax) %></td></tr>
+    <% if @order.tip.to_d.positive? %>
+      <tr><td>Tip</td><td style="text-align:right">$<%= format("%.2f", @order.tip) %></td></tr>
+    <% end %>
+    <tr><td style="padding-top:6px;color:#231d17;font-weight:bold;font-size:18px">Total</td><td style="padding-top:6px;text-align:right;color:#231d17;font-weight:bold;font-size:18px">$<%= format("%.2f", @order.total_cost) %></td></tr>
+    <tr><td colspan="2" style="padding-top:4px;font-size:14px"><%= @order.payment_status == "paid" ? "Paid online" : "Pay when you pick up" %></td></tr>
+  </table>
+
+  <p style="margin:24px 0 8px"><a href="<%= @tracking_url %>" style="display:inline-block;padding:12px 22px;border-radius:999px;background:#b4452c;color:#fff;text-decoration:none;font-weight:bold">Follow your order</a></p>
+  <p style="margin:0 0 24px;color:#5b5147;font-size:14px">You can cancel from that page until we start making it.</p>
+  <p style="margin:0;color:#8d8276;font-size:13px">Questions? Call us at <%= @restaurant.phone %>.<br><%= @restaurant.name %> · <%= @restaurant.address %></p>
+</div>

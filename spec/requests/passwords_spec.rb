@@ -12,7 +12,8 @@ RSpec.describe "Passwords", type: :request do
     before { allow(EmailSender).to receive(:configured?).and_return(true) }
 
     it "emails a reset link that points at the real site" do
-      expect(EmailSender).to receive(:deliver!) do |to:, subject:, text:, html:|
+      expect(EmailSender).to receive(:deliver!) do |kind:, to:, subject:, text:, html:|
+        expect(kind).to eq("password_reset")
         expect(to).to eq(user.email)
         expect(subject).to include("Reset")
         expect(text).to include("http://www.example.com/reset-password?token=")

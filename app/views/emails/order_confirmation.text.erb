@@ -1,0 +1,32 @@
+Hi <%= @order.customer_name.to_s.split.first %>, thanks for your order!
+
+Order #<%= @order.number %>
+Pickup: <%= @pickup %>
+<%= @restaurant.name %> · <%= @restaurant.address %>
+
+<% @items.each do |item| -%>
+<%= item.quantity %> × <%= item.name %>  $<%= format("%.2f", item.line_total) %>
+<% if item.modifiers.present? -%>
+    <%= item.modifiers.map { |m| m["option"] }.join(", ") %>
+<% end -%>
+<% if item.special_request.present? -%>
+    "<%= item.special_request %>"
+<% end -%>
+<% end -%>
+<% if @order.custom_request.present? -%>
+
+Note: <%= @order.custom_request %>
+<% end -%>
+
+Subtotal  $<%= format("%.2f", @order.subtotal) %>
+Tax       $<%= format("%.2f", @order.tax) %>
+<% if @order.tip.to_d.positive? -%>
+Tip       $<%= format("%.2f", @order.tip) %>
+<% end -%>
+Total     $<%= format("%.2f", @order.total_cost) %>
+<%= @order.payment_status == "paid" ? "Paid online" : "Pay when you pick up" %>
+
+Follow your order (and cancel it before we start making it):
+<%= @tracking_url %>
+
+Questions? Call us at <%= @restaurant.phone %>.

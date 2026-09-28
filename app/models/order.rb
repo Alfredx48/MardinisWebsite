@@ -26,6 +26,11 @@ class Order < ApplicationRecord
 
   before_validation(on: :create) { self.token ||= SecureRandom.urlsafe_base64(18) }
 
+  # Emails the customer once the order reaches the kitchen: right away for pay at
+  # pickup, after Stripe confirms the payment for card orders. After commit, so a
+  # rolled-back order never sends anything.
+  after_commit :send_confirmation, if: -> { saved_change_to_placed_at? && placed_at.present? }
+
   scope :recent_first, -> { order(Arel.sql("COALESCE(placed_at, created_at) DESC")) }
   scope :placed, -> { where.not(status: "awaiting_payment") }
   scope :active, -> { where(status: ACTIVE_STATUSES) }
@@ -69,6 +74,10 @@ class Order < ApplicationRecord
       mark_placed! unless placed?
     end
     self
+  end
+
+  def send_confirmation
+    OrderConfirmation.deliver(self)
   end
 
   def advance_to!(new_status, reason: nil)

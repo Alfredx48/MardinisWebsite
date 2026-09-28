@@ -243,7 +243,7 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 						</div>
 					</div>
 					<div className="field" style={{ marginTop: 16 }}>
-						<label htmlFor="c-email">Email (for your receipt)</label>
+						<label htmlFor="c-email">Email (for your order confirmation)</label>
 						<input id="c-email" className="input" type="email" autoComplete="email" value={contact.email}
 							onChange={(e) => setContact({ ...contact, email: e.target.value })} />
 					</div>

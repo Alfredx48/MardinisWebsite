@@ -59,6 +59,7 @@ class Api::PasswordsController < ApplicationController
     url = password_reset_url(user.password_reset_token)
     name = user.name.to_s.split.first.presence || "there"
     EmailSender.deliver!(
+      kind: "password_reset",
       to: user.email,
       subject: "Reset your Mardini's password",
       text: <<~TEXT,
