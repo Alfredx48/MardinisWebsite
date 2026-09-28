@@ -8,7 +8,35 @@ class ApplicationController < ActionController::API
   def current_user
     return @current_user if defined?(@current_user)
 
-    @current_user = session[:user_id] && User.find_by(id: session[:user_id])
+    user = session[:user_id] && User.find_by(id: session[:user_id])
+    if user && session[:auth] != user.session_fingerprint
+      # Logins from before this check get stamped once; any other mismatch means
+      # the password changed since this device signed in.
+      if session[:auth].nil?
+        session[:auth] = user.session_fingerprint
+      else
+        user = nil
+        reset_session
+      end
+    end
+    @current_user = user
+  end
+
+  def log_in(user)
+    reset_session
+    session[:user_id] = user.id
+    session[:auth] = user.session_fingerprint
+    @current_user = user
+  end
+
+  # Links in emails always point at the real site, never at whatever Host the
+  # request claimed to be for.
+  def app_url
+    ENV["APP_URL"].presence || (Rails.env.production? ? "https://mardinismenlopark.com" : request.base_url)
+  end
+
+  def password_reset_url(token)
+    "#{app_url}/reset-password?#{URI.encode_www_form(token: token)}"
   end
 
   def current_restaurant

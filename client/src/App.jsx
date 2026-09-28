@@ -19,6 +19,8 @@ import LoginPage from "./pages/LoginPage";
 import AccountPage from "./pages/AccountPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import PolicyPage from "./pages/PolicyPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 const AdminApp = lazy(() => import("./admin/AdminApp"));
 const KitchenApp = lazy(() => import("./admin/KitchenApp"));
@@ -94,6 +96,8 @@ export default function App() {
 							<Route path="catering" element={<CateringPage />} />
 							<Route path="policies" element={<PolicyPage />} />
 							<Route path="login" element={<LoginPage />} />
+							<Route path="forgot-password" element={<ForgotPasswordPage />} />
+							<Route path="reset-password" element={<ResetPasswordPage />} />
 							<Route
 								path="account"
 								element={

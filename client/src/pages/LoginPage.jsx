@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const EMPTY = { name: "", email: "", phone: "", password: "", password_confirmation: "" };
@@ -89,6 +89,11 @@ export default function LoginPage() {
 							onChange={set("password")}
 						/>
 						{mode === "signup" && <span className="hint">At least 8 characters</span>}
+						{mode === "login" && (
+							<Link to="/forgot-password" state={{ email: form.email }} className="link-btn auth-forgot">
+								Forgot password?
+							</Link>
+						)}
 					</div>
 					{mode === "signup" && (
 						<div className="field">

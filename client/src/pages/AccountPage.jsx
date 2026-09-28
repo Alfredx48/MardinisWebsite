@@ -177,7 +177,9 @@ function ProfileForm() {
 					<label htmlFor="p-current">Current password</label>
 					<input id="p-current" className="input" type="password" required autoComplete="current-password"
 						value={form.current_password} onChange={set("current_password")} />
-					<span className="hint">Required to change your email or password</span>
+					<span className="hint">
+						Required to change your email or password. A new password signs you out on your other devices.
+					</span>
 				</div>
 			)}
 			{errors.length > 0 && (

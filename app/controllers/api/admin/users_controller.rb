@@ -22,4 +22,13 @@ class Api::Admin::UsersController < Api::Admin::BaseController
     user.update!(admin: role == "admin", kitchen: role == "kitchen")
     render json: Presenters.admin_user(user)
   end
+
+  # POST: a one-time link the admin can text to someone who forgot their password.
+  def reset_link
+    user = User.find(params[:id])
+    render json: {
+      url: password_reset_url(user.generate_token_for(:staff_password_reset)),
+      expires_at: User::STAFF_RESET_EXPIRES_IN.from_now,
+    }
+  end
 end

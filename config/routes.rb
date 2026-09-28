@@ -11,6 +11,9 @@ Rails.application.routes.draw do
     post "/signup", to: "users#create"
     post "/login", to: "sessions#create"
     delete "/logout", to: "sessions#destroy"
+    post "/password/forgot", to: "passwords#forgot"
+    get "/password/reset", to: "passwords#check"
+    post "/password/reset", to: "passwords#reset"
 
     resources :orders, only: [:index, :create]
     get "/orders/:token", to: "orders#show", as: :order_tracking
@@ -34,7 +37,9 @@ Rails.application.routes.draw do
       end
       resources :photos, only: [:create]
       resources :modifier_groups, only: [:index, :create, :update, :destroy]
-      resources :users, only: [:index, :update]
+      resources :users, only: [:index, :update] do
+        post :reset_link, on: :member
+      end
       resources :catering_inquiries, only: [:index, :update, :destroy]
     end
 

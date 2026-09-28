@@ -5,6 +5,7 @@ import {
 	faDownload,
 	faExpand,
 	faGaugeHigh,
+	faKey,
 	faRightFromBracket,
 	faRotate,
 	faVolumeHigh,
@@ -307,6 +308,7 @@ function KitchenScreen() {
 		...(user.admin ? [{ label: "Open admin", icon: faGaugeHigh, onClick: () => navigate("/admin/orders") }] : []),
 		...(canFullscreen() ? [{ label: "Full screen", icon: faExpand, onClick: toggleFullscreen }] : []),
 		...(installed ? [] : [{ label: "Install app", icon: faDownload, onClick: () => setShowInstall(true) }]),
+		{ label: "Change password", icon: faKey, onClick: () => navigate("/account") },
 		{ label: "Log out", icon: faRightFromBracket, onClick: () => setConfirmLogout(true) },
 	];
 
@@ -450,6 +452,9 @@ function KitchenLogin() {
 						<button className="btn btn-primary btn-lg btn-block" disabled={busy}>
 							{busy ? "Signing in…" : "Sign in"}
 						</button>
+						<Link to="/forgot-password" state={{ email }} className="link-btn adm-k-forgot">
+							Forgot password?
+						</Link>
 					</form>
 				)}
 			</div>

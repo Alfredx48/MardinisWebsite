@@ -9,8 +9,7 @@ class Api::UsersController < ApplicationController
   def create
     # `admin` is deliberately not permitted; admins are promoted from the admin portal.
     user = User.create!(params.permit(:email, :password, :password_confirmation, :name, :address, :phone))
-    reset_session
-    session[:user_id] = user.id
+    log_in(user)
     render json: Presenters.user(user), status: :created
   end
 
@@ -24,6 +23,8 @@ class Api::UsersController < ApplicationController
     attrs.delete(:password) if attrs[:password].blank?
     attrs.delete(:password_confirmation) if attrs[:password].blank?
     current_user.update!(attrs)
+    # A new password signs out other devices; keep this one signed in.
+    session[:auth] = current_user.session_fingerprint
     render json: Presenters.user(current_user)
   end
 end

@@ -207,6 +207,17 @@
 	overflow-wrap: anywhere;
 }
 
+.adm-user-link {
+	display: inline-block;
+	margin-top: 6px;
+	font-size: 0.85rem;
+	color: var(--adm-side-fg);
+}
+
+.adm-user-link:hover {
+	color: #fff;
+}
+
 .adm-logout.btn {
 	--btn-fg: var(--adm-side-fg);
 	margin: 10px 0 0 -12px;
@@ -2064,6 +2075,17 @@
 .adm-role-select.select {
 	width: auto;
 	min-width: 150px;
+}
+
+.adm-access {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.adm-reset-url {
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.8rem;
 }
 
 .adm-user-card {

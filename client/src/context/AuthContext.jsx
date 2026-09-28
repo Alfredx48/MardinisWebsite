@@ -31,6 +31,13 @@ export function AuthProvider({ children }) {
 		setUser(null);
 	}, []);
 
+	// Sets a new password from a reset link and signs in.
+	const resetPassword = useCallback(async (token, password, passwordConfirmation) => {
+		const u = await api.post("/password/reset", { token, password, password_confirmation: passwordConfirmation });
+		setUser(u);
+		return u;
+	}, []);
+
 	const updateProfile = useCallback(async (attrs) => {
 		const u = await api.patch("/me", attrs);
 		setUser(u);
@@ -38,7 +45,7 @@ export function AuthProvider({ children }) {
 	}, []);
 
 	return (
-		<AuthContext.Provider value={{ user, loading, login, signup, logout, updateProfile }}>
+		<AuthContext.Provider value={{ user, loading, login, signup, logout, resetPassword, updateProfile }}>
 			{children}
 		</AuthContext.Provider>
 	);

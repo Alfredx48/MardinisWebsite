@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMagnifyingGlass, faShieldHalved, faUsers } from "@fortawesome/free-solid-svg-icons";
+import { faCopy, faKey, faMagnifyingGlass, faShieldHalved, faUsers } from "@fortawesome/free-solid-svg-icons";
 import { api, queryString } from "../api";
 import { formatDate, telHref } from "../format";
-import { EmptyState, Spinner } from "../components/ui";
+import { EmptyState, Modal, Spinner } from "../components/ui";
 import { useAuth } from "../context/AuthContext";
 import { ConfirmDialog, PageHeader, useDebounced } from "./adminUi";
 
@@ -42,6 +42,83 @@ function RoleSelect({ user, isSelf, onRequest }) {
 	);
 }
 
+// Makes a one-time link for someone who forgot their password, to text or email
+// to them. Nothing changes until they open it and choose a new password.
+function ResetLinkDialog({ user, onClose }) {
+	const [link, setLink] = useState(null);
+	const [error, setError] = useState(null);
+
+	useEffect(() => {
+		api.post(`/admin/users/${user.id}/reset_link`)
+			.then(setLink)
+			.catch((e) => setError(e.message));
+	}, [user.id]);
+
+	const copy = async () => {
+		try {
+			await navigator.clipboard.writeText(link.url);
+			toast.success("Link copied");
+		} catch {
+			toast.error("Couldn't copy. Select the link and copy it instead.");
+		}
+	};
+
+	return (
+		<Modal onClose={onClose} label={`Password reset link for ${user.name}`} className="adm-modal-md">
+			<div className="modal-body">
+				<h2 className="adm-modal-title">Password reset link for {user.name}</h2>
+				{error ? (
+					<div className="form-error">{error}</div>
+				) : !link ? (
+					<Spinner label="Making link" />
+				) : (
+					<>
+						<p>
+							Send this link to {user.name} ({user.phone ? `${user.phone}, ` : ""}
+							{user.email}). It lets them choose a new password, works once, and expires in 24 hours.
+						</p>
+						<textarea
+							className="textarea adm-reset-url"
+							readOnly
+							rows={3}
+							value={link.url}
+							onFocus={(e) => e.target.select()}
+							aria-label="Reset link"
+						/>
+						<p className="muted small">Anyone with the link can set the password, so only send it to them.</p>
+					</>
+				)}
+			</div>
+			<div className="modal-footer">
+				<span className="spacer" />
+				<button type="button" className="btn btn-secondary" onClick={onClose}>
+					Close
+				</button>
+				{link && (
+					<button type="button" className="btn btn-primary" onClick={copy}>
+						<FontAwesomeIcon icon={faCopy} />
+						Copy link
+					</button>
+				)}
+			</div>
+		</Modal>
+	);
+}
+
+function ResetLinkButton({ user, onClick }) {
+	return (
+		<button
+			type="button"
+			className="adm-icon-btn"
+			onClick={() => onClick(user)}
+			aria-label={`Make a password reset link for ${user.name}`}
+			title="Password reset link"
+		>
+			<FontAwesomeIcon icon={faKey} />
+		</button>
+	);
+}
+
 function RoleBadge({ user }) {
 	if (user.role === "customer") return null;
 	return <span className={`badge ${user.admin ? "badge-info" : "badge-olive"}`}>{ROLE_LABELS[user.role]}</span>;
@@ -56,6 +133,7 @@ export default function Customers() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [pending, setPending] = useState(null); // { user, role }
+	const [resetFor, setResetFor] = useState(null);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -152,7 +230,10 @@ export default function Customers() {
 										<td className="num">{u.orders_count}</td>
 										<td className="adm-nowrap">{formatDate(u.created_at, { year: "numeric", weekday: undefined })}</td>
 										<td>
-											<RoleSelect user={u} isSelf={u.id === me?.id} onRequest={request} />
+											<div className="adm-access">
+												<RoleSelect user={u} isSelf={u.id === me?.id} onRequest={request} />
+												<ResetLinkButton user={u} onClick={setResetFor} />
+											</div>
 										</td>
 									</tr>
 								))}
@@ -186,6 +267,7 @@ export default function Customers() {
 									</span>
 									<span className="spacer" />
 									<RoleSelect user={u} isSelf={u.id === me?.id} onRequest={request} />
+									<ResetLinkButton user={u} onClick={setResetFor} />
 								</div>
 							</li>
 						))}
@@ -193,6 +275,7 @@ export default function Customers() {
 				</div>
 			)}
 
+			{resetFor && <ResetLinkDialog user={resetFor} onClose={() => setResetFor(null)} />}
 			{pending && (
 				<ConfirmDialog
 					title={

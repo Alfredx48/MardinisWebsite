@@ -795,6 +795,11 @@
 	color: var(--terracotta);
 }
 
+.adm-k-forgot {
+	align-self: center;
+	font-size: 0.95rem;
+}
+
 .adm-k-help ol,
 .adm-k-help ul {
 	padding-left: 1.3em;

@@ -106,6 +106,9 @@ function Sidebar({ onNavigate }) {
 				<div className="adm-user">
 					<div className="adm-user-name">{user?.name}</div>
 					<div className="adm-user-email">{user?.email}</div>
+					<Link to="/account" className="adm-user-link">
+						Change password
+					</Link>
 					<button type="button" className="btn btn-ghost btn-sm adm-logout" onClick={signOut}>
 						<FontAwesomeIcon icon={faRightFromBracket} />
 						Log out

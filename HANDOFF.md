@@ -104,6 +104,15 @@ A full-screen order screen for a kitchen tablet, installable as its own app ("Ki
 - **Not done / ideas:** Render Free plan cold starts (~50s after 15 min idle; a tablet with the board open keeps it awake; Starter ~$7/mo removes them). Real-time push instead of 10s polling. Kitchen users can't pause online ordering (that needs settings access).
 - **Testing on a tablet:** `bin/dev`, then `ngrok http 4000` and open `https://<id>.ngrok-free.app/kitchen` (local DB; dev kitchen user `cook@example.com` / `password123`). Or push and use https://mardinismenlopark.com/kitchen. Wake lock and the service worker need HTTPS.
 
+## Passwords
+
+- **Change:** My account (`/account`) → Change password; it needs the current password. Linked from the admin sidebar ("Change password") and the kitchen ⋮ menu.
+- **Forgot:** `/forgot-password` (linked from both sign-in screens) emails a link to `/reset-password?token=…` that works for **1 hour**, via `has_secure_password reset_token:`. The answer is the same whether or not the email has an account. Rate limited (5 per 15 min per IP).
+- **Admin reset link:** Admin → Customers → key icon makes a link that lasts **24 hours** (`generates_token_for :staff_password_reset`) for the owner to text to someone. Works even without email.
+- Every reset link stops working once the password changes, so each works once. A new password (reset or change) **signs the account out on every other device**: the session stores `session[:auth]` = the last 10 chars of the bcrypt salt, which `current_user` checks. Sessions from before this was added get stamped on their next request.
+- **Email setup (the owner still needs to do this):** create a free Resend account, add the domain `mardinismenlopark.com` there, add the DNS records it shows at GoDaddy, then set `RESEND_API_KEY` and `MAIL_FROM` (e.g. `Mardini's Deli Cafe <no-reply@mardinismenlopark.com>`) in Render. Until then, "Forgot password?" tells people to call, and admin reset links still work. Links always use `https://mardinismenlopark.com` in production (`APP_URL` overrides it), never the request's Host.
+- **Development:** without a Resend key, emails (including reset links) are written to `log/development.log`. The Vite proxy forwards the original host, so links point at :4000 or the ngrok URL.
+
 ## Applying data changes to production
 
 Menu and settings data live in the production DB, not in the seeds (never hand-edit the seeds for this; production is already seeded). Options:
@@ -133,7 +142,7 @@ Menu and settings data live in the production DB, not in the seeds (never hand-e
 - Confirm `SECRET_KEY_BASE` is spelled right in Render (a screenshot once showed `SECRETE_KEY_BASE`).
 - Confirm Stripe mode (live vs test) and the Card payments setting; decide on the refund-fee question for customer cancellations.
 - Check the tax rate in Admin → Settings: still **9.5%**, a legacy value; Menlo Park's actual rate is unverified. Also the prep time (20 min). Hours (Mon–Sat 9am–9pm, Sun 10am–8pm) were confirmed by the owner on 2026-09-27.
-- Admin login = `ADMIN_EMAIL`/`ADMIN_PASSWORD` from Render (first seed). No password-reset flow; an admin can't be recovered without console or DB access.
+- Admin login = `ADMIN_EMAIL`/`ADMIN_PASSWORD` from Render (first seed). Forgotten passwords: see "Passwords" below.
 - Unclear item names copied from the ordering site: "Mexican" and "Izee" (Bottled Drinks), "Turkish" (Snacks).
 - Returning visitors who loaded the home page before 2026-09-25 may have the old page cached for a year (the bug fixed in `cce50a8`); a refresh fixes it.
-- No transactional email (order confirmation, catering notifications). Stripe sends receipts for card payments only.
+- Transactional email exists only for password resets (`EmailSender`, Resend). No order confirmation or catering notifications yet. Stripe sends receipts for card payments only.
