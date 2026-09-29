@@ -11,6 +11,7 @@ import { Spinner } from "./components/ui";
 import "./styles/site.css";
 import HomePage from "./pages/HomePage";
 import MenuPage from "./pages/MenuPage";
+import MenuViewPage from "./pages/MenuViewPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OrderStatusPage from "./pages/OrderStatusPage";
 import AboutPage from "./pages/AboutPage";
@@ -88,6 +89,7 @@ export default function App() {
 						<Route element={<SiteLayout />}>
 							<Route index element={<HomePage />} />
 							<Route path="menu" element={<MenuPage />} />
+							<Route path="our-menu" element={<MenuViewPage />} />
 							<Route path="order-now" element={<Navigate to="/menu" replace />} />
 							<Route path="checkout" element={<CheckoutPage />} />
 							<Route path="cart" element={<Navigate to="/checkout" replace />} />

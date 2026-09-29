@@ -82,7 +82,7 @@ Context for a new Claude Code session picking up this project. Last updated 2026
 **Frontend** (`client/`, Vite; JSX files use `.jsx`; entry `client/index.html` → `src/index.jsx`)
 - `context/`: `AuthContext`, `RestaurantContext` (restaurant + menu, refreshed every 5 min), `CartContext` (localStorage cart; lines keyed by item + size + options + request).
 - `modifiers.js`: option helpers shared by the menu dialog, cart and order displays (`picksProblem`, `picksTotal`, `modifierText`...).
-- `pages/`: Home, Menu (item dialog with size picker), Checkout (Stripe Payment Element via `@stripe/stripe-js/pure`), OrderStatus (customer cancel), About, Catering, Policy, Login, Account, NotFound.
+- `pages/`: Home, Menu (the ordering page at `/menu`, item dialog with size and option pickers), MenuView (`/our-menu`, a read-only menu styled like the printed dine-in menu, built from live data; the PDF it links to is `client/public/menus/mardinis-menu.pdf`), Checkout (Stripe Payment Element via `@stripe/stripe-js/pure`), OrderStatus (customer cancel), About, Catering, Policy, Login, Account, NotFound.
 - `components/ui.jsx`: `DishImage` (gradient + initials placeholder when a photo is missing or fails), `Modal`, `QuantityStepper`, `Switch`. `format.js`: `money`, `priceLabel` ("from $X" for sized items).
 - `styles/base.css` holds design tokens (cream/terracotta/olive; Fraunces + DM Sans); `styles/site.css` the public site.
 - `admin/`: lazy-loaded bundle at `/admin/*` (`AdminApp.jsx` routes: `/admin`, `/admin/orders` = Live Orders, `/admin/history`, `/admin/menu`, `/admin/catering`, `/admin/users`, `/admin/settings`).

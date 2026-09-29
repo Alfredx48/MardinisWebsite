@@ -48,6 +48,9 @@ export default function Footer() {
 							<Link to="/menu">Order online</Link>
 						</li>
 						<li>
+							<Link to="/our-menu">View the menu</Link>
+						</li>
+						<li>
 							<Link to="/catering">Catering</Link>
 						</li>
 						<li>

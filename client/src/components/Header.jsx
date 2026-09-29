@@ -7,7 +7,7 @@ import { useCart } from "../context/CartContext";
 import { useRestaurant } from "../context/RestaurantContext";
 
 const LINKS = [
-	["/menu", "Menu"],
+	["/our-menu", "Menu"],
 	["/catering", "Catering"],
 	["/about", "Visit Us"],
 ];

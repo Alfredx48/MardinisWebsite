@@ -79,7 +79,7 @@ export default function HomePage() {
 								<span className="eyebrow">Crowd favorites</span>
 								<h2>What Menlo Park is ordering</h2>
 							</div>
-							<Link to="/menu" className="btn btn-secondary">
+							<Link to="/our-menu" className="btn btn-secondary">
 								Full menu
 							</Link>
 						</div>
