@@ -1602,8 +1602,15 @@
 	cursor: not-allowed;
 }
 
+/* The price sits under the option's name, so an upcharge is easy to spot. */
+.option-text {
+	display: flex;
+	flex-direction: column;
+	line-height: 1.2;
+}
+
 .option-price {
-	font-size: 0.8rem;
+	font-size: 0.78rem;
 	font-weight: 600;
 	color: var(--olive);
 }

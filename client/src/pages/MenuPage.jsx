@@ -404,8 +404,10 @@ function OptionGroup({ group, chosen, onChange }) {
 								disabled={!on && full && !single}
 								onChange={() => toggle(o.name)}
 							/>
-							{o.name}
-							{Number(o.price) > 0 && <span className="option-price">+{money(o.price)}</span>}
+							<span className="option-text">
+								{o.name}
+								{Number(o.price) > 0 && <span className="option-price">+{money(o.price)}</span>}
+							</span>
 						</label>
 					);
 				})}

@@ -59,7 +59,7 @@ Context for a new Claude Code session picking up this project. Last updated 2026
 - **Apple Pay / Google Pay** show as tabs in the Payment Element once `mardinismenlopark.com` (and `www.`) are registered under Stripe → Settings → Payment method domains, and Apple Pay / Google Pay are on under Payment methods. They only show in Safari with a card in Apple Wallet, or Chrome with a saved Google Pay card. On 2026-09-28 the owner reported they weren't showing; asked them to register the domains.
 - **Link "$5 back" (Instant Bank Payments):** Stripe funds it and the restaurant gets the full amount. It confirms instantly. The owner wanted the offer hidden (Stripe → Settings → Link). **Keep ACH Direct Debit off**: it takes days to confirm, and those orders would stay `awaiting_payment`, hidden from the kitchen.
 - Checkout starts downloading Stripe.js when the page opens (`getStripe` in `CheckoutPage`), and shows a loading state until the Payment Element is ready. A faster option is Stripe's deferred-intent flow (render the Payment Element before the order exists), which hasn't been built.
-- **Local `.env.local` has LIVE Stripe keys** (2026-09-28). Card checkout on localhost would charge real cards. Swap them for `sk_test_`/`pk_test_` keys.
+- Local `.env.local` has **test** Stripe keys (confirmed by the owner 2026-10-02).
 - Webhook (optional): `STRIPE_WEBHOOK_SECRET` + endpoint `https://mardinismenlopark.com/api/stripe/webhook`.
 
 ## Architecture
@@ -153,6 +153,7 @@ Menu and settings data live in the production DB, not in the seeds (never hand-e
 - Confirm Stripe mode (live vs test) and the Card payments setting; decide on the refund-fee question for customer cancellations.
 - Check the tax rate in Admin → Settings: still **9.5%**, a legacy value; Menlo Park's actual rate is unverified. Also the prep time (20 min). Hours (Mon–Sat 9am–9pm, Sun 10am–8pm) were confirmed by the owner on 2026-09-27.
 - Admin login = `ADMIN_EMAIL`/`ADMIN_PASSWORD` from Render (first seed). Forgotten passwords: see "Passwords" below.
+- **Pricing rules (2026-10-02):** prices end in .00, .50 or .99. To round an odd price: cents under .30 → .00, .30–.70 → .50, over .70 → next dollar. Lamb Kabob costs $1.50 more than other meats: +$1.50 as a combo pick ("Choose Two", "Choose Two Kabobs"), $7.50 in plates' "Add Extra" (others $6.00). Every change is logged in the owner's `Mardinis Menus/Price Changes.csv` (untracked). Script: `tmp/price_update_2026_10_02.rb` + `.sh`.
 - Unclear item names copied from the ordering site: "Mexican" and "Izee" (Bottled Drinks), "Turkish" (Snacks).
 - Returning visitors who loaded the home page before 2026-09-25 may have the old page cached for a year (the bug fixed in `cce50a8`); a refresh fixes it.
 - Transactional email: password resets and order confirmations (`EmailSender`, Resend; see "Email" below). No catering notifications yet. Stripe also sends its own receipt for card payments.
