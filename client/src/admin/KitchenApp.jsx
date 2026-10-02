@@ -305,6 +305,7 @@ function KitchenScreen() {
 
 	const menuItems = [
 		{ label: "Refresh now", icon: faRotate, onClick: refreshOrders },
+		{ label: "Test sound", icon: faVolumeHigh, onClick: enableAudio },
 		...(user.admin ? [{ label: "Open admin", icon: faGaugeHigh, onClick: () => navigate("/admin/orders") }] : []),
 		...(canFullscreen() ? [{ label: "Full screen", icon: faExpand, onClick: toggleFullscreen }] : []),
 		...(installed ? [] : [{ label: "Install app", icon: faDownload, onClick: () => setShowInstall(true) }]),

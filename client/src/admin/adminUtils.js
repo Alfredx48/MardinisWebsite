@@ -198,10 +198,11 @@ export async function unlockAudio() {
 }
 
 // A bright two-note "ding-dong", repeated twice so it's hard to miss over a busy counter.
-// `loud` (the kitchen screen) uses a brighter wave that cuts through kitchen noise.
+// `loud` is the kitchen screen's alarm instead (see playKitchenAlarm).
 export function playChime({ loud = false } = {}) {
 	const ctx = getAudioContext();
 	if (!ctx || ctx.state !== "running") return;
+	if (loud) return playKitchenAlarm(ctx);
 	const notes = [
 		[0, 880],
 		[0.18, 1318.5],
@@ -212,13 +213,37 @@ export function playChime({ loud = false } = {}) {
 		const start = ctx.currentTime + offset;
 		const osc = ctx.createOscillator();
 		const gain = ctx.createGain();
-		osc.type = loud ? "triangle" : "sine";
+		osc.type = "sine";
 		osc.frequency.value = freq;
 		gain.gain.setValueAtTime(0.0001, start);
-		gain.gain.exponentialRampToValueAtTime(loud ? 0.5 : 0.35, start + 0.02);
+		gain.gain.exponentialRampToValueAtTime(0.35, start + 0.02);
 		gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.5);
 		osc.connect(gain).connect(ctx.destination);
 		osc.start(start);
 		osc.stop(start + 0.55);
 	});
+}
+
+// As loud as a tablet can play: square waves held near full volume instead of
+// fading out, pitched where small tablet speakers and ears are most sensitive,
+// three ding-dongs long. Notes never overlap, so the sound doesn't distort.
+function playKitchenAlarm(ctx) {
+	const PEAK = 0.9;
+	const NOTE = 0.2;
+	const pairs = 3;
+	for (let i = 0; i < pairs * 2; i++) {
+		const start = ctx.currentTime + i * (NOTE + 0.05) + Math.floor(i / 2) * 0.25;
+		const osc = ctx.createOscillator();
+		const gain = ctx.createGain();
+		osc.type = "square";
+		osc.frequency.value = i % 2 ? 1568 : 1046.5;
+		// Quick ramps in and out avoid clicks.
+		gain.gain.setValueAtTime(0, start);
+		gain.gain.linearRampToValueAtTime(PEAK, start + 0.008);
+		gain.gain.setValueAtTime(PEAK, start + NOTE - 0.015);
+		gain.gain.linearRampToValueAtTime(0, start + NOTE);
+		osc.connect(gain).connect(ctx.destination);
+		osc.start(start);
+		osc.stop(start + NOTE + 0.01);
+	}
 }
