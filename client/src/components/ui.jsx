@@ -92,15 +92,6 @@ export function Switch({ checked, onChange, disabled, label }) {
 
 // Dish photo that falls back to a warm gradient + initials when there's no
 // photo or it fails to load (e.g. a hotlinked image that's been taken down).
-// The name a customer asked us to write on an item (group orders).
-export function ItemLabel({ label }) {
-	return (
-		<p className="cart-line-label">
-			For: <strong>{label}</strong>
-		</p>
-	);
-}
-
 export function DishImage({ src, name, className = "" }) {
 	const [failedSrc, setFailedSrc] = useState(null);
 	if (src && failedSrc !== src) {

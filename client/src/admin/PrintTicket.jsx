@@ -1,5 +1,6 @@
 import { formatDateTime, formatTime, money, todayInRestaurant } from "../format";
 import { PAYMENT_LABELS, amountDue, paymentBadge, placedAt, restaurantDate } from "./adminUtils";
+import { groupByName, namesText } from "../itemNames";
 import { modifierText } from "../modifiers";
 
 // Kitchen ticket. Only rendered into a body-level portal while printing; the
@@ -24,14 +25,14 @@ export default function PrintTicket({ order, restaurantName }) {
 			</header>
 
 			<ul className="adm-tp-items">
-				{order.items.map((item) => (
-					<li key={item.id}>
+				{groupByName(order.items).map((item) => (
+					<li key={item.groupKey}>
 						<div className="adm-tp-line">
 							<span className="adm-tp-qty">{item.quantity}×</span>
 							<span className="adm-tp-item">{item.name}</span>
 							<span>{money(item.line_total)}</span>
 						</div>
-						{item.label && <div className="adm-tp-label">FOR: {item.label}</div>}
+						{namesText(item.names) && <div className="adm-tp-label">FOR: {namesText(item.names)}</div>}
 						{item.modifiers?.length > 0 && <div className="adm-tp-mods">{modifierText(item.modifiers)}</div>}
 						{item.special_request && <div className="adm-tp-note">** {item.special_request}</div>}
 					</li>

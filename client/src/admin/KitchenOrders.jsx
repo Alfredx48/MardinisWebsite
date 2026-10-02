@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBan, faBell, faCircleInfo, faCommentDots, faPrint } from "@fortawesome/free-solid-svg-icons";
 import { minutesAgo, money } from "../format";
+import { groupByName, nameCounts } from "../itemNames";
 import { modifierGroups } from "../modifiers";
 import { EmptyState, Spinner } from "../components/ui";
 import { useAdmin } from "./AdminContext";
@@ -37,16 +38,12 @@ function Elapsed({ order }) {
 export function ItemList({ order }) {
 	return (
 		<ul className="adm-k-items">
-			{order.items.map((item) => (
-				<li key={item.id} className="adm-k-item">
+			{groupByName(order.items).map((item) => (
+				<li key={item.groupKey} className="adm-k-item">
 					<span className={`adm-k-qty${item.quantity > 1 ? " is-multi" : ""}`}>{item.quantity}</span>
 					<div className="adm-k-item-body">
 						<div className="adm-k-item-name">{item.name}</div>
-						{item.label && (
-							<div className="adm-k-label">
-								For: <strong>{item.label}</strong>
-							</div>
-						)}
+						<NameTags names={item.names} />
 						{modifierGroups(item.modifiers).map((g) => (
 							<div key={g.group} className="adm-k-mod">
 								<span className="adm-k-mod-group">{g.group}:</span>
@@ -64,6 +61,24 @@ export function ItemList({ order }) {
 				</li>
 			))}
 		</ul>
+	);
+}
+
+// The names to write on the items (group orders), as name tags.
+function NameTags({ names }) {
+	const { named, unnamed } = nameCounts(names);
+	if (!named.length) return null;
+	return (
+		<div className="adm-k-names">
+			<span className="adm-k-names-for">For:</span>
+			{named.map((n) => (
+				<span key={n.name} className="adm-k-label">
+					{n.name}
+					{n.count > 1 && <span className="adm-k-label-count"> ×{n.count}</span>}
+				</span>
+			))}
+			{unnamed > 0 && <span className="adm-k-names-for">+{unnamed} no name</span>}
+		</div>
 	);
 }
 

@@ -20,6 +20,7 @@ import { useAdmin } from "./AdminContext";
 import OrderDetail, { CancelDialog, nextActionLabel } from "./OrderDetail";
 import { OverflowMenu, PageHeader, PaymentBadge, useNow } from "./adminUi";
 import { NEXT_STATUS, STATUS_LABELS, amountDue, placedAt, restaurantDate } from "./adminUtils";
+import { groupByName, namesText } from "../itemNames";
 import { modifierText } from "../modifiers";
 
 const COLUMNS = [
@@ -172,12 +173,12 @@ function Ticket({ order, onOpen, onCancel }) {
 			)}
 
 			<ul className="adm-ticket-items">
-				{order.items.map((item) => (
-					<li key={item.id}>
+				{groupByName(order.items).map((item) => (
+					<li key={item.groupKey}>
 						<span className="adm-ticket-qty">{item.quantity}×</span>
 						<span>
 							{item.name}
-							{item.label && <span className="adm-item-label">For: <strong>{item.label}</strong></span>}
+							{namesText(item.names) && <span className="adm-item-label">For: {namesText(item.names)}</span>}
 							{item.modifiers?.length > 0 && <span className="adm-modifiers">{modifierText(item.modifiers)}</span>}
 							{item.special_request && <span className="adm-special">{item.special_request}</span>}
 						</span>

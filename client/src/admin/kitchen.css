@@ -586,15 +586,31 @@
 	font-weight: 800;
 }
 
-/* The name to write on the item (group orders), styled like a name tag. */
-.adm-k-label {
-	width: fit-content;
+/* The names to write on the items (group orders), styled like name tags. */
+.adm-k-names {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
 	margin-top: 6px;
+}
+
+.adm-k-names-for {
+	color: var(--ink-soft);
+	font-size: 1rem;
+	font-weight: 600;
+}
+
+.adm-k-label {
 	padding: 3px 12px;
 	border: 2px solid currentColor;
 	border-radius: 8px;
 	font-size: 1.15rem;
-	font-weight: 600;
+	font-weight: 700;
+}
+
+.adm-k-label-count {
+	font-weight: 500;
 }
 
 .adm-k-special {

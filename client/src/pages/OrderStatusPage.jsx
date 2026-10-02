@@ -6,7 +6,9 @@ import { faCircleCheck, faFireBurner, faBagShopping, faReceipt, faLocationDot, f
 import { api } from "../api";
 import { useCart } from "../context/CartContext";
 import { useRestaurant } from "../context/RestaurantContext";
-import { EmptyState, ItemLabel, Modal, Spinner } from "../components/ui";
+import { NamesSummary } from "../components/ItemNames";
+import { EmptyState, Modal, Spinner } from "../components/ui";
+import { groupByName } from "../itemNames";
 import { formatDateTime, formatTime, money, ORDER_STATUS_LABELS, telHref } from "../format";
 import { PENDING_ORDER_KEY } from "./CheckoutPage";
 import { modifierText } from "../modifiers";
@@ -128,15 +130,15 @@ export default function OrderStatusPage() {
 
 			<div className="card" style={{ marginTop: 20 }}>
 				<h2 className="card-title">Order details</h2>
-				{order.items.map((i) => (
-					<div key={i.id} className="order-line">
+				{groupByName(order.items).map((i) => (
+					<div key={i.groupKey} className="order-line">
 						<div className="summary-row">
 							<span>
 								{i.quantity} × {i.name}
 							</span>
 							<span>{money(i.line_total)}</span>
 						</div>
-						{i.label && <ItemLabel label={i.label} />}
+						<NamesSummary names={i.names} quantity={i.quantity} />
 						{i.modifiers?.length > 0 && <p className="cart-line-options">{modifierText(i.modifiers)}</p>}
 						{i.special_request && <p className="cart-line-note">“{i.special_request}”</p>}
 					</div>

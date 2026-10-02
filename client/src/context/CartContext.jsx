@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { cents } from "../format";
+import { fitNames, padNames } from "../itemNames";
 import { apiToPicks, picksLabel, picksProblem, picksTotal } from "../modifiers";
 import { useRestaurant } from "./RestaurantContext";
 
@@ -8,17 +9,36 @@ const MAX_QUANTITY = 50;
 
 const CartContext = createContext(null);
 
+const lineKey = (menuItemId, request, size, modifiers) =>
+	`${menuItemId}:${size || ""}:${JSON.stringify(modifiers || [])}:${(request || "").trim().toLowerCase()}`;
+
+// Adds `quantity` more of a line that's already in the cart, keeping each unit's name.
+function mergeInto(line, quantity, labels) {
+	const total = Math.min(MAX_QUANTITY, line.quantity + quantity);
+	return {
+		...line,
+		quantity: total,
+		labels: fitNames([...padNames(line.labels, line.quantity), ...padNames(labels, quantity)], total),
+	};
+}
+
 function loadCart() {
 	try {
 		const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-		return Array.isArray(saved) ? saved : [];
+		if (!Array.isArray(saved)) return [];
+		// Carts saved before names were per unit had one `label` per line, in the key.
+		return saved.reduce((lines, line) => {
+			const labels = line.labels || (line.label ? Array(line.quantity).fill(line.label) : []);
+			const key = lineKey(line.menu_item_id, line.special_request, line.size, line.modifiers);
+			const existing = lines.find((l) => l.key === key);
+			if (existing) return lines.map((l) => (l === existing ? mergeInto(l, line.quantity, labels) : l));
+			const { label: _old, ...rest } = line;
+			return [...lines, { ...rest, key, labels }];
+		}, []);
 	} catch {
 		return [];
 	}
 }
-
-const lineKey = (menuItemId, request, size, modifiers, label) =>
-	`${menuItemId}:${size || ""}:${JSON.stringify(modifiers || [])}:${(request || "").trim().toLowerCase()}:${(label || "").trim().toLowerCase()}`;
 
 // The cart lives in the browser. Prices shown here are for display only; the
 // server re-prices everything at checkout.
@@ -69,19 +89,15 @@ export function CartProvider({ children }) {
 	);
 
 	// `size` is a size name, required for items that come in sizes. `modifiers`
-	// are the chosen options in API form: [{ group_id, options: [name] }]. `label` is
-	// a name to write on the item, for group orders.
-	const addItem = useCallback((menuItem, quantity = 1, specialRequest = "", size = null, modifiers = [], label = "") => {
-		const key = lineKey(menuItem.id, specialRequest, size, modifiers, label);
+	// are the chosen options in API form: [{ group_id, options: [name] }]. `labels` are
+	// names to write on the items (group orders), one per unit.
+	const addItem = useCallback((menuItem, quantity = 1, specialRequest = "", size = null, modifiers = [], labels = []) => {
+		const key = lineKey(menuItem.id, specialRequest, size, modifiers);
 		const sizePrice = menuItem.sizes?.find((s) => s.name === size)?.price;
 		const picks = apiToPicks(modifiers);
 		setLines((prev) => {
 			const existing = prev.find((l) => l.key === key);
-			if (existing) {
-				return prev.map((l) =>
-					l.key === key ? { ...l, quantity: Math.min(MAX_QUANTITY, l.quantity + quantity) } : l
-				);
-			}
+			if (existing) return prev.map((l) => (l === existing ? mergeInto(l, quantity, labels) : l));
 			return [
 				...prev,
 				{
@@ -95,7 +111,7 @@ export function CartProvider({ children }) {
 					image: menuItem.image,
 					quantity: Math.min(MAX_QUANTITY, quantity),
 					special_request: specialRequest.trim(),
-					label: label.trim(),
+					labels: fitNames(labels, Math.min(MAX_QUANTITY, quantity)),
 				},
 			];
 		});
@@ -105,8 +121,17 @@ export function CartProvider({ children }) {
 		setLines((prev) =>
 			quantity <= 0
 				? prev.filter((l) => l.key !== key)
-				: prev.map((l) => (l.key === key ? { ...l, quantity: Math.min(MAX_QUANTITY, quantity) } : l))
+				: prev.map((l) => {
+						if (l.key !== key) return l;
+						const next = Math.min(MAX_QUANTITY, quantity);
+						return { ...l, quantity: next, labels: fitNames(l.labels, next) };
+					})
 		);
+	}, []);
+
+	// One name per unit of the line ("" = no name).
+	const setLabels = useCallback((key, labels) => {
+		setLines((prev) => prev.map((l) => (l.key === key ? { ...l, labels: fitNames(labels, l.quantity) } : l)));
 	}, []);
 
 	const removeItem = useCallback((key) => setLines((prev) => prev.filter((l) => l.key !== key)), []);
@@ -123,6 +148,7 @@ export function CartProvider({ children }) {
 		hasUnavailable,
 		addItem,
 		setQuantity,
+		setLabels,
 		removeItem,
 		clear,
 		drawerOpen,

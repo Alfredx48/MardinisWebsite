@@ -5,8 +5,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBagShopping, faLeaf, faMagnifyingGlass, faPepperHot, faPlus, faUtensils } from "@fortawesome/free-solid-svg-icons";
 import { useCart } from "../context/CartContext";
 import { useRestaurant } from "../context/RestaurantContext";
+import { NameInputs } from "../components/ItemNames";
 import { DishImage, EmptyState, Modal, QuantityStepper, Spinner } from "../components/ui";
 import { money, priceLabel, telHref } from "../format";
+import { nameCounts, padNames } from "../itemNames";
 import { picksLabel, picksProblem, picksToApi, picksTotal, ruleLabel } from "../modifiers";
 
 // Where the sticky header + category bar end once they're stuck to the top.
@@ -276,8 +278,8 @@ function ItemDialog({ item, onClose }) {
 	const { addItem, openDrawer } = useCart();
 	const [quantity, setQuantity] = useState(1);
 	const [request, setRequest] = useState("");
-	const [label, setLabel] = useState("");
-	const [showLabel, setShowLabel] = useState(false);
+	const [names, setNames] = useState([]); // one per item, for group orders
+	const [showNames, setShowNames] = useState(false);
 	const sizes = item.sizes || [];
 	const [sizeName, setSizeName] = useState(sizes[0]?.name || null);
 	const size = sizes.find((s) => s.name === sizeName);
@@ -288,7 +290,9 @@ function ItemDialog({ item, onClose }) {
 
 	const add = () => {
 		if (problem) return;
-		addItem(item, quantity, request, size?.name || null, picksToApi(item, picks), label);
+		const labels = showNames ? padNames(names, quantity) : [];
+		const named = nameCounts(labels, quantity).named.map((n) => n.name);
+		addItem(item, quantity, request, size?.name || null, picksToApi(item, picks), labels);
 		onClose();
 		toast.success(
 			<span>
@@ -296,7 +300,7 @@ function ItemDialog({ item, onClose }) {
 				{item.name}
 				{size ? ` (${size.name})` : ""}
 				{picksLabel(item, picks) ? ` with ${picksLabel(item, picks)}` : ""}
-				{label.trim() ? ` for ${label.trim()}` : ""}.{" "}
+				{named.length ? ` for ${named.join(", ")}` : ""}.{" "}
 				<button className="link-btn" onClick={openDrawer}>
 					View order
 				</button>
@@ -340,26 +344,17 @@ function ItemDialog({ item, onClose }) {
 					<div className="notice">This dish is sold out for now. Check back soon!</div>
 				) : (
 					<>
-						{showLabel ? (
-							<div className="field item-label-field">
-								<label htmlFor="item-label">Name for this item</label>
-								<input
-									id="item-label"
-									className="input"
-									maxLength={40}
-									placeholder="e.g. Sarah"
-									autoFocus
-									value={label}
-									onChange={(e) => setLabel(e.target.value)}
-								/>
+						{showNames ? (
+							<fieldset className="field item-label-field">
+								<legend className="label">{quantity > 1 ? `Names (one for each of the ${quantity})` : "Name for this item"}</legend>
+								<NameInputs autoFocus count={quantity} names={names} onChange={setNames} />
 								<span className="hint">
-									We'll write this name on it.
-									{quantity > 1 && " For different names, add each one separately."}
+									{quantity > 1 ? "We'll write each name on its item. Leave any blank." : "We'll write this name on it."}
 								</span>
-							</div>
+							</fieldset>
 						) : (
-							<button type="button" className="link-btn item-label-toggle" onClick={() => setShowLabel(true)}>
-								+ Add a name to this item (group orders)
+							<button type="button" className="link-btn item-label-toggle" onClick={() => setShowNames(true)}>
+								+ Add {quantity > 1 ? "names" : "a name"} to {quantity > 1 ? "these items" : "this item"} (group orders)
 							</button>
 						)}
 						<div className="field">

@@ -263,6 +263,7 @@ function RefundForm({ order, onBack, onDone }) {
 										<input type="checkbox" checked={!!qty} onChange={() => togglePick(item)} />
 										<span>
 											{item.name}
+											{item.label && <span className="muted small"> · for {item.label}</span>}
 											<span className="muted small"> · {money(item.unit_price)} each</span>
 										</span>
 									</label>

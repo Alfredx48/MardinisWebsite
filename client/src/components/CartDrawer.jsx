@@ -3,7 +3,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBagShopping, faTrashCan, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { useCart } from "../context/CartContext";
 import { money } from "../format";
-import { DishImage, EmptyState, ItemLabel, QuantityStepper, useDismiss } from "./ui";
+import { LineNames } from "./ItemNames";
+import { DishImage, EmptyState, QuantityStepper, useDismiss } from "./ui";
 
 export default function CartDrawer() {
 	const { drawerOpen, closeDrawer } = useCart();
@@ -52,9 +53,9 @@ function DrawerContents({ onClose }) {
 											<strong>{line.name}</strong>
 											<span className="money">{money(line.price * line.quantity)}</span>
 										</div>
-										{line.label && <ItemLabel label={line.label} />}
 										{line.options_label && <p className="cart-line-options">{line.options_label}</p>}
 										{line.special_request && <p className="cart-line-note">“{line.special_request}”</p>}
+										{!line.unavailable && <LineNames line={line} />}
 										{line.needsOptions ? (
 											<p className="cart-line-warn">
 												This dish's options changed.{" "}

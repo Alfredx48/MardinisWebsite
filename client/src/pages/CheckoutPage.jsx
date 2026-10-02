@@ -9,8 +9,10 @@ import { api } from "../api";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { useRestaurant } from "../context/RestaurantContext";
-import { DishImage, EmptyState, ItemLabel, QuantityStepper, Spinner } from "../components/ui";
+import { LineNames } from "../components/ItemNames";
+import { DishImage, EmptyState, QuantityStepper, Spinner } from "../components/ui";
 import { cents, dayLabel, formatTime, money, telHref } from "../format";
+import { splitByName } from "../itemNames";
 import { modifierText } from "../modifiers";
 
 export const PENDING_ORDER_KEY = "mardinis-pending-order";
@@ -111,14 +113,17 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 		try {
 			const result = await api.post("/orders", {
 				customer: contact,
-				items: items.map((l) => ({
-					menu_item_id: l.menu_item_id,
-					size: l.size,
-					modifiers: l.modifiers || [],
-					quantity: l.quantity,
-					special_request: l.special_request,
-					label: l.label,
-				})),
+				// One order line per name, so each name is kept with its item.
+				items: items.flatMap((l) =>
+					splitByName(l.quantity, l.labels).map(({ label, quantity }) => ({
+						menu_item_id: l.menu_item_id,
+						size: l.size,
+						modifiers: l.modifiers || [],
+						quantity,
+						special_request: l.special_request,
+						label,
+					}))
+				),
 				pickup_at: when === "asap" ? "asap" : time,
 				tip: tip.toFixed(2),
 				custom_request: notes,
@@ -159,9 +164,9 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 										<strong>{line.name}</strong>
 										<span className="money">{money(line.price * line.quantity)}</span>
 									</div>
-									{line.label && <ItemLabel label={line.label} />}
 									{line.options_label && <p className="cart-line-options">{line.options_label}</p>}
 									{line.special_request && <p className="cart-line-note">“{line.special_request}”</p>}
+									{!line.unavailable && <LineNames line={line} />}
 									{line.needsOptions ? (
 										<p className="cart-line-warn">
 											This dish's options changed.{" "}
