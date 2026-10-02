@@ -2,8 +2,11 @@ class OrderItem < ApplicationRecord
   belongs_to :order
   belongs_to :menu_item
 
+  LABEL_MAX = 40
+
   validates :quantity, numericality: { only_integer: true, greater_than: 0, less_than_or_equal_to: 50 }
   validates :special_request, length: { maximum: 200 }
+  validates :label, length: { maximum: LABEL_MAX }
 
   def name
     item_name.presence || menu_item.name

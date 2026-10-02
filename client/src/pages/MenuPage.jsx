@@ -276,6 +276,8 @@ function ItemDialog({ item, onClose }) {
 	const { addItem, openDrawer } = useCart();
 	const [quantity, setQuantity] = useState(1);
 	const [request, setRequest] = useState("");
+	const [label, setLabel] = useState("");
+	const [showLabel, setShowLabel] = useState(false);
 	const sizes = item.sizes || [];
 	const [sizeName, setSizeName] = useState(sizes[0]?.name || null);
 	const size = sizes.find((s) => s.name === sizeName);
@@ -286,14 +288,15 @@ function ItemDialog({ item, onClose }) {
 
 	const add = () => {
 		if (problem) return;
-		addItem(item, quantity, request, size?.name || null, picksToApi(item, picks));
+		addItem(item, quantity, request, size?.name || null, picksToApi(item, picks), label);
 		onClose();
 		toast.success(
 			<span>
 				Added {quantity > 1 ? `${quantity} × ` : ""}
 				{item.name}
 				{size ? ` (${size.name})` : ""}
-				{picksLabel(item, picks) ? ` with ${picksLabel(item, picks)}` : ""}.{" "}
+				{picksLabel(item, picks) ? ` with ${picksLabel(item, picks)}` : ""}
+				{label.trim() ? ` for ${label.trim()}` : ""}.{" "}
 				<button className="link-btn" onClick={openDrawer}>
 					View order
 				</button>
@@ -336,18 +339,42 @@ function ItemDialog({ item, onClose }) {
 				{soldOut ? (
 					<div className="notice">This dish is sold out for now. Check back soon!</div>
 				) : (
-					<div className="field">
-						<label htmlFor="special-request">Special instructions</label>
-						<textarea
-							id="special-request"
-							className="textarea"
-							maxLength={200}
-							placeholder="No onions, no pickles…"
-							value={request}
-							onChange={(e) => setRequest(e.target.value)}
-						/>
-						<span className="hint">We'll do our best. Additions may not always be possible.</span>
-					</div>
+					<>
+						{showLabel ? (
+							<div className="field item-label-field">
+								<label htmlFor="item-label">Name for this item</label>
+								<input
+									id="item-label"
+									className="input"
+									maxLength={40}
+									placeholder="e.g. Sarah"
+									autoFocus
+									value={label}
+									onChange={(e) => setLabel(e.target.value)}
+								/>
+								<span className="hint">
+									We'll write this name on it.
+									{quantity > 1 && " For different names, add each one separately."}
+								</span>
+							</div>
+						) : (
+							<button type="button" className="link-btn item-label-toggle" onClick={() => setShowLabel(true)}>
+								+ Add a name to this item (group orders)
+							</button>
+						)}
+						<div className="field">
+							<label htmlFor="special-request">Special instructions</label>
+							<textarea
+								id="special-request"
+								className="textarea"
+								maxLength={200}
+								placeholder="No onions, no pickles…"
+								value={request}
+								onChange={(e) => setRequest(e.target.value)}
+							/>
+							<span className="hint">We'll do our best. Additions may not always be possible.</span>
+						</div>
+					</>
 				)}
 			</div>
 			<div className="modal-footer">

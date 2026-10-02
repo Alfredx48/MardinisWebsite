@@ -37,6 +37,18 @@ RSpec.describe "Checkout", type: :request do
     expect(Order.last.order_items.find_by(menu_item: wrap).unit_price).to eq(10.00)
   end
 
+  it "keeps a name for each item, for group orders" do
+    place(items: [
+      { menu_item_id: wrap.id, quantity: 1, label: "  Sarah   K. " },
+      { menu_item_id: wrap.id, quantity: 1, label: "x" * 60 },
+      { menu_item_id: plate.id, quantity: 1, label: "" },
+    ])
+
+    expect(response).to have_http_status(:created), response.body
+    expect(Order.last.order_items.order(:id).map(&:label)).to eq(["Sarah K.", "x" * 40, nil])
+    expect(json.dig("order", "items", 0, "label")).to eq("Sarah K.")
+  end
+
   describe "sizes" do
     let!(:hummus) do
       create_item(restaurant, name: "Hummus", price: 1, sizes: [{ name: "1/4 Pint", price: "5.88" }, { name: "Pint", price: "12.63" }])

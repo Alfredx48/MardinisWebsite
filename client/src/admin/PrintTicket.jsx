@@ -31,6 +31,7 @@ export default function PrintTicket({ order, restaurantName }) {
 							<span className="adm-tp-item">{item.name}</span>
 							<span>{money(item.line_total)}</span>
 						</div>
+						{item.label && <div className="adm-tp-label">FOR: {item.label}</div>}
 						{item.modifiers?.length > 0 && <div className="adm-tp-mods">{modifierText(item.modifiers)}</div>}
 						{item.special_request && <div className="adm-tp-note">** {item.special_request}</div>}
 					</li>

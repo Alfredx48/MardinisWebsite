@@ -17,8 +17,8 @@ function loadCart() {
 	}
 }
 
-const lineKey = (menuItemId, request, size, modifiers) =>
-	`${menuItemId}:${size || ""}:${JSON.stringify(modifiers || [])}:${(request || "").trim().toLowerCase()}`;
+const lineKey = (menuItemId, request, size, modifiers, label) =>
+	`${menuItemId}:${size || ""}:${JSON.stringify(modifiers || [])}:${(request || "").trim().toLowerCase()}:${(label || "").trim().toLowerCase()}`;
 
 // The cart lives in the browser. Prices shown here are for display only; the
 // server re-prices everything at checkout.
@@ -69,9 +69,10 @@ export function CartProvider({ children }) {
 	);
 
 	// `size` is a size name, required for items that come in sizes. `modifiers`
-	// are the chosen options in API form: [{ group_id, options: [name] }].
-	const addItem = useCallback((menuItem, quantity = 1, specialRequest = "", size = null, modifiers = []) => {
-		const key = lineKey(menuItem.id, specialRequest, size, modifiers);
+	// are the chosen options in API form: [{ group_id, options: [name] }]. `label` is
+	// a name to write on the item, for group orders.
+	const addItem = useCallback((menuItem, quantity = 1, specialRequest = "", size = null, modifiers = [], label = "") => {
+		const key = lineKey(menuItem.id, specialRequest, size, modifiers, label);
 		const sizePrice = menuItem.sizes?.find((s) => s.name === size)?.price;
 		const picks = apiToPicks(modifiers);
 		setLines((prev) => {
@@ -94,6 +95,7 @@ export function CartProvider({ children }) {
 					image: menuItem.image,
 					quantity: Math.min(MAX_QUANTITY, quantity),
 					special_request: specialRequest.trim(),
+					label: label.trim(),
 				},
 			];
 		});

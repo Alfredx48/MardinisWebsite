@@ -6,6 +6,9 @@ Pickup: <%= @pickup %>
 
 <% @items.each do |item| -%>
 <%= item.quantity %> × <%= item.name %>  $<%= format("%.2f", item.line_total) %>
+<% if item.label.present? -%>
+    For: <%= item.label %>
+<% end -%>
 <% if item.modifiers.present? -%>
     <%= item.modifiers.map { |m| m["option"] }.join(", ") %>
 <% end -%>

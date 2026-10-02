@@ -63,7 +63,7 @@ function OrderHistory() {
 			const picks = apiToPicks(line.modifiers);
 			const optionsOk = item && !picksProblem(item, picks);
 			if (item && item.available && sizeOk && optionsOk) {
-				addItem(item, line.quantity, line.special_request || "", line.size || null, picksToApi(item, picks));
+				addItem(item, line.quantity, line.special_request || "", line.size || null, picksToApi(item, picks), line.label || "");
 			} else {
 				skipped += 1;
 			}

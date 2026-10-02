@@ -6,7 +6,7 @@ import { faCircleCheck, faFireBurner, faBagShopping, faReceipt, faLocationDot, f
 import { api } from "../api";
 import { useCart } from "../context/CartContext";
 import { useRestaurant } from "../context/RestaurantContext";
-import { EmptyState, Modal, Spinner } from "../components/ui";
+import { EmptyState, ItemLabel, Modal, Spinner } from "../components/ui";
 import { formatDateTime, formatTime, money, ORDER_STATUS_LABELS, telHref } from "../format";
 import { PENDING_ORDER_KEY } from "./CheckoutPage";
 import { modifierText } from "../modifiers";
@@ -136,6 +136,7 @@ export default function OrderStatusPage() {
 							</span>
 							<span>{money(i.line_total)}</span>
 						</div>
+						{i.label && <ItemLabel label={i.label} />}
 						{i.modifiers?.length > 0 && <p className="cart-line-options">{modifierText(i.modifiers)}</p>}
 						{i.special_request && <p className="cart-line-note">“{i.special_request}”</p>}
 					</div>

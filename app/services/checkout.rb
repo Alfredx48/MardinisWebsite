@@ -52,6 +52,7 @@ class Checkout
         unit_price: l[:unit_price],
         quantity: l[:quantity],
         special_request: l[:special_request],
+        label: l[:label],
       )
     end
     raise Error, order.errors.full_messages unless order.valid?
@@ -170,6 +171,7 @@ class Checkout
         modifiers: modifiers,
         quantity: quantity,
         special_request: line[:special_request].to_s.strip.first(200).presence,
+        label: line[:label].to_s.squish.first(OrderItem::LABEL_MAX).presence,
       }
     end
   end

@@ -42,6 +42,11 @@ export function ItemList({ order }) {
 					<span className={`adm-k-qty${item.quantity > 1 ? " is-multi" : ""}`}>{item.quantity}</span>
 					<div className="adm-k-item-body">
 						<div className="adm-k-item-name">{item.name}</div>
+						{item.label && (
+							<div className="adm-k-label">
+								For: <strong>{item.label}</strong>
+							</div>
+						)}
 						{modifierGroups(item.modifiers).map((g) => (
 							<div key={g.group} className="adm-k-mod">
 								<span className="adm-k-mod-group">{g.group}:</span>

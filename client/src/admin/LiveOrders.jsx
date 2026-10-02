@@ -177,6 +177,7 @@ function Ticket({ order, onOpen, onCancel }) {
 						<span className="adm-ticket-qty">{item.quantity}×</span>
 						<span>
 							{item.name}
+							{item.label && <span className="adm-item-label">For: <strong>{item.label}</strong></span>}
 							{item.modifiers?.length > 0 && <span className="adm-modifiers">{modifierText(item.modifiers)}</span>}
 							{item.special_request && <span className="adm-special">{item.special_request}</span>}
 						</span>

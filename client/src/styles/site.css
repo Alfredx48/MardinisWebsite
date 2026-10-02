@@ -1067,6 +1067,22 @@
 	gap: 12px;
 }
 
+.cart-line-label {
+	margin: 4px 0 0;
+	font-size: 0.85rem;
+	color: var(--terracotta-dark);
+}
+
+.item-label-toggle {
+	display: block;
+	margin-bottom: 14px;
+	font-size: 0.9rem;
+}
+
+.item-label-field {
+	margin-bottom: 18px;
+}
+
 .cart-line-note {
 	margin: 4px 0 0;
 	font-size: 0.85rem;

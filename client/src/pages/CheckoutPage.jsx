@@ -9,7 +9,7 @@ import { api } from "../api";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { useRestaurant } from "../context/RestaurantContext";
-import { DishImage, EmptyState, QuantityStepper, Spinner } from "../components/ui";
+import { DishImage, EmptyState, ItemLabel, QuantityStepper, Spinner } from "../components/ui";
 import { cents, dayLabel, formatTime, money, telHref } from "../format";
 import { modifierText } from "../modifiers";
 
@@ -117,6 +117,7 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 					modifiers: l.modifiers || [],
 					quantity: l.quantity,
 					special_request: l.special_request,
+					label: l.label,
 				})),
 				pickup_at: when === "asap" ? "asap" : time,
 				tip: tip.toFixed(2),
@@ -158,6 +159,7 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 										<strong>{line.name}</strong>
 										<span className="money">{money(line.price * line.quantity)}</span>
 									</div>
+									{line.label && <ItemLabel label={line.label} />}
 									{line.options_label && <p className="cart-line-options">{line.options_label}</p>}
 									{line.special_request && <p className="cart-line-note">“{line.special_request}”</p>}
 									{line.needsOptions ? (

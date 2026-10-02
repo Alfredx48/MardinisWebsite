@@ -17,6 +17,9 @@
         <td style="padding:10px 8px 10px 0;border-bottom:1px solid #e6dccb;vertical-align:top;width:32px;font-weight:bold"><%= item.quantity %>×</td>
         <td style="padding:10px 8px;border-bottom:1px solid #e6dccb;vertical-align:top">
           <div style="font-weight:bold"><%= item.name %></div>
+          <% if item.label.present? %>
+            <div style="font-size:14px">For: <strong><%= item.label %></strong></div>
+          <% end %>
           <% if item.modifiers.present? %>
             <div style="color:#5b5147;font-size:14px"><%= item.modifiers.map { |m| m["option"] }.join(", ") %></div>
           <% end %>

@@ -592,6 +592,7 @@ export default function OrderDetail({ order: initial, onClose, onUpdated }) {
 									<td className="adm-qty">{item.quantity}×</td>
 									<td>
 										{item.name}
+										{item.label && <div className="adm-item-label">For: <strong>{item.label}</strong></div>}
 										{item.modifiers?.length > 0 && <div className="adm-modifiers">{modifierText(item.modifiers)}</div>}
 										{item.special_request && <div className="adm-special">{item.special_request}</div>}
 									</td>

@@ -586,6 +586,17 @@
 	font-weight: 800;
 }
 
+/* The name to write on the item (group orders), styled like a name tag. */
+.adm-k-label {
+	width: fit-content;
+	margin-top: 6px;
+	padding: 3px 12px;
+	border: 2px solid currentColor;
+	border-radius: 8px;
+	font-size: 1.15rem;
+	font-weight: 600;
+}
+
 .adm-k-special {
 	width: fit-content;
 	margin-top: 8px;

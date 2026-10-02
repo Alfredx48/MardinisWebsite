@@ -68,7 +68,7 @@ function csvFor(orders) {
 		o.payment_status,
 		o.items
 			.map((i) => {
-				const extras = [modifierText(i.modifiers), i.special_request].filter(Boolean).join("; ");
+				const extras = [i.label && `for ${i.label}`, modifierText(i.modifiers), i.special_request].filter(Boolean).join("; ");
 				return `${i.quantity}x ${i.name}${extras ? ` (${extras})` : ""}`;
 			})
 			.join("; "),

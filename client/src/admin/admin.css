@@ -1472,6 +1472,13 @@
 	line-height: 1.4;
 }
 
+.adm-item-label {
+	display: block;
+	margin-top: 3px;
+	font-size: 0.9rem;
+	color: var(--terracotta-dark);
+}
+
 .adm-special::before {
 	content: "→ ";
 }
@@ -2472,6 +2479,12 @@
 
 .adm-tp-mods {
 	padding-left: 34px;
+}
+
+.adm-tp-label {
+	padding-left: 34px;
+	font-weight: 700;
+	font-size: 1.1em;
 }
 
 .adm-tp-note {

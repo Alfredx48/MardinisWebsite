@@ -152,6 +152,7 @@ module Presenters
       unit_price: money(oi.unit_price || 0),
       line_total: money(oi.line_total),
       special_request: oi.special_request,
+      label: oi.label,
     }
   end
 

@@ -64,7 +64,7 @@ class Api::OrdersController < ApplicationController
     params.permit(
       :payment_method, :pickup_at, :tip, :custom_request,
       customer: %i[name phone email],
-      items: [:menu_item_id, :size, :quantity, :special_request, { modifiers: [:group_id, { options: [] }] }],
+      items: [:menu_item_id, :size, :quantity, :special_request, :label, { modifiers: [:group_id, { options: [] }] }],
     )
   end
 
