@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 import { api } from "../api";
+import GroupOrderPromo from "../components/GroupOrderPromo";
 import { useRestaurant } from "../context/RestaurantContext";
 import { shiftDate, telHref, todayInRestaurant } from "../format";
 
@@ -54,6 +55,7 @@ export default function CateringPage() {
 								Prefer to talk? Call <a href={telHref(restaurant.phone)}>{restaurant.phone}</a>.
 							</p>
 						)}
+						<GroupOrderPromo />
 						<div className="photo-grid">
 							{PHOTOS.map((src) => (
 								<img key={src} src={src} alt="Catering spread from Mardini's" loading="lazy" />

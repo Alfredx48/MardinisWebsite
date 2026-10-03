@@ -1864,30 +1864,6 @@
 }
 
 /* ========================================================= group orders */
-.menu-group-link {
-	margin-top: 10px;
-	font-size: 0.95rem;
-}
-
-.drawer-group-link {
-	justify-self: center;
-	font-size: 0.85rem;
-}
-
-.catering-band-actions {
-	flex-wrap: wrap;
-}
-
-.btn-outline-light {
-	--btn-bg: transparent;
-	--btn-fg: #fff;
-	--btn-border: rgba(255, 255, 255, 0.7);
-}
-
-.btn-outline-light:hover {
-	--btn-bg: rgba(255, 255, 255, 0.12);
-}
-
 .btn.is-disabled {
 	opacity: 0.5;
 	cursor: not-allowed;
@@ -2017,8 +1993,245 @@
 }
 
 .group-you {
-	margin: 0;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px 20px;
+	max-width: 720px;
 	color: var(--ink-soft);
+}
+
+.group-you p {
+	flex: 1 1 320px;
+	margin: 0;
+}
+
+.group-facts li.is-done {
+	color: var(--success);
+	font-weight: 600;
+}
+
+.notice-success {
+	background: var(--success-tint);
+	color: var(--success);
+}
+
+.group-ready {
+	max-width: 720px;
+	margin-bottom: 12px;
+	font-weight: 600;
+}
+
+/* "You're all set" once someone taps I'm done. */
+.group-done {
+	display: flex;
+	gap: 16px;
+	max-width: 720px;
+	padding: 20px;
+}
+
+.group-done h2 {
+	margin: 0 0 4px;
+	font-size: 1.4rem;
+}
+
+.group-done p {
+	margin: 0 0 10px;
+}
+
+.group-done-icon {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: 44px;
+	height: 44px;
+	border-radius: 50%;
+	background: var(--success-tint);
+	color: var(--success);
+	font-size: 1.2rem;
+}
+
+.group-done-items {
+	margin: 0 0 12px;
+	padding-left: 18px;
+}
+
+/* "Done" / "Still choosing" next to a person's name. */
+.group-status {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	margin-left: 8px;
+	padding: 2px 8px;
+	border-radius: 999px;
+	background: var(--cream-deep);
+	color: var(--ink-soft);
+	font-size: 0.72rem;
+	font-weight: 600;
+	vertical-align: middle;
+	white-space: nowrap;
+}
+
+.group-status.is-done {
+	background: var(--success-tint);
+	color: var(--success);
+}
+
+/* ---- promotion */
+.group-promo-strip {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 12px;
+	max-width: 760px;
+	margin-top: 14px;
+	padding: 10px 14px;
+	border: 1.5px dashed var(--line-strong);
+	border-radius: var(--radius);
+	color: var(--ink);
+	font-size: 0.92rem;
+	text-decoration: none;
+}
+
+.group-promo-strip:hover {
+	border-color: var(--terracotta);
+	background: var(--terracotta-tint);
+}
+
+.group-promo-strip > svg {
+	color: var(--terracotta);
+}
+
+.group-promo-strip > span:first-of-type {
+	flex: 1 1 260px;
+}
+
+.group-promo-strip-cta {
+	color: var(--terracotta);
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.group-promo-card {
+	display: flex;
+	gap: 12px;
+	padding: 14px;
+	border-radius: var(--radius);
+	background: var(--cream-deep);
+	font-size: 0.9rem;
+}
+
+.group-promo-card p {
+	margin: 2px 0 6px;
+	color: var(--ink-soft);
+}
+
+.group-promo-icon {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: 34px;
+	height: 34px;
+	border-radius: 50%;
+	background: var(--terracotta);
+	color: #fff;
+}
+
+.catering-page .group-promo-card {
+	margin: 0 0 20px;
+}
+
+.group-promo-section {
+	background: var(--terracotta-tint);
+}
+
+.group-promo-grid {
+	display: grid;
+	grid-template-columns: 1.1fr 1fr;
+	align-items: center;
+	gap: clamp(28px, 5vw, 64px);
+}
+
+.group-promo-grid h2 {
+	max-width: 20ch;
+}
+
+.group-promo-lede {
+	max-width: 52ch;
+	color: var(--ink-soft);
+}
+
+.group-promo-steps {
+	display: grid;
+	gap: 10px;
+	margin: 18px 0 24px;
+	padding-left: 22px;
+}
+
+.group-promo-steps li::marker {
+	color: var(--terracotta);
+	font-weight: 700;
+}
+
+.group-example {
+	padding: 20px;
+	transform: rotate(-1deg);
+	box-shadow: var(--shadow-lg);
+}
+
+.group-example-head {
+	display: grid;
+	gap: 2px;
+	margin-bottom: 12px;
+}
+
+.group-example-head strong {
+	font-family: var(--font-display);
+	font-size: 1.35rem;
+}
+
+.group-example ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.group-example li {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 0;
+	border-bottom: 1px solid var(--line);
+}
+
+.group-example-tag {
+	padding: 2px 10px;
+	border: 2px solid var(--ink);
+	border-radius: 8px;
+	font-weight: 700;
+}
+
+.group-example-dish {
+	flex: 1;
+	min-width: 0;
+	color: var(--ink-soft);
+}
+
+.group-example-foot {
+	margin-top: 12px;
+	color: var(--ink-faint);
+	font-size: 0.85rem;
+	text-align: center;
+}
+
+@media (max-width: 860px) {
+	.group-promo-grid {
+		grid-template-columns: 1fr;
+	}
+	.group-example {
+		transform: none;
+	}
 }
 
 .group-person {

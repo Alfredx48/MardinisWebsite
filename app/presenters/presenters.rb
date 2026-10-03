@@ -175,7 +175,7 @@ module Presenters
       is_host: host,
       me: me&.id,
       participants: g.participants.map do |p|
-        { id: p.id, name: p.name, host: p.host, items: p.items.map { |i| group_order_item(i) } }
+        { id: p.id, name: p.name, host: p.host, done: p.done_at.present?, items: p.items.map { |i| group_order_item(i) } }
       end,
     }
     if host

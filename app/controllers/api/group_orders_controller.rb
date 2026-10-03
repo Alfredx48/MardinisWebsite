@@ -52,6 +52,7 @@ class Api::GroupOrdersController < ApplicationController
     item.modifiers = modifier_params
     check_item!(item)
     item.save!
+    still_choosing(item.participant)
     render json: group_json
   end
 
@@ -60,12 +61,24 @@ class Api::GroupOrdersController < ApplicationController
     item.quantity = params.require(:quantity)
     check_item!(item)
     item.save!
+    still_choosing(item.participant)
     render json: group_json
   end
 
   def remove_item
     item = editable_item or return
     item.destroy!
+    still_choosing(item.participant)
+    render json: group_json
+  end
+
+  # "I'm done" (or "change my order"), so the organizer knows who's finished.
+  def done
+    return render_errors("Please add your name first.", :forbidden) unless @me
+    return render_errors(closed_message) unless can_change?(@me)
+
+    done = ActiveModel::Type::Boolean.new.cast(params.fetch(:done, true))
+    @me.update!(done_at: done ? Time.current : nil)
     render json: group_json
   end
 
@@ -119,6 +132,12 @@ class Api::GroupOrdersController < ApplicationController
     return !@group.placed? && !@group.expired? if @host
 
     participant == @me && @group.accepting_items?
+  end
+
+  # Someone changing their own items is choosing again. The organizer removing
+  # an item doesn't change whether that person said they're done.
+  def still_choosing(participant)
+    participant.update!(done_at: nil) if participant == @me && participant.done_at
   end
 
   # The item to change, or nil after rendering why it can't be changed.

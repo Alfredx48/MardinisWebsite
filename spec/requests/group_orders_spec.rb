@@ -43,6 +43,25 @@ RSpec.describe "Group orders", type: :request do
     expect(json["is_host"]).to be(false)
   end
 
+  it "lets people say they're done, and changing their items makes them choose again" do
+    sarah = join(token, "Sarah")
+    add(token, sarah, wrap)
+    post "/api/group_orders/#{token}/done", headers: headers_for(key: sarah), as: :json
+    expect(json["participants"].find { |p| p["name"] == "Sarah" }["done"]).to be(true)
+
+    # The organizer removing her item doesn't undo it...
+    item_id = GroupOrderItem.last.id
+    patch "/api/group_orders/#{token}/items/#{item_id}", params: { quantity: 2 }, headers: headers_for(host: host_key), as: :json
+    expect(json["participants"].find { |p| p["name"] == "Sarah" }["done"]).to be(true)
+
+    # ...but her own change does.
+    add(token, sarah, plate)
+    expect(json["participants"].find { |p| p["name"] == "Sarah" }["done"]).to be(false)
+
+    post "/api/group_orders/#{token}/done", params: { done: false }, as: :json
+    expect(response).to have_http_status(:forbidden)
+  end
+
   it "keeps names unique within a group" do
     join(token, "Sarah")
     post "/api/group_orders/#{token}/join", params: { name: " sarah " }, as: :json

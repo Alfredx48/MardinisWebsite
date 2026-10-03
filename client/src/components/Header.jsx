@@ -8,6 +8,7 @@ import { useRestaurant } from "../context/RestaurantContext";
 
 const LINKS = [
 	["/our-menu", "Menu"],
+	["/group/new", "Group Orders"],
 	["/catering", "Catering"],
 	["/about", "Visit Us"],
 ];

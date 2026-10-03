@@ -69,6 +69,8 @@ export default function GroupOrderPage() {
 	const me = group?.participants.find((p) => p.id === group.me);
 	const isHost = Boolean(group?.is_host);
 	const canAdd = Boolean(me && (group.accepting_items || (isHost && !group.placed && !group.expired)));
+	// Someone who said they're done sees a summary instead of the menu.
+	const finished = Boolean(me && !isHost && me.done && group.accepting_items);
 
 	const people = useMemo(
 		() =>
@@ -124,6 +126,16 @@ export default function GroupOrderPage() {
 		}
 	};
 
+	const markDone = async (done) => {
+		try {
+			setGroup(await api.post(`/group_orders/${token}/done`, { done }, headers));
+			if (done) setCartOpen(false);
+			window.scrollTo({ top: 0, behavior: "smooth" });
+		} catch (e) {
+			toast.error(e.message);
+		}
+	};
+
 	const join = async (name) => {
 		const result = await api.post(`/group_orders/${token}/join`, { name });
 		const next = saveKeys(token, { participant: result.participant_key });
@@ -173,12 +185,14 @@ export default function GroupOrderPage() {
 			onOpenCart={() => setCartOpen(true)}
 			onJoin={join}
 			onSetOpen={setOpen}
+			onDone={markDone}
+			people={people}
 		/>
 	);
 
 	return (
 		<div className="group-page">
-			{canAdd ? (
+			{canAdd && !finished ? (
 				<CartContext.Provider value={groupCart}>
 					<MenuPage hero={header} hideFloatingCart />
 				</CartContext.Provider>
@@ -188,7 +202,7 @@ export default function GroupOrderPage() {
 				</div>
 			)}
 
-			{me && (
+			{me && !finished && (
 				<button className="floating-cart" onClick={() => setCartOpen(true)}>
 					<span className="floating-cart-count">{isHost ? totalCount : mine?.count || 0}</span>
 					<span>{isHost ? "Group order" : "Your items"}</span>
@@ -205,6 +219,7 @@ export default function GroupOrderPage() {
 					totalPrice={totalPrice}
 					onChange={changeItem}
 					onSetOpen={setOpen}
+					onDone={markDone}
 					onClose={() => setCartOpen(false)}
 				/>
 			)}
@@ -212,8 +227,11 @@ export default function GroupOrderPage() {
 	);
 }
 
-function GroupHeader({ group, me, isHost, restaurantName, justStarted, totalCount, onOpenCart, onJoin, onSetOpen }) {
+function GroupHeader({ group, me, isHost, restaurantName, justStarted, totalCount, onOpenCart, onJoin, onSetOpen, onDone, people: everyone }) {
 	const people = group.participants.length;
+	const guests = everyone.filter((p) => !p.host);
+	const doneCount = guests.filter((p) => p.done).length;
+	const allDone = guests.length > 0 && doneCount === guests.length;
 	return (
 		<div className="group-header">
 			<span className="eyebrow">
@@ -231,7 +249,24 @@ function GroupHeader({ group, me, isHost, restaurantName, justStarted, totalCoun
 				<li>
 					{people} {people === 1 ? "person" : "people"} · {totalCount} item{totalCount === 1 ? "" : "s"}
 				</li>
+				{isHost && guests.length > 0 && (
+					<li className={allDone ? "is-done" : ""}>
+						{doneCount} of {guests.length} done
+					</li>
+				)}
 			</ul>
+
+			{isHost && allDone && group.open && (
+				<div className="notice notice-success group-ready">
+					<FontAwesomeIcon icon={faCheck} />
+					<span>
+						Everyone's done.{" "}
+						<Link to={`/group/${group.token}/checkout`} className="link-btn">
+							Check out for everyone
+						</Link>
+					</span>
+				</div>
+			)}
 
 			{isHost && <SharePanel group={group} restaurantName={restaurantName} highlight={justStarted} />}
 
@@ -249,14 +284,52 @@ function GroupHeader({ group, me, isHost, restaurantName, justStarted, totalCoun
 					</button>
 				</div>
 			)}
-			{me && !isHost && (
-				<p className="group-you">
-					You're ordering as <strong>{me.name}</strong>. Your name goes on everything you add.{" "}
-					<button className="link-btn" onClick={onOpenCart}>
-						See the group order
-					</button>
-				</p>
+			{me && !isHost && me.done && group.accepting_items && <DoneCard group={group} me={me} onChange={() => onDone(false)} />}
+			{me && !isHost && !(me.done && group.accepting_items) && (
+				<div className="group-you">
+					<p>
+						You're ordering as <strong>{me.name}</strong>. Your name goes on everything you add.{" "}
+						<button className="link-btn" onClick={onOpenCart}>
+							See the group order
+						</button>
+					</p>
+					{group.accepting_items && me.count > 0 && (
+						<button className="btn btn-primary" onClick={() => onDone(true)}>
+							<FontAwesomeIcon icon={faCheck} /> I'm done
+						</button>
+					)}
+				</div>
 			)}
+		</div>
+	);
+}
+
+// "You're all set": what they ordered, and a way back to the menu.
+function DoneCard({ group, me, onChange }) {
+	const host = group.host_name.split(" ")[0];
+	return (
+		<div className="group-done card">
+			<span className="group-done-icon">
+				<FontAwesomeIcon icon={faCheck} />
+			</span>
+			<div>
+				<h2>You're all set, {me.name.split(" ")[0]}!</h2>
+				<p className="muted">
+					{host} will place the order
+					{group.deadline_at ? ` after ${deadlineLabel(group.deadline_at)}` : ""}. Your name will be on your food.
+				</p>
+				<ul className="group-done-items">
+					{me.items.map((i) => (
+						<li key={i.id}>
+							{i.quantity} × {i.name}
+							{i.options_label && <span className="muted small"> · {i.options_label}</span>}
+						</li>
+					))}
+				</ul>
+				<button className="link-btn" onClick={onChange}>
+					Change my order
+				</button>
+			</div>
 		</div>
 	);
 }
@@ -335,7 +408,7 @@ function JoinForm({ group, onJoin }) {
 	);
 }
 
-function GroupCartDrawer({ group, people, me, isHost, totalPrice, onChange, onSetOpen, onClose }) {
+function GroupCartDrawer({ group, people, me, isHost, totalPrice, onChange, onSetOpen, onDone, onClose }) {
 	useDismiss(onClose);
 	const limit = group.per_person_limit ? Number(group.per_person_limit) : null;
 	const withItems = people.filter((p) => p.items.length);
@@ -365,6 +438,17 @@ function GroupCartDrawer({ group, people, me, isHost, totalPrice, onChange, onSe
 										{person.name}
 										{isMe && " (you)"}
 										{person.host && !isMe && " (organizer)"}
+										{!person.host && (
+											<span className={`group-status${person.done ? " is-done" : ""}`}>
+												{person.done ? (
+													<>
+														<FontAwesomeIcon icon={faCheck} /> Done
+													</>
+												) : (
+													"Still choosing"
+												)}
+											</span>
+										)}
 									</strong>
 									{(isMe || isHost) && (
 										<span className="money">
@@ -429,10 +513,18 @@ function GroupCartDrawer({ group, people, me, isHost, totalPrice, onChange, onSe
 							</button>
 						</>
 					) : (
-						<p className="small muted">
-							You're all set once your items are here. {group.host_name.split(" ")[0]} checks out and pays for everyone
-							{group.deadline_at && !group.past_deadline ? ` after ${deadlineLabel(group.deadline_at)}` : ""}.
-						</p>
+						<>
+							{group.accepting_items && me?.count > 0 && !me.done && (
+								<button className="btn btn-primary btn-lg btn-block" onClick={() => onDone(true)}>
+									<FontAwesomeIcon icon={faCheck} /> I'm done
+								</button>
+							)}
+							<p className="small muted">
+								When you're done, tap I'm done so they know. {group.host_name.split(" ")[0]} checks out and pays for
+								everyone
+								{group.deadline_at && !group.past_deadline ? ` after ${deadlineLabel(group.deadline_at)}` : ""}.
+							</p>
+						</>
 					)}
 				</div>
 			</aside>

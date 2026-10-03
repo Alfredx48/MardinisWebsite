@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBagShopping, faTrashCan, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { useCart } from "../context/CartContext";
 import { money } from "../format";
+import GroupOrderPromo from "./GroupOrderPromo";
 import { LineNames } from "./ItemNames";
 import { DishImage, EmptyState, QuantityStepper, useDismiss } from "./ui";
 
@@ -110,9 +111,7 @@ function DrawerContents({ onClose }) {
 							<button className="btn btn-ghost btn-block" onClick={() => go("/menu")}>
 								Keep browsing
 							</button>
-							<button className="link-btn drawer-group-link" onClick={() => go("/group/new")}>
-								Ordering for a team? Start a group order
-							</button>
+							<GroupOrderPromo onStart={onClose} />
 						</div>
 					</>
 				)}

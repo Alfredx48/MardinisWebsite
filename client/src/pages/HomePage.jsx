@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRight, faClock, faLocationDot, faPhone } from "@fortawesome/free-solid-svg-icons";
 import { useRestaurant } from "../context/RestaurantContext";
+import { GroupOrderSection } from "../components/GroupOrderPromo";
 import { DishImage } from "../components/ui";
 import { DAYS, groupedHours, hoursLabel, priceLabel, telHref } from "../format";
 
@@ -122,6 +123,8 @@ export default function HomePage() {
 				</section>
 			)}
 
+			<GroupOrderSection />
+
 			<section className="section">
 				<div className="container story">
 					<div className="story-text">
@@ -169,19 +172,11 @@ export default function HomePage() {
 					<div>
 						<span className="eyebrow eyebrow-light">Catering</span>
 						<h2>Feeding a crowd? We've got the platters.</h2>
-						<p>
-							Office lunches, birthdays and family gatherings. Tell us about your event and we'll put a spread together, or
-							start a group order and let everyone pick their own.
-						</p>
+						<p>Office lunches, birthdays and family gatherings. Tell us about your event and we'll put a spread together.</p>
 					</div>
-					<div className="row catering-band-actions">
-						<Link to="/catering" className="btn btn-light btn-lg">
-							Plan your event
-						</Link>
-						<Link to="/group/new" className="btn btn-outline-light btn-lg">
-							Start a group order
-						</Link>
-					</div>
+					<Link to="/catering" className="btn btn-light btn-lg">
+						Plan your event
+					</Link>
 				</div>
 			</section>
 		</div>

@@ -26,6 +26,7 @@ Rails.application.routes.draw do
     resources :group_orders, only: [:create, :show, :update], param: :token do
       member do
         post :join
+        post :done
         post :items, action: :add_item
         patch "items/:item_id", action: :update_item
         delete "items/:item_id", action: :remove_item

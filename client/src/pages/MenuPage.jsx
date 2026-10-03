@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
+import GroupOrderPromo from "../components/GroupOrderPromo";
 import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBagShopping, faLeaf, faMagnifyingGlass, faPepperHot, faPlus, faUtensils } from "@fortawesome/free-solid-svg-icons";
@@ -122,11 +123,7 @@ export default function MenuPage({ hero, hideFloatingCart = false }) {
 							<span className="eyebrow">Order for pickup</span>
 							<h1>Our menu</h1>
 							{restaurant && <OrderingStatus restaurant={restaurant} />}
-							{restaurant?.accepting_orders && (
-								<Link to="/group/new" className="link-arrow menu-group-link">
-									Ordering for the office? Start a group order
-								</Link>
-							)}
+							<GroupOrderPromo variant="strip" />
 						</>
 					)}
 				</div>
@@ -374,6 +371,11 @@ function ItemDialog({ item, onClose }) {
 								<span className="hint">
 									{quantity > 1 ? "We'll write each name on its item. Leave any blank." : "We'll write this name on it."}
 								</span>
+								{quantity > 1 && (
+									<span className="hint">
+										Ordering for coworkers? <Link to="/group/new">Start a group order</Link> and let everyone pick their own.
+									</span>
+								)}
 							</fieldset>
 						) : (
 							<button type="button" className="link-btn item-label-toggle" onClick={() => setShowNames(true)}>

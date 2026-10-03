@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_02_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_02_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -61,6 +61,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_02_000002) do
     t.boolean "host", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "done_at"
     t.index ["group_order_id"], name: "index_group_order_participants_on_group_order_id"
     t.index ["key"], name: "index_group_order_participants_on_key", unique: true
   end
