@@ -379,7 +379,7 @@ function ItemDialog({ item, onClose }) {
 							</fieldset>
 						) : (
 							<button type="button" className="link-btn item-label-toggle" onClick={() => setShowNames(true)}>
-								+ Add {quantity > 1 ? "names" : "a name"} to {quantity > 1 ? "these items" : "this item"} (group orders)
+								+ Add {quantity > 1 ? "names" : "a name"} to {quantity > 1 ? "these items" : "this item"}
 							</button>
 						)}
 						<div className="field">
