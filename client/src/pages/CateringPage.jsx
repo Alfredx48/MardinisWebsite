@@ -55,14 +55,7 @@ function CateringHero({ restaurant, hasMenu }) {
 				Party trays, kabobs by the skewer, platters and big salads. Order online at least a day ahead and pick it up at{" "}
 				{(restaurant.address || "408 Willow Rd").split(",")[0]}.
 			</p>
-			{canOrder ? (
-				<ul className="catering-facts">
-					<li>At least 24 hours' notice</li>
-					<li>Up to 30 days ahead</li>
-					<li>Pickup only</li>
-					<li>Paid online when you order</li>
-				</ul>
-			) : (
+			{!canOrder && (
 				<div className="notice">
 					{hasMenu ? "Online catering orders are unavailable right now." : "Online catering orders are coming soon."} Call{" "}
 					<a href={telHref(restaurant.phone)}>{restaurant.phone}</a> to order catering.

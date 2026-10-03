@@ -12,6 +12,7 @@ class Checkout
 
   MAX_LINES = 50
   MAX_QUANTITY = 50
+  CATERING_MAX_QUANTITY = 200 # e.g. kabob skewers for a big event
 
   # `max_lines` is higher for group orders, where every person adds their own lines.
   def initialize(restaurant:, user:, params:, now: Time.zone.now, max_lines: MAX_LINES)
@@ -84,7 +85,8 @@ class Checkout
       end
 
       quantity = line[:quantity].to_i
-      raise Error, "Quantity for #{item.name} must be between 1 and #{MAX_QUANTITY}" unless quantity.between?(1, MAX_QUANTITY)
+      max = item.category.catering ? CATERING_MAX_QUANTITY : MAX_QUANTITY
+      raise Error, "Quantity for #{item.name} must be between 1 and #{max}" unless quantity.between?(1, max)
 
       size = nil
       unit_price = item.price

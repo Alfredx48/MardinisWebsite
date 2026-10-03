@@ -58,6 +58,21 @@ RSpec.describe "Catering orders", type: :request do
     expect(Order.last.catering).to be(true)
   end
 
+  it "allows up to 200 of a catering item per line, but still 50 of a regular one" do
+    kabobs = restaurant.categories.create!(name: "Kabobs", catering: true)
+    skewer = create_item(restaurant, category: kabobs, name: "Chicken Kabob", price: 5.50)
+    pickup = (lunchtime + 2.days).change(hour: 11).iso8601
+
+    place(pickup_at: pickup, items: [{ menu_item_id: skewer.id, quantity: 120 }])
+    expect(response).to have_http_status(:created), response.body
+    expect(Order.last.subtotal).to eq(660)
+
+    place(pickup_at: pickup, items: [{ menu_item_id: skewer.id, quantity: 201 }])
+    expect(json["errors"]).to eq(["Quantity for Chicken Kabob must be between 1 and 200"])
+    place(pickup_at: pickup, items: [{ menu_item_id: wrap.id, quantity: 60 }, { menu_item_id: skewer.id, quantity: 1 }])
+    expect(json["errors"]).to eq(["Quantity for Falafel Wrap must be between 1 and 50"])
+  end
+
   it "asks people to call when card payments are off" do
     restaurant.update!(card_payments_enabled: false)
     place(pickup_at: (lunchtime + 2.days).change(hour: 11).iso8601)

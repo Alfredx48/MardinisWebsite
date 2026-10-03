@@ -4,7 +4,7 @@ class OrderItem < ApplicationRecord
 
   LABEL_MAX = 40
 
-  validates :quantity, numericality: { only_integer: true, greater_than: 0, less_than_or_equal_to: 50 }
+  validates :quantity, numericality: { only_integer: true, greater_than: 0, less_than_or_equal_to: Checkout::CATERING_MAX_QUANTITY }
   validates :special_request, length: { maximum: 200 }
   validates :label, length: { maximum: LABEL_MAX }
 

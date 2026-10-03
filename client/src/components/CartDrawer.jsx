@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBagShopping, faTrashCan, faXmark } from "@fortawesome/free-solid-svg-icons";
-import { useCart } from "../context/CartContext";
+import { quantityLimit, useCart } from "../context/CartContext";
 import { money } from "../format";
 import GroupOrderPromo from "./GroupOrderPromo";
 import { LineNames } from "./ItemNames";
@@ -78,6 +78,7 @@ function DrawerContents({ onClose }) {
 												small
 												value={line.quantity}
 												min={0}
+												max={quantityLimit(line)}
 												onChange={(q) => setQuantity(line.key, q)}
 												label={`Quantity of ${line.name}`}
 											/>

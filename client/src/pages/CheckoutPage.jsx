@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faBagShopping, faCreditCard, faLock, faStore, faTrashCan } from "@fortawesome/free-solid-svg-icons";
 import { api } from "../api";
 import { useAuth } from "../context/AuthContext";
-import { useCart } from "../context/CartContext";
+import { quantityLimit, useCart } from "../context/CartContext";
 import { useRestaurant } from "../context/RestaurantContext";
 import { LineNames, NamesSummary } from "../components/ItemNames";
 import { DishImage, EmptyState, QuantityStepper, Spinner } from "../components/ui";
@@ -212,7 +212,7 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 										line.unavailable && <p className="cart-line-warn">Sold out, please remove to continue</p>
 									)}
 									<div className="cart-line-actions">
-										<QuantityStepper small min={0} value={line.quantity} onChange={(q) => setQuantity(line.key, q)} />
+										<QuantityStepper small min={0} max={quantityLimit(line)} value={line.quantity} onChange={(q) => setQuantity(line.key, q)} />
 										<button type="button" className="icon-btn" onClick={() => removeItem(line.key)} aria-label={`Remove ${line.name}`}>
 											<FontAwesomeIcon icon={faTrashCan} />
 										</button>

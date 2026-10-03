@@ -4,7 +4,7 @@ import GroupOrderPromo from "../components/GroupOrderPromo";
 import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBagShopping, faLeaf, faMagnifyingGlass, faPepperHot, faPlus, faUtensils } from "@fortawesome/free-solid-svg-icons";
-import { useCart } from "../context/CartContext";
+import { quantityLimit, useCart } from "../context/CartContext";
 import { useRestaurant } from "../context/RestaurantContext";
 import { NameInputs } from "../components/ItemNames";
 import { DishImage, EmptyState, Modal, QuantityStepper, Spinner } from "../components/ui";
@@ -416,7 +416,7 @@ function ItemDialog({ item, sizeNote, onClose }) {
 					</button>
 				) : (
 					<>
-						<QuantityStepper value={quantity} onChange={setQuantity} />
+						<QuantityStepper value={quantity} onChange={setQuantity} max={quantityLimit(item)} />
 						<button className="btn btn-primary btn-lg spacer" onClick={add} disabled={Boolean(problem) || adding}>
 							{problem ? (
 								problem

@@ -6,6 +6,10 @@ import { useRestaurant } from "./RestaurantContext";
 
 const STORAGE_KEY = "mardinis-cart-v1";
 const MAX_QUANTITY = 50;
+const CATERING_MAX_QUANTITY = 200;
+
+// Most per line for a menu item or cart line (catering items go higher).
+export const quantityLimit = (itemOrLine) => (itemOrLine?.catering ? CATERING_MAX_QUANTITY : MAX_QUANTITY);
 
 // Exported so a group order can swap in its own shared cart (see GroupOrderPage).
 export const CartContext = createContext(null);
@@ -15,7 +19,7 @@ const lineKey = (menuItemId, request, size, modifiers) =>
 
 // Adds `quantity` more of a line that's already in the cart, keeping each unit's name.
 function mergeInto(line, quantity, labels) {
-	const total = Math.min(MAX_QUANTITY, line.quantity + quantity);
+	const total = Math.min(quantityLimit(line), line.quantity + quantity);
 	return {
 		...line,
 		quantity: total,
@@ -111,9 +115,10 @@ export function CartProvider({ children }) {
 					options_label: picksLabel(menuItem, picks),
 					price: Number(sizePrice ?? menuItem.price) + picksTotal(menuItem, picks),
 					image: menuItem.image,
-					quantity: Math.min(MAX_QUANTITY, quantity),
+					quantity: Math.min(quantityLimit(menuItem), quantity),
 					special_request: specialRequest.trim(),
-					labels: fitNames(labels, Math.min(MAX_QUANTITY, quantity)),
+					labels: fitNames(labels, Math.min(quantityLimit(menuItem), quantity)),
+					catering: Boolean(menuItem.catering),
 				},
 			];
 		});
@@ -125,7 +130,7 @@ export function CartProvider({ children }) {
 				? prev.filter((l) => l.key !== key)
 				: prev.map((l) => {
 						if (l.key !== key) return l;
-						const next = Math.min(MAX_QUANTITY, quantity);
+						const next = Math.min(quantityLimit(l), quantity);
 						return { ...l, quantity: next, labels: fitNames(l.labels, next) };
 					})
 		);
