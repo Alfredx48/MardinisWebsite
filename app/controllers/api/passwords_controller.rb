@@ -2,9 +2,9 @@
 # (emailed, or made by an admin in Admin → Customers).
 class Api::PasswordsController < ApplicationController
   skip_before_action :authorize
-  rate_limit to: 5, within: 15.minutes, only: :forgot,
+  rate_limit to: 5, within: 15.minutes, only: :forgot, name: "forgot",
              with: -> { render_errors "Too many requests. Please wait a few minutes and try again.", :too_many_requests }
-  rate_limit to: 20, within: 15.minutes, only: :reset,
+  rate_limit to: 20, within: 15.minutes, only: :reset, name: "reset",
              with: -> { render_errors "Too many tries. Please wait a few minutes and try again.", :too_many_requests }
 
   EXPIRED_LINK = "This reset link has expired. Please ask for a new one.".freeze

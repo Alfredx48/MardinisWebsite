@@ -22,6 +22,9 @@ import NotFoundPage from "./pages/NotFoundPage";
 import PolicyPage from "./pages/PolicyPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import GroupStartPage from "./pages/GroupStartPage";
+import GroupOrderPage from "./pages/GroupOrderPage";
+import GroupCheckoutPage from "./pages/GroupCheckoutPage";
 
 const AdminApp = lazy(() => import("./admin/AdminApp"));
 const KitchenApp = lazy(() => import("./admin/KitchenApp"));
@@ -92,6 +95,9 @@ export default function App() {
 							<Route path="our-menu" element={<MenuViewPage />} />
 							<Route path="order-now" element={<Navigate to="/menu" replace />} />
 							<Route path="checkout" element={<CheckoutPage />} />
+							<Route path="group/new" element={<GroupStartPage />} />
+							<Route path="group/:token" element={<GroupOrderPage />} />
+							<Route path="group/:token/checkout" element={<GroupCheckoutPage />} />
 							<Route path="cart" element={<Navigate to="/checkout" replace />} />
 							<Route path="order/:token" element={<OrderStatusPage />} />
 							<Route path="about" element={<AboutPage />} />

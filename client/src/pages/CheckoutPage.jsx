@@ -9,7 +9,7 @@ import { api } from "../api";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { useRestaurant } from "../context/RestaurantContext";
-import { LineNames } from "../components/ItemNames";
+import { LineNames, NamesSummary } from "../components/ItemNames";
 import { DishImage, EmptyState, QuantityStepper, Spinner } from "../components/ui";
 import { cents, dayLabel, formatTime, money, telHref } from "../format";
 import { splitByName } from "../itemNames";
@@ -25,9 +25,11 @@ function getStripe(key) {
 	return stripePromises[key];
 }
 
+// A group order's checkout (GroupCheckoutPage) supplies its own cart with a
+// `checkout` object: where to send the order, its keys, and the organizer's details.
 export default function CheckoutPage() {
 	const { restaurant } = useRestaurant();
-	const { items } = useCart();
+	const { items, checkout } = useCart();
 	const [payment, setPayment] = useState(null); // { order, clientSecret } once the order exists
 
 	// Start downloading Stripe while the customer fills in their details, so the
@@ -42,10 +44,10 @@ export default function CheckoutPage() {
 	if (!payment && items.length === 0) {
 		return (
 			<div className="container page narrow">
-				<EmptyState icon={faBagShopping} title="Your bag is empty">
+				<EmptyState icon={faBagShopping} title={checkout ? "Nobody has added anything yet" : "Your bag is empty"}>
 					<p>Add something delicious and come back to check out.</p>
-					<Link to="/menu" className="btn btn-primary">
-						Browse the menu
+					<Link to={checkout?.backTo || "/menu"} className="btn btn-primary">
+						{checkout?.backLabel || "Browse the menu"}
 					</Link>
 				</EmptyState>
 			</div>
@@ -55,7 +57,7 @@ export default function CheckoutPage() {
 	return (
 		<div className="container page checkout">
 			<div className="page-header">
-				<span className="eyebrow">Pickup order</span>
+				<span className="eyebrow">{checkout?.eyebrow || "Pickup order"}</span>
 				<h1>{payment ? "Payment" : "Checkout"}</h1>
 			</div>
 			{payment ? (
@@ -69,10 +71,10 @@ export default function CheckoutPage() {
 
 function DetailsStep({ restaurant, onPaymentNeeded }) {
 	const { user } = useAuth();
-	const { items, subtotal, setQuantity, removeItem, hasUnavailable, clear } = useCart();
+	const { items, subtotal, setQuantity, removeItem, hasUnavailable, clear, checkout } = useCart();
 	const navigate = useNavigate();
 
-	const [contact, setContact] = useState({ name: "", phone: "", email: "" });
+	const [contact, setContact] = useState(checkout?.contact || { name: "", phone: "", email: "" });
 	const [when, setWhen] = useState(restaurant.accepting_asap ? "asap" : "later");
 	const slots = useMemo(() => restaurant.pickup_slots || [], [restaurant.pickup_slots]);
 	const [day, setDay] = useState(slots[0]?.date || "");
@@ -111,10 +113,11 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 		if (when === "later" && !time) return setErrors(["Please choose a pickup time."]);
 		setSubmitting(true);
 		try {
-			const result = await api.post("/orders", {
+			const result = await api.post(checkout?.path || "/orders", {
 				customer: contact,
-				// One order line per name, so each name is kept with its item.
-				items: items.flatMap((l) =>
+				// One order line per name, so each name is kept with its item. A group
+				// order sends none: the server takes them from the group.
+				items: checkout ? undefined : items.flatMap((l) =>
 					splitByName(l.quantity, l.labels).map(({ label, quantity }) => ({
 						menu_item_id: l.menu_item_id,
 						size: l.size,
@@ -128,9 +131,10 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 				tip: tip.toFixed(2),
 				custom_request: notes,
 				payment_method: method,
-			});
+			}, checkout?.headers);
 			if (result.client_secret) {
-				sessionStorage.setItem(PENDING_ORDER_KEY, result.order.token);
+				// Lets the order page empty the bag after a payment redirect (not for groups).
+				if (!checkout) sessionStorage.setItem(PENDING_ORDER_KEY, result.order.token);
 				onPaymentNeeded({ order: result.order, clientSecret: result.client_secret });
 				window.scrollTo(0, 0);
 			} else {
@@ -166,7 +170,11 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 									</div>
 									{line.options_label && <p className="cart-line-options">{line.options_label}</p>}
 									{line.special_request && <p className="cart-line-note">“{line.special_request}”</p>}
-									{!line.unavailable && <LineNames line={line} />}
+									{line.fixedNames ? (
+										<NamesSummary names={line.labels} quantity={line.quantity} />
+									) : (
+										!line.unavailable && <LineNames line={line} />
+									)}
 									{line.needsOptions ? (
 										<p className="cart-line-warn">
 											This dish's options changed.{" "}
@@ -194,8 +202,8 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 							</li>
 						))}
 					</ul>
-					<Link to="/menu" className="link-arrow">
-						+ Add more items
+					<Link to={checkout?.backTo || "/menu"} className="link-arrow">
+						{checkout ? checkout.backLabel : "+ Add more items"}
 					</Link>
 				</section>
 

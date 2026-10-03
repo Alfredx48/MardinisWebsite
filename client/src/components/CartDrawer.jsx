@@ -110,6 +110,9 @@ function DrawerContents({ onClose }) {
 							<button className="btn btn-ghost btn-block" onClick={() => go("/menu")}>
 								Keep browsing
 							</button>
+							<button className="link-btn drawer-group-link" onClick={() => go("/group/new")}>
+								Ordering for a team? Start a group order
+							</button>
 						</div>
 					</>
 				)}

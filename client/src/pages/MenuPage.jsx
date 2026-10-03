@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocation, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBagShopping, faLeaf, faMagnifyingGlass, faPepperHot, faPlus, faUtensils } from "@fortawesome/free-solid-svg-icons";
@@ -27,7 +27,9 @@ function scrollToCategory(id, behavior = "auto") {
 	window.scrollTo({ top: Math.max(0, top), behavior });
 }
 
-export default function MenuPage() {
+// `hero` replaces the page's heading (a group order shows its own), and
+// `hideFloatingCart` hides the "View order" button when the page brings its own.
+export default function MenuPage({ hero, hideFloatingCart = false }) {
 	const { menu, restaurant, error } = useRestaurant();
 	const { count, subtotal, openDrawer } = useCart();
 	const [search, setSearch] = useState("");
@@ -115,9 +117,18 @@ export default function MenuPage() {
 		<div className="menu-page">
 			<div className="menu-hero">
 				<div className="container">
-					<span className="eyebrow">Order for pickup</span>
-					<h1>Our menu</h1>
-					{restaurant && <OrderingStatus restaurant={restaurant} />}
+					{hero || (
+						<>
+							<span className="eyebrow">Order for pickup</span>
+							<h1>Our menu</h1>
+							{restaurant && <OrderingStatus restaurant={restaurant} />}
+							{restaurant?.accepting_orders && (
+								<Link to="/group/new" className="link-arrow menu-group-link">
+									Ordering for the office? Start a group order
+								</Link>
+							)}
+						</>
+					)}
 				</div>
 			</div>
 
@@ -190,7 +201,7 @@ export default function MenuPage() {
 				))}
 			</div>
 
-			{count > 0 && (
+			{count > 0 && !hideFloatingCart && (
 				<button className="floating-cart" onClick={openDrawer}>
 					<span className="floating-cart-count">{count}</span>
 					<span>View order</span>
@@ -238,12 +249,16 @@ function DishCard({ item, onOpen }) {
 	const { addItem } = useCart();
 	const soldOut = !item.available;
 
-	const quickAdd = (e) => {
+	const quickAdd = async (e) => {
 		e.stopPropagation();
 		// Items with sizes or options open the dialog, so customers see their choices.
 		if (item.sizes?.length || item.modifier_groups?.length) return onOpen();
-		addItem(item, 1);
-		toast.success(`Added ${item.name}`);
+		try {
+			await addItem(item, 1);
+			toast.success(`Added ${item.name}`);
+		} catch (err) {
+			toast.error(err.message);
+		}
 	};
 
 	return (
@@ -275,11 +290,13 @@ function DishCard({ item, onOpen }) {
 }
 
 function ItemDialog({ item, onClose }) {
-	const { addItem, openDrawer } = useCart();
+	// In a group order the person's name goes on their items automatically.
+	const { addItem, openDrawer, group } = useCart();
 	const [quantity, setQuantity] = useState(1);
 	const [request, setRequest] = useState("");
 	const [names, setNames] = useState([]); // one per item, for group orders
 	const [showNames, setShowNames] = useState(false);
+	const [adding, setAdding] = useState(false);
 	const sizes = item.sizes || [];
 	const [sizeName, setSizeName] = useState(sizes[0]?.name || null);
 	const size = sizes.find((s) => s.name === sizeName);
@@ -288,11 +305,17 @@ function ItemDialog({ item, onClose }) {
 	const unitPrice = Number(size?.price ?? item.price) + picksTotal(item, picks);
 	const soldOut = !item.available;
 
-	const add = () => {
-		if (problem) return;
+	const add = async () => {
+		if (problem || adding) return;
 		const labels = showNames ? padNames(names, quantity) : [];
 		const named = nameCounts(labels, quantity).named.map((n) => n.name);
-		addItem(item, quantity, request, size?.name || null, picksToApi(item, picks), labels);
+		setAdding(true);
+		try {
+			await addItem(item, quantity, request, size?.name || null, picksToApi(item, picks), labels);
+		} catch (err) {
+			setAdding(false);
+			return toast.error(err.message);
+		}
 		onClose();
 		toast.success(
 			<span>
@@ -344,7 +367,7 @@ function ItemDialog({ item, onClose }) {
 					<div className="notice">This dish is sold out for now. Check back soon!</div>
 				) : (
 					<>
-						{showNames ? (
+						{group ? null : showNames ? (
 							<fieldset className="field item-label-field">
 								<legend className="label">{quantity > 1 ? `Names (one for each of the ${quantity})` : "Name for this item"}</legend>
 								<NameInputs autoFocus count={quantity} names={names} onChange={setNames} />
@@ -380,7 +403,7 @@ function ItemDialog({ item, onClose }) {
 				) : (
 					<>
 						<QuantityStepper value={quantity} onChange={setQuantity} />
-						<button className="btn btn-primary btn-lg spacer" onClick={add} disabled={Boolean(problem)}>
+						<button className="btn btn-primary btn-lg spacer" onClick={add} disabled={Boolean(problem) || adding}>
 							{problem ? (
 								problem
 							) : (

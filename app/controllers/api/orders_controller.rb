@@ -19,22 +19,8 @@ class Api::OrdersController < ApplicationController
 
   def create
     order = Checkout.new(restaurant: current_restaurant, user: current_user, params: checkout_params).call
-
-    if order.payment_method == "in_store"
-      order.save!
-      order.mark_placed!
-      return render json: { order: Presenters.order(order) }, status: :created
-    end
-
-    order.save!
-    begin
-      intent = Payments.create_intent!(order)
-    rescue Stripe::StripeError
-      order.destroy
-      raise
-    end
-    order.update!(payment_intent_id: intent.id)
-    render json: { order: Presenters.order(order), client_secret: intent.client_secret }, status: :created
+    client_secret = OrderPlacement.start!(order)
+    render json: { order: Presenters.order(order), client_secret: client_secret }.compact, status: :created
   end
 
   # Called by the browser after Stripe confirms the card; we re-check with Stripe.

@@ -156,6 +156,47 @@ module Presenters
     }
   end
 
+  # What people in a group order see. The organizer's contact details and the
+  # order link are only for the organizer; browser keys never leave the server
+  # except to their owner when they're created.
+  def group_order(g, host: false, me: nil)
+    data = {
+      token: g.token,
+      host_name: g.host_name,
+      note: g.note,
+      deadline_at: g.deadline_at,
+      per_person_limit: g.per_person_limit && money(g.per_person_limit),
+      open: g.open,
+      accepting_items: g.accepting_items?,
+      expired: g.expired?,
+      past_deadline: g.past_deadline?,
+      placed: g.placed?,
+      order_number: g.placed? ? g.order.number : nil,
+      is_host: host,
+      me: me&.id,
+      participants: g.participants.map do |p|
+        { id: p.id, name: p.name, host: p.host, items: p.items.map { |i| group_order_item(i) } }
+      end,
+    }
+    if host
+      data[:host_email] = g.host_email
+      data[:host_phone] = g.host_phone
+      data[:order] = g.order && { token: g.order.token, number: g.order.number, status: g.order.status }
+    end
+    data
+  end
+
+  def group_order_item(i)
+    {
+      id: i.id,
+      menu_item_id: i.menu_item_id,
+      size: i.size,
+      modifiers: i.modifiers,
+      quantity: i.quantity,
+      special_request: i.special_request,
+    }
+  end
+
   def catering_inquiry(c)
     c.slice(:id, :name, :email, :phone, :event_date, :guest_count, :message, :status, :admin_notes, :created_at)
   end

@@ -7,7 +7,8 @@ import { useRestaurant } from "./RestaurantContext";
 const STORAGE_KEY = "mardinis-cart-v1";
 const MAX_QUANTITY = 50;
 
-const CartContext = createContext(null);
+// Exported so a group order can swap in its own shared cart (see GroupOrderPage).
+export const CartContext = createContext(null);
 
 const lineKey = (menuItemId, request, size, modifiers) =>
 	`${menuItemId}:${size || ""}:${JSON.stringify(modifiers || [])}:${(request || "").trim().toLowerCase()}`;

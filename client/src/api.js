@@ -8,8 +8,8 @@ export class ApiError extends Error {
 	}
 }
 
-async function request(method, path, body) {
-	const options = { method, headers: { Accept: "application/json" }, credentials: "same-origin" };
+async function request(method, path, body, headers = {}) {
+	const options = { method, headers: { Accept: "application/json", ...headers }, credentials: "same-origin" };
 	if (body instanceof FormData) {
 		options.body = body; // the browser sets the multipart Content-Type
 	} else if (body !== undefined) {
@@ -33,11 +33,12 @@ async function request(method, path, body) {
 	return data;
 }
 
+// `headers` are extra request headers, e.g. a group order's keys.
 export const api = {
-	get: (path) => request("GET", path),
-	post: (path, body = {}) => request("POST", path, body),
-	patch: (path, body = {}) => request("PATCH", path, body),
-	delete: (path) => request("DELETE", path),
+	get: (path, headers) => request("GET", path, undefined, headers),
+	post: (path, body = {}, headers) => request("POST", path, body, headers),
+	patch: (path, body = {}, headers) => request("PATCH", path, body, headers),
+	delete: (path, headers) => request("DELETE", path, undefined, headers),
 	upload: (path, formData) => request("POST", path, formData),
 };
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_02_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_02_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -39,6 +39,49 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_02_000001) do
     t.datetime "updated_at", null: false
     t.index ["restaurant_id"], name: "index_catering_inquiries_on_restaurant_id"
     t.index ["status"], name: "index_catering_inquiries_on_status"
+  end
+
+  create_table "group_order_items", force: :cascade do |t|
+    t.bigint "group_order_participant_id", null: false
+    t.bigint "menu_item_id", null: false
+    t.string "size"
+    t.jsonb "modifiers", default: [], null: false
+    t.integer "quantity", default: 1, null: false
+    t.string "special_request"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["group_order_participant_id"], name: "index_group_order_items_on_group_order_participant_id"
+    t.index ["menu_item_id"], name: "index_group_order_items_on_menu_item_id"
+  end
+
+  create_table "group_order_participants", force: :cascade do |t|
+    t.bigint "group_order_id", null: false
+    t.string "name", null: false
+    t.string "key", null: false
+    t.boolean "host", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["group_order_id"], name: "index_group_order_participants_on_group_order_id"
+    t.index ["key"], name: "index_group_order_participants_on_key", unique: true
+  end
+
+  create_table "group_orders", force: :cascade do |t|
+    t.bigint "restaurant_id", null: false
+    t.bigint "order_id"
+    t.string "token", null: false
+    t.string "host_token", null: false
+    t.string "host_name", null: false
+    t.string "host_email", null: false
+    t.string "host_phone"
+    t.string "note"
+    t.datetime "deadline_at"
+    t.decimal "per_person_limit", precision: 10, scale: 2
+    t.boolean "open", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["order_id"], name: "index_group_orders_on_order_id"
+    t.index ["restaurant_id"], name: "index_group_orders_on_restaurant_id"
+    t.index ["token"], name: "index_group_orders_on_token", unique: true
   end
 
   create_table "menu_item_modifier_groups", force: :cascade do |t|
@@ -191,6 +234,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_02_000001) do
 
   add_foreign_key "categories", "restaurants"
   add_foreign_key "catering_inquiries", "restaurants"
+  add_foreign_key "group_order_items", "group_order_participants"
+  add_foreign_key "group_order_items", "menu_items"
+  add_foreign_key "group_order_participants", "group_orders"
+  add_foreign_key "group_orders", "orders"
+  add_foreign_key "group_orders", "restaurants"
   add_foreign_key "menu_item_modifier_groups", "menu_items"
   add_foreign_key "menu_item_modifier_groups", "modifier_groups"
   add_foreign_key "menu_items", "categories"

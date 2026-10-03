@@ -1,0 +1,14 @@
+<div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;color:#231d17;max-width:520px">
+  <p style="margin:0 0 4px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#b4452c;font-weight:bold">Group order</p>
+  <h1 style="margin:0 0 16px;font-family:Georgia,serif;font-size:26px">Your group order is ready</h1>
+  <p style="margin:0 0 16px">Hi <%= @group.host_name.split.first %>, people can now add their own items. You check out and pay once when everyone's in.</p>
+
+  <p style="margin:0 0 6px;font-weight:bold">Share this link with everyone</p>
+  <p style="margin:0 0 20px"><a href="<%= @share_url %>" style="color:#b4452c"><%= @share_url %></a></p>
+
+  <p style="margin:0 0 6px;font-weight:bold">Your organizer link</p>
+  <p style="margin:0 0 6px"><a href="<%= @manage_url %>" style="display:inline-block;padding:10px 18px;border-radius:999px;background:#b4452c;color:#fff;text-decoration:none;font-weight:bold">Manage the group order</a></p>
+  <p style="margin:0 0 20px;color:#5b5147;font-size:14px">Keep this one to yourself: it lets you remove items, close ordering and check out.</p>
+
+  <p style="margin:0;color:#8d8276;font-size:13px"><%= @restaurant.name %> · <%= @restaurant.address %> · <%= @restaurant.phone %></p>
+</div>

@@ -10,6 +10,7 @@ class Restaurant < ApplicationRecord
   has_many :orders, dependent: :destroy
   has_many :order_items, through: :orders
   has_many :catering_inquiries, dependent: :destroy
+  has_many :group_orders, dependent: :destroy
 
   validates :name, presence: true
   validates :tax_rate, numericality: { greater_than_or_equal_to: 0, less_than: 0.25 }

@@ -13,11 +13,13 @@ class Checkout
   MAX_LINES = 50
   MAX_QUANTITY = 50
 
-  def initialize(restaurant:, user:, params:, now: Time.zone.now)
+  # `max_lines` is higher for group orders, where every person adds their own lines.
+  def initialize(restaurant:, user:, params:, now: Time.zone.now, max_lines: MAX_LINES)
     @restaurant = restaurant
     @user = user
     @params = params
     @now = now
+    @max_lines = max_lines
   end
 
   def call
@@ -58,6 +60,49 @@ class Checkout
     raise Error, order.errors.full_messages unless order.valid?
 
     order
+  end
+
+  # The cart's lines with server prices, checked against the live menu (also used
+  # to keep group order items valid and within a per-person limit).
+  def priced_lines
+    raw = Array(@params[:items]).first(@max_lines + 1)
+    raise Error, "Your cart is empty" if raw.empty?
+    raise Error, "Too many different items in one order" if raw.size > @max_lines
+
+    ids = raw.map { |i| i[:menu_item_id].to_i }
+    items = @restaurant.menu_items.includes(:category, :modifier_groups).where(id: ids).index_by(&:id)
+
+    raw.map do |line|
+      item = items[line[:menu_item_id].to_i]
+      raise Error, "An item in your cart is no longer on the menu" unless item
+      unless item.available && item.category.active
+        raise Error, "Sorry, #{item.name} is sold out. Please remove it from your cart."
+      end
+
+      quantity = line[:quantity].to_i
+      raise Error, "Quantity for #{item.name} must be between 1 and #{MAX_QUANTITY}" unless quantity.between?(1, MAX_QUANTITY)
+
+      size = nil
+      unit_price = item.price
+      if item.sized?
+        size = item.size_named(line[:size])
+        raise Error, "Please choose a size for #{item.name}" unless size
+
+        unit_price = size["price"].to_d
+      end
+      modifiers = chosen_modifiers(item, line[:modifiers])
+      unit_price += modifiers.sum { |m| m["price"].to_d }
+
+      {
+        menu_item: item,
+        size: size && size["name"],
+        unit_price: unit_price,
+        modifiers: modifiers,
+        quantity: quantity,
+        special_request: line[:special_request].to_s.strip.first(200).presence,
+        label: line[:label].to_s.squish.first(OrderItem::LABEL_MAX).presence,
+      }
+    end
   end
 
   private
@@ -133,46 +178,5 @@ class Checkout
     raise Error, "The options for #{item.name} have changed. Please update your cart." if picks.values.any?(&:present?)
 
     chosen
-  end
-
-  def priced_lines
-    raw = Array(@params[:items]).first(MAX_LINES + 1)
-    raise Error, "Your cart is empty" if raw.empty?
-    raise Error, "Too many different items in one order" if raw.size > MAX_LINES
-
-    ids = raw.map { |i| i[:menu_item_id].to_i }
-    items = @restaurant.menu_items.includes(:category, :modifier_groups).where(id: ids).index_by(&:id)
-
-    raw.map do |line|
-      item = items[line[:menu_item_id].to_i]
-      raise Error, "An item in your cart is no longer on the menu" unless item
-      unless item.available && item.category.active
-        raise Error, "Sorry, #{item.name} is sold out. Please remove it from your cart."
-      end
-
-      quantity = line[:quantity].to_i
-      raise Error, "Quantity for #{item.name} must be between 1 and #{MAX_QUANTITY}" unless quantity.between?(1, MAX_QUANTITY)
-
-      size = nil
-      unit_price = item.price
-      if item.sized?
-        size = item.size_named(line[:size])
-        raise Error, "Please choose a size for #{item.name}" unless size
-
-        unit_price = size["price"].to_d
-      end
-      modifiers = chosen_modifiers(item, line[:modifiers])
-      unit_price += modifiers.sum { |m| m["price"].to_d }
-
-      {
-        menu_item: item,
-        size: size && size["name"],
-        unit_price: unit_price,
-        modifiers: modifiers,
-        quantity: quantity,
-        special_request: line[:special_request].to_s.strip.first(200).presence,
-        label: line[:label].to_s.squish.first(OrderItem::LABEL_MAX).presence,
-      }
-    end
   end
 end

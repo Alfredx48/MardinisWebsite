@@ -51,6 +51,9 @@ export default function Footer() {
 							<Link to="/our-menu">View the menu</Link>
 						</li>
 						<li>
+							<Link to="/group/new">Group orders</Link>
+						</li>
+						<li>
 							<Link to="/catering">Catering</Link>
 						</li>
 						<li>

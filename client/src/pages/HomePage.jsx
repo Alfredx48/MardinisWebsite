@@ -169,11 +169,19 @@ export default function HomePage() {
 					<div>
 						<span className="eyebrow eyebrow-light">Catering</span>
 						<h2>Feeding a crowd? We've got the platters.</h2>
-						<p>Office lunches, birthdays and family gatherings. Tell us about your event and we'll put a spread together.</p>
+						<p>
+							Office lunches, birthdays and family gatherings. Tell us about your event and we'll put a spread together, or
+							start a group order and let everyone pick their own.
+						</p>
 					</div>
-					<Link to="/catering" className="btn btn-light btn-lg">
-						Plan your event
-					</Link>
+					<div className="row catering-band-actions">
+						<Link to="/catering" className="btn btn-light btn-lg">
+							Plan your event
+						</Link>
+						<Link to="/group/new" className="btn btn-outline-light btn-lg">
+							Start a group order
+						</Link>
+					</div>
 				</div>
 			</section>
 		</div>

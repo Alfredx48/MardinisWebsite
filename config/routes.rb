@@ -23,6 +23,16 @@ Rails.application.routes.draw do
 
     resources :catering_inquiries, only: [:create]
 
+    resources :group_orders, only: [:create, :show, :update], param: :token do
+      member do
+        post :join
+        post :items, action: :add_item
+        patch "items/:item_id", action: :update_item
+        delete "items/:item_id", action: :remove_item
+        post :checkout
+      end
+    end
+
     namespace :admin do
       resource :stats, only: [:show]
       resource :restaurant, only: [:show, :update]

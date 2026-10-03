@@ -1,0 +1,11 @@
+Hi <%= @group.host_name.split.first %>,
+
+Your group order at <%= @restaurant.name %> is ready for people to join.
+
+Share this link with everyone:
+<%= @share_url %>
+
+Your organizer link (keep it to yourself; it lets you manage the order and check out):
+<%= @manage_url %>
+
+<%= @restaurant.name %> · <%= @restaurant.address %> · <%= @restaurant.phone %>

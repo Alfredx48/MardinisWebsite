@@ -108,6 +108,15 @@ A full-screen order screen for a kitchen tablet, installable as its own app ("Ki
 - **Not done / ideas:** Real-time push instead of 10s polling. Kitchen users can't pause online ordering (that needs settings access).
 - **Testing on a tablet:** `bin/dev`, then `ngrok http 4000` and open `https://<id>.ngrok-free.app/kitchen` (local DB; dev kitchen user `cook@example.com` / `password123`). Or push and use https://mardinismenlopark.com/kitchen. Wake lock and the service worker need HTTPS.
 
+## Group orders (`/group/new`, `/group/:token`)
+
+Added 2026-10-02. An organizer starts a group order (name, email, optional phone, note, deadline, per-person limit; no account), shares a link, coworkers join with their name and add items from the normal menu, and the organizer checks out and pays once. Each person's name becomes the item `label`, so the kitchen sees name tags.
+
+- **Backend:** `GroupOrder` (share `token`, private `host_token`, `open`, `deadline_at`, `per_person_limit`, `order` once checked out), `GroupOrderParticipant` (name unique per group, private `key`, `host` flag) and `GroupOrderItem` (cart-line fields). All three tables have RLS on. `Api::GroupOrdersController`: browsers send `X-Group-Key` (participant) and/or `X-Group-Host` (organizer). People can change only their own items, and only while `accepting_items?` (open, before the deadline, not placed, under 7 days old); the organizer can change anything until it's placed. Items are priced with `Checkout#priced_lines` (now public) and held to the per-person limit (the organizer has none). `checkout` builds one order from everyone's items (up to `GroupOrder::MAX_LINES`), via `OrderPlacement.start!` (shared with normal checkout), then closes ordering.
+- **Email:** `GroupOrderEmail` sends the organizer their share + organizer links once (kind `group_order`, counts toward the daily email budget; skipped if over it). Invites go out from the organizer's own email app (`mailto:` "Email it" button), not from the site.
+- **Frontend:** `GroupStartPage`, `GroupOrderPage` (renders `MenuPage` with a `CartContext.Provider` that adds to the group; the organizer's `?host=` link key is saved to localStorage and stripped from the address bar), `GroupCheckoutPage` (renders `CheckoutPage` with a group cart; `CheckoutPage` reads an optional `checkout` object from the cart). Keys live in localStorage under `mardinis.group.<token>`; helpers in `client/src/groupOrder.js`. Links: menu page, cart drawer, footer, home page catering band.
+- Rate limits must each have a `name:`, or all limits in a controller share one counter (fixed here and in `PasswordsController`).
+
 ## Passwords
 
 - **Change:** My account (`/account`) → Change password; it needs the current password. Linked from the admin sidebar ("Change password") and the kitchen ⋮ menu.
