@@ -21,14 +21,45 @@ export function EmptyState({ icon, title, children }) {
 	);
 }
 
+// The number can be typed as well (handy for 24 kabobs). A valid number applies
+// as it's typed; anything else (blank, 0, too many) is settled on leaving the box.
 export function QuantityStepper({ value, onChange, min = 1, max = 50, small = false, label = "Quantity" }) {
+	const [draft, setDraft] = useState(null); // the text while someone is typing
+	const step = (next) => {
+		setDraft(null);
+		onChange(next);
+	};
+	const type = (e) => {
+		const text = e.target.value.replace(/\D/g, "").slice(0, 3);
+		setDraft(text);
+		const n = Number(text);
+		if (text && n >= Math.max(min, 1) && n <= max) onChange(n);
+	};
+	const settle = () => {
+		if (draft === null) return;
+		if (draft !== "") {
+			const n = Math.min(max, Math.max(min, Number(draft)));
+			if (n !== value) onChange(n);
+		}
+		setDraft(null);
+	};
 	return (
 		<div className={`stepper${small ? " stepper-sm" : ""}`} role="group" aria-label={label}>
-			<button type="button" onClick={() => onChange(value - 1)} disabled={value <= min} aria-label="Decrease">
+			<button type="button" onClick={() => step(value - 1)} disabled={value <= min} aria-label="Decrease">
 				<FontAwesomeIcon icon={faMinus} />
 			</button>
-			<output aria-live="polite">{value}</output>
-			<button type="button" onClick={() => onChange(value + 1)} disabled={value >= max} aria-label="Increase">
+			<input
+				className="stepper-input"
+				type="text"
+				inputMode="numeric"
+				aria-label={label}
+				value={draft ?? String(value)}
+				onFocus={(e) => e.target.select()}
+				onChange={type}
+				onBlur={settle}
+				onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+			/>
+			<button type="button" onClick={() => step(value + 1)} disabled={value >= max} aria-label="Increase">
 				<FontAwesomeIcon icon={faPlus} />
 			</button>
 		</div>
