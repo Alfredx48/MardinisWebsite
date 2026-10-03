@@ -6,7 +6,7 @@ import { api } from "../api";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { useRestaurant } from "../context/RestaurantContext";
-import { EmptyState, Spinner } from "../components/ui";
+import { EmptyState, PasswordInput, Spinner } from "../components/ui";
 import { formatDateTime, money, ORDER_STATUS_LABELS } from "../format";
 import { apiToPicks, picksProblem, picksToApi } from "../modifiers";
 
@@ -163,19 +163,19 @@ function ProfileForm() {
 			<div className="grid-2">
 				<div className="field">
 					<label htmlFor="p-pass">New password</label>
-					<input id="p-pass" className="input" type="password" minLength={8} autoComplete="new-password"
+					<PasswordInput id="p-pass" className="input" minLength={8} autoComplete="new-password"
 						value={form.password} onChange={set("password")} />
 				</div>
 				<div className="field">
 					<label htmlFor="p-pass2">Confirm new password</label>
-					<input id="p-pass2" className="input" type="password" autoComplete="new-password"
+					<PasswordInput id="p-pass2" className="input" autoComplete="new-password"
 						value={form.password_confirmation} onChange={set("password_confirmation")} />
 				</div>
 			</div>
 			{needsCurrent && (
 				<div className="field">
 					<label htmlFor="p-current">Current password</label>
-					<input id="p-current" className="input" type="password" required autoComplete="current-password"
+					<PasswordInput id="p-current" className="input" required autoComplete="current-password"
 						value={form.current_password} onChange={set("current_password")} />
 					<span className="hint">
 						Required to change your email or password. A new password signs you out on your other devices.

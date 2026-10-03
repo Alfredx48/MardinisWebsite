@@ -12,7 +12,7 @@ import {
 	faVolumeXmark,
 	faWifi,
 } from "@fortawesome/free-solid-svg-icons";
-import { Modal, Spinner } from "../components/ui";
+import { Modal, PasswordInput, Spinner } from "../components/ui";
 import { useAuth } from "../context/AuthContext";
 import { AdminProvider, useAdmin } from "./AdminContext";
 import { CancelledBanner } from "./AdminLayout";
@@ -435,10 +435,9 @@ function KitchenLogin() {
 						</div>
 						<div className="field">
 							<label htmlFor="k-password">Password</label>
-							<input
+							<PasswordInput
 								id="k-password"
 								className="input"
-								type="password"
 								required
 								autoComplete="current-password"
 								value={password}

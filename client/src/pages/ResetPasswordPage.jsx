@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { api } from "../api";
 import { useAuth } from "../context/AuthContext";
-import { Spinner } from "../components/ui";
+import { PasswordInput, Spinner } from "../components/ui";
 
 export default function ResetPasswordPage() {
 	const [params] = useSearchParams();
@@ -59,10 +59,9 @@ export default function ResetPasswordPage() {
 						{check.name && <p className="muted">Hi {check.name}! Pick a password with at least 8 characters.</p>}
 						<div className="field">
 							<label htmlFor="r-pass">New password</label>
-							<input
+							<PasswordInput
 								id="r-pass"
 								className="input"
-								type="password"
 								required
 								minLength={8}
 								autoComplete="new-password"
@@ -72,10 +71,9 @@ export default function ResetPasswordPage() {
 						</div>
 						<div className="field">
 							<label htmlFor="r-pass2">Confirm new password</label>
-							<input
+							<PasswordInput
 								id="r-pass2"
 								className="input"
-								type="password"
 								required
 								autoComplete="new-password"
 								value={confirmation}

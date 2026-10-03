@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMinus, faPlus, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faEye, faEyeSlash, faMinus, faPlus, faXmark } from "@fortawesome/free-solid-svg-icons";
 
 export function Spinner({ label = "Loading" }) {
 	return (
@@ -102,6 +102,33 @@ export function Modal({ onClose, label, children, className = "" }) {
 				</button>
 				{children}
 			</div>
+		</div>
+	);
+}
+
+// A password box with a Show / Hide button, so people can check what they typed.
+export function PasswordInput({ className = "input", ...props }) {
+	const [shown, setShown] = useState(false);
+	return (
+		<div className="password-field">
+			<input
+				{...props}
+				className={className}
+				type={shown ? "text" : "password"}
+				autoCapitalize="none"
+				autoCorrect="off"
+				spellCheck={false}
+			/>
+			<button
+				type="button"
+				className="password-toggle"
+				onClick={() => setShown((s) => !s)}
+				aria-label={shown ? "Hide password" : "Show password"}
+				aria-pressed={shown}
+			>
+				<FontAwesomeIcon icon={shown ? faEyeSlash : faEye} />
+				<span>{shown ? "Hide" : "Show"}</span>
+			</button>
 		</div>
 	);
 }

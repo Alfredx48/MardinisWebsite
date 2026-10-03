@@ -646,6 +646,41 @@ p {
 }
 
 /* ------------------------------------------------------------ misc widgets */
+/* Password box with a Show / Hide button inside it. */
+.password-field {
+	position: relative;
+}
+
+.password-field .input {
+	padding-right: 88px;
+}
+
+.password-toggle {
+	position: absolute;
+	top: 50%;
+	right: 6px;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 10px;
+	border: none;
+	border-radius: var(--radius-sm);
+	background: transparent;
+	color: var(--ink-soft);
+	font: 600 0.85rem/1 var(--font-body);
+	cursor: pointer;
+	transform: translateY(-50%);
+}
+
+.password-toggle:hover {
+	background: var(--cream-deep);
+	color: var(--ink);
+}
+
+.password-toggle:focus-visible {
+	outline: 2px solid var(--terracotta);
+}
+
 .stepper {
 	display: inline-flex;
 	align-items: center;

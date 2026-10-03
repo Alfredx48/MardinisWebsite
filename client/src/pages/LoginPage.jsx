@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { PasswordInput } from "../components/ui";
 import { useAuth } from "../context/AuthContext";
 
 const EMPTY = { name: "", email: "", phone: "", password: "", password_confirmation: "" };
@@ -78,10 +79,9 @@ export default function LoginPage() {
 					)}
 					<div className="field">
 						<label htmlFor="a-password">Password</label>
-						<input
+						<PasswordInput
 							id="a-password"
 							className="input"
-							type="password"
 							required
 							minLength={mode === "signup" ? 8 : undefined}
 							autoComplete={mode === "login" ? "current-password" : "new-password"}
@@ -98,7 +98,7 @@ export default function LoginPage() {
 					{mode === "signup" && (
 						<div className="field">
 							<label htmlFor="a-password2">Confirm password</label>
-							<input id="a-password2" className="input" type="password" required autoComplete="new-password"
+							<PasswordInput id="a-password2" className="input" required autoComplete="new-password"
 								value={form.password_confirmation} onChange={set("password_confirmation")} />
 						</div>
 					)}
