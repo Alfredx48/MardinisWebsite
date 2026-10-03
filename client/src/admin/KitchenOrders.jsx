@@ -8,7 +8,7 @@ import { EmptyState, Spinner } from "../components/ui";
 import { useAdmin } from "./AdminContext";
 import { PickupInfo, urgency, useAdvanceOrder } from "./LiveOrders";
 import OrderDetail, { CancelDialog, nextActionLabel } from "./OrderDetail";
-import { OverflowMenu, PaymentBadge, useNow } from "./adminUi";
+import { CateringBadge, OverflowMenu, PaymentBadge, useNow } from "./adminUi";
 import { NEXT_STATUS, amountDue, placedAt } from "./adminUtils";
 
 // The kitchen screen's orders, laid out like the DoorDash and Uber Eats tablets: a list
@@ -113,7 +113,7 @@ function OrderCard({ order, selected, onSelect }) {
 			</span>
 			<span className="adm-k-card-name">{order.customer_name}</span>
 			<span className="adm-k-card-meta">
-				{itemsLabel(order)} · <PickupInfo order={order} />
+				<CateringBadge order={order} /> {itemsLabel(order)} · <PickupInfo order={order} />
 			</span>
 		</button>
 	);
@@ -135,6 +135,7 @@ function OrderPanel({ order, busy, onAdvance, onOpen, onCancel }) {
 							Pickup <PickupInfo order={order} />
 						</span>
 						<span>{itemsLabel(order)}</span>
+						<CateringBadge order={order} />
 						<PaymentBadge order={order} />
 						{due > 0 && <span className="adm-due-amount">Due {money(due)}</span>}
 					</div>
@@ -187,6 +188,7 @@ function NewOrderPopup({ order, more, busy, onStart, onLater }) {
 						Pickup <PickupInfo order={order} />
 					</span>
 					<span>{itemsLabel(order)}</span>
+					<CateringBadge order={order} />
 					<PaymentBadge order={order} />
 				</div>
 				<div className="adm-k-popup-body">

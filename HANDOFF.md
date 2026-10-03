@@ -119,6 +119,15 @@ Added 2026-10-02. An organizer starts a group order (name, email, optional phone
 - **Promotion** (`components/GroupOrderPromo.jsx`, hidden while online ordering is paused): "Group Orders" in the header nav, a home page section with a sample group order, a strip at the top of /menu, a card in the cart drawer and on the catering page, and a hint in the item dialog when naming several items.
 - Rate limits must each have a `name:`, or all limits in a controller share one counter (fixed here and in `PasswordsController`).
 
+## Catering orders (`/catering`)
+
+Added 2026-10-02, replacing the request form as the main thing on the page. The catering menu (from the owner's "Mardinis Catering Menu - Original Enhanced.pdf", also at `client/public/menus/mardinis-catering-menu.pdf`) is ordinary categories with `catering: true` (Admin → Menu → edit category → "Catering menu"): Party Trays (Shallow/Half/Full Tray sizes), Kabobs (per skewer), Platters, Salads (Small/Medium/Large), By the Piece.
+
+- **Front end:** `RestaurantContext` splits `/api/menu` into `menu` (regular) and `cateringMenu`; `fullMenu` (both) feeds the cart. `CateringPage` renders `MenuPage` with the catering menu, a catering hero and, below, the old message form (still goes to Admin → Catering). Catering sections never show on /menu, /our-menu or the home page.
+- **Rules:** any catering item in the bag makes it a catering order (`orders.catering`): pickup at least 24 hours ahead and up to 30 days (`Restaurant::CATERING_NOTICE`, `CATERING_DAYS_AHEAD`), any 15-minute slot during opening hours (`client/src/catering.js` lists them; `Restaurant#valid_catering_pickup_time?` checks), and card payment only. If card payments are off, catering can't be ordered online (the page says to call). Pickup only; delivery is by phone. Catering items can't go in group orders.
+- **Staff:** a dark red "Catering" badge on kitchen cards/panels, live orders and order detail; "** CATERING **" on printed tickets. Catering orders sit in the kitchen's New tab until their day, like other scheduled orders.
+- **Production data:** added by the owner with `bash tmp/catering_menu_2026_10_02.sh` (idempotent; `--dry-run` first), after the deploy that adds the `catering` columns.
+
 ## Passwords
 
 - **Change:** My account (`/account`) → Change password; it needs the current password. Linked from the admin sidebar ("Change password") and the kitchen ⋮ menu.

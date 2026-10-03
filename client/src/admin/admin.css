@@ -2815,3 +2815,10 @@
 	color: var(--ink-faint);
 	font-size: 0.8rem;
 }
+
+/* Catering orders (kitchen, live orders, order detail). */
+.badge-catering {
+	background: #6f1d2b;
+	color: #fff;
+	font-weight: 700;
+}

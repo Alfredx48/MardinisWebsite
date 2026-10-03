@@ -31,6 +31,7 @@ function CategoryEditor({ category, onClose, onSaved }) {
 		name: category?.name || "",
 		description: category?.description || "",
 		active: category ? category.active : true,
+		catering: category ? category.catering : false,
 	});
 	const [saving, setSaving] = useState(false);
 	const [errors, setErrors] = useState(null);
@@ -79,6 +80,18 @@ function CategoryEditor({ category, onClose, onSaved }) {
 						/>
 						Show this category on the website
 					</label>
+					<label className="checkbox">
+						<input
+							type="checkbox"
+							checked={form.catering}
+							onChange={(e) => setForm((f) => ({ ...f, catering: e.target.checked }))}
+						/>
+						Catering menu
+					</label>
+					<span className="hint">
+						Catering categories show on the Catering page instead of the regular menu. Orders with catering items need
+						24 hours' notice and are paid online.
+					</span>
 					<FormErrors errors={errors} />
 				</div>
 				<div className="modal-footer">
@@ -789,6 +802,7 @@ export default function MenuManager() {
 									<div className="adm-category-title">
 										<h2 id={`cat-${category.id}`}>
 											{category.name}
+											{category.catering && <span className="badge badge-catering">Catering</span>}
 											{!category.active && (
 												<span className="badge">
 													<FontAwesomeIcon icon={faEyeSlash} /> Hidden

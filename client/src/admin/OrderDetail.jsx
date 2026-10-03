@@ -7,7 +7,7 @@ import { formatDateTime, formatTime, money, telHref, todayInRestaurant } from ".
 import { Modal, QuantityStepper } from "../components/ui";
 import { useAuth } from "../context/AuthContext";
 import { useAdmin } from "./AdminContext";
-import { FormErrors, PaymentBadge, StatusBadge } from "./adminUi";
+import { CateringBadge, FormErrors, PaymentBadge, StatusBadge } from "./adminUi";
 import {
 	NEXT_ACTION_LABELS,
 	NEXT_STATUS,
@@ -542,6 +542,7 @@ export default function OrderDetail({ order: initial, onClose, onUpdated }) {
 						<h2 className="adm-modal-title">Order #{order.number}</h2>
 						<div className="row">
 							<StatusBadge status={order.status} />
+							<CateringBadge order={order} />
 							<PaymentBadge order={order} />
 						</div>
 					</div>

@@ -27,6 +27,7 @@ module Presenters
       open_now: r.open_now?,
       accepting_asap: r.accepting_asap_orders?,
       pickup_slots: r.pickup_slots,
+      catering: { notice_hours: (Restaurant::CATERING_NOTICE / 1.hour).to_i, days_ahead: Restaurant::CATERING_DAYS_AHEAD },
       payments: {
         card: Payments.card_available?(r),
         in_store: r.pay_in_store_enabled,
@@ -42,7 +43,7 @@ module Presenters
   end
 
   def category(c, items: nil)
-    data = { id: c.id, name: c.name, description: c.description, position: c.position, active: c.active }
+    data = { id: c.id, name: c.name, description: c.description, position: c.position, active: c.active, catering: c.catering }
     data[:items] = items.map { |i| menu_item(i) } if items
     data
   end
@@ -98,6 +99,7 @@ module Presenters
       status: o.status,
       payment_method: o.payment_method,
       payment_status: o.payment_status,
+      catering: o.catering,
       customer_name: o.customer_name,
       pickup_at: o.pickup_at,
       placed_at: o.placed_at,

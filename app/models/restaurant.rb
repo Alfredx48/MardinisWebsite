@@ -3,6 +3,9 @@ class Restaurant < ApplicationRecord
   TIME_FORMAT = /\A([01]\d|2[0-3]):[0-5]\d\z/
   PICKUP_SLOT_MINUTES = 15
   SCHEDULE_DAYS_AHEAD = 2
+  # Catering orders: picked up at least this long after ordering, up to this far ahead.
+  CATERING_NOTICE = 24.hours
+  CATERING_DAYS_AHEAD = 30
 
   has_many :categories, -> { order(:position, :id) }, dependent: :destroy
   has_many :menu_items, dependent: :destroy
@@ -80,13 +83,30 @@ class Restaurant < ApplicationRecord
     return false if time < earliest_pickup(now) - 1.minute
     return false if time > now + (SCHEDULE_DAYS_AHEAD + 1).days
 
+    within_hours?(time)
+  end
+
+  def earliest_catering_pickup(now = Time.zone.now)
+    now + CATERING_NOTICE
+  end
+
+  # Any time during opening hours, from 24 hours to 30 days from now.
+  def valid_catering_pickup_time?(time, now = Time.zone.now)
+    return false unless accepting_orders
+    return false if time < earliest_catering_pickup(now) - 1.minute
+    return false if time > now + (CATERING_DAYS_AHEAD + 1).days
+
+    within_hours?(time)
+  end
+
+  private
+
+  def within_hours?(time)
     [time.to_date - 1, time.to_date].any? do |date|
       window = window_for(date)
       window && time > window[0] && time <= window[1]
     end
   end
-
-  private
 
   def hours_for(date)
     (hours || {})[DAYS[date.wday]]

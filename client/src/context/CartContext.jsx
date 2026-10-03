@@ -44,7 +44,7 @@ function loadCart() {
 // The cart lives in the browser. Prices shown here are for display only; the
 // server re-prices everything at checkout.
 export function CartProvider({ children }) {
-	const { menu } = useRestaurant();
+	const { fullMenu: menu } = useRestaurant();
 	const [lines, setLines] = useState(loadCart);
 	const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -81,6 +81,7 @@ export function CartProvider({ children }) {
 					price: basePrice === null || optionsChanged ? Number(line.price) : basePrice + picksTotal(live, picks),
 					options_label: live && !optionsChanged ? picksLabel(live, picks) : line.options_label || "",
 					image: live?.image ?? line.image,
+					catering: Boolean(live?.catering),
 					unavailable: menu ? !live || !live.available || sizeGone || optionsChanged : false,
 					// Still on the menu, but its options changed (or it has new required ones).
 					needsOptions: Boolean(menu && live && live.available && !sizeGone && optionsChanged),

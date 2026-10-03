@@ -29,6 +29,12 @@ export function PaymentBadge({ order }) {
 	);
 }
 
+// Catering orders come in days ahead and are bigger, so staff should spot them.
+export function CateringBadge({ order }) {
+	if (!order.catering) return null;
+	return <span className="badge badge-catering">Catering</span>;
+}
+
 export function FormErrors({ errors }) {
 	if (!errors || errors.length === 0) return null;
 	return (

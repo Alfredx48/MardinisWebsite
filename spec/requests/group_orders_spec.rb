@@ -62,6 +62,13 @@ RSpec.describe "Group orders", type: :request do
     expect(response).to have_http_status(:forbidden)
   end
 
+  it "keeps catering items out of group orders" do
+    trays = restaurant.categories.create!(name: "Party Trays", catering: true)
+    tray = create_item(restaurant, category: trays, name: "Hummus Tray", price: 45)
+    add(token, join(token, "Sarah"), tray)
+    expect(json["errors"]).to eq(["Catering items can't go in a group order. The organizer can order catering separately."])
+  end
+
   it "keeps names unique within a group" do
     join(token, "Sarah")
     post "/api/group_orders/#{token}/join", params: { name: " sarah " }, as: :json

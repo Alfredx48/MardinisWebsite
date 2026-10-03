@@ -35,6 +35,6 @@ class Api::Admin::CategoriesController < Api::Admin::BaseController
   end
 
   def category_params
-    params.permit(:name, :description, :active)
+    params.permit(:name, :description, :active, :catering)
   end
 end

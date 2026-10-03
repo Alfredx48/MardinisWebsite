@@ -50,6 +50,9 @@ class Api::GroupOrdersController < ApplicationController
 
     item = @me.items.new(params.permit(:menu_item_id, :size, :quantity, :special_request))
     item.modifiers = modifier_params
+    if item.menu_item&.category&.catering
+      raise Checkout::Error, "Catering items can't go in a group order. The organizer can order catering separately."
+    end
     check_item!(item)
     item.save!
     still_choosing(item.participant)

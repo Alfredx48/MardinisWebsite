@@ -30,8 +30,10 @@ function scrollToCategory(id, behavior = "auto") {
 
 // `hero` replaces the page's heading (a group order shows its own), and
 // `hideFloatingCart` hides the "View order" button when the page brings its own.
-export default function MenuPage({ hero, hideFloatingCart = false }) {
-	const { menu, restaurant, error } = useRestaurant();
+// `menu` shows other categories (the catering menu), and `after` goes below them.
+export default function MenuPage({ hero, hideFloatingCart = false, menu: menuOverride, after }) {
+	const { menu: regularMenu, restaurant, error } = useRestaurant();
+	const menu = menuOverride || regularMenu;
 	const { count, subtotal, openDrawer } = useCart();
 	const [search, setSearch] = useState("");
 	const [vegOnly, setVegOnly] = useState(false);
@@ -198,6 +200,8 @@ export default function MenuPage({ hero, hideFloatingCart = false }) {
 				))}
 			</div>
 
+			{after}
+
 			{count > 0 && !hideFloatingCart && (
 				<button className="floating-cart" onClick={openDrawer}>
 					<span className="floating-cart-count">{count}</span>
@@ -206,7 +210,14 @@ export default function MenuPage({ hero, hideFloatingCart = false }) {
 				</button>
 			)}
 
-			{selected && <ItemDialog item={selected} onClose={closeItem} />}
+			{selected && (
+				<ItemDialog
+					item={selected}
+					// Catering sections explain their sizes ("Shallow tray feeds 10–15…").
+					sizeNote={selected.catering ? menu.find((c) => c.items.includes(selected))?.description : null}
+					onClose={closeItem}
+				/>
+			)}
 		</div>
 	);
 }
@@ -286,7 +297,7 @@ function DishCard({ item, onOpen }) {
 	);
 }
 
-function ItemDialog({ item, onClose }) {
+function ItemDialog({ item, sizeNote, onClose }) {
 	// In a group order the person's name goes on their items automatically.
 	const { addItem, openDrawer, group } = useCart();
 	const [quantity, setQuantity] = useState(1);
@@ -349,6 +360,7 @@ function ItemDialog({ item, onClose }) {
 								</button>
 							))}
 						</div>
+						{sizeNote && <p className="hint item-size-note">{sizeNote}</p>}
 					</fieldset>
 				)}
 				{!soldOut &&
@@ -364,7 +376,7 @@ function ItemDialog({ item, onClose }) {
 					<div className="notice">This dish is sold out for now. Check back soon!</div>
 				) : (
 					<>
-						{group ? null : showNames ? (
+						{group || item.catering ? null : showNames ? (
 							<fieldset className="field item-label-field">
 								<legend className="label">{quantity > 1 ? `Names (one for each of the ${quantity})` : "Name for this item"}</legend>
 								<NameInputs autoFocus count={quantity} names={names} onChange={setNames} />

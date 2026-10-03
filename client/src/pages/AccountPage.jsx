@@ -41,7 +41,7 @@ export default function AccountPage() {
 
 function OrderHistory() {
 	const [orders, setOrders] = useState(null);
-	const { menu } = useRestaurant();
+	const { fullMenu: menu } = useRestaurant();
 	const { addItem, openDrawer } = useCart();
 
 	useEffect(() => {

@@ -25,6 +25,9 @@ class Checkout
   def call
     validate_ordering_open!
     lines = priced_lines
+    # Anything from the catering menu makes it a catering order: 24 hours'
+    # notice and paid online.
+    @catering = lines.any? { |l| l[:menu_item].category.catering }
     subtotal = lines.sum { |l| l[:unit_price] * l[:quantity] }
     tax = (subtotal * @restaurant.tax_rate).round(2)
     tip = tip_amount(subtotal)
@@ -44,6 +47,7 @@ class Checkout
       tip: tip,
       total_cost: subtotal + tax + tip,
       total_items: lines.sum { |l| l[:quantity] },
+      catering: @catering,
     )
     lines.each do |l|
       order.order_items.build(
@@ -113,6 +117,12 @@ class Checkout
 
   def payment_method
     method = @params[:payment_method].to_s
+    if @catering
+      unless Payments.card_available?(@restaurant)
+        raise Error, "Online catering orders are unavailable right now. Please call us to order catering."
+      end
+      raise Error, "Catering orders are paid online when you order" unless method == "card"
+    end
     case method
     when "card"
       raise Error, "Card payments are not available right now" unless Payments.card_available?(@restaurant)
@@ -129,6 +139,8 @@ class Checkout
   end
 
   def pickup_time
+    return catering_pickup_time if @catering
+
     raw = @params[:pickup_at].to_s
     if raw.blank? || raw == "asap"
       raise Error, "We're closed right now. Please schedule a pickup time." unless @restaurant.accepting_asap_orders?(@now)
@@ -140,6 +152,14 @@ class Checkout
     raise Error, "That pickup time isn't available" unless time && @restaurant.valid_pickup_time?(time, @now)
 
     time
+  end
+
+  def catering_pickup_time
+    time = (Time.zone.parse(@params[:pickup_at].to_s) rescue nil) unless @params[:pickup_at].to_s == "asap"
+    return time if time && @restaurant.valid_catering_pickup_time?(time, @now)
+
+    raise Error, "Catering orders need at least 24 hours' notice. Please choose a pickup time during our hours, " \
+                 "from #{@restaurant.earliest_catering_pickup(@now).strftime('%a %-l:%M %p')} on."
   end
 
   def tip_amount(subtotal)

@@ -18,7 +18,7 @@ import { formatDate, formatTime, minutesAgo, money, todayInRestaurant } from "..
 import { EmptyState, Spinner } from "../components/ui";
 import { useAdmin } from "./AdminContext";
 import OrderDetail, { CancelDialog, nextActionLabel } from "./OrderDetail";
-import { OverflowMenu, PageHeader, PaymentBadge, useNow } from "./adminUi";
+import { CateringBadge, OverflowMenu, PageHeader, PaymentBadge, useNow } from "./adminUi";
 import { NEXT_STATUS, STATUS_LABELS, amountDue, placedAt, restaurantDate } from "./adminUtils";
 import { groupByName, namesText } from "../itemNames";
 import { modifierText } from "../modifiers";
@@ -194,6 +194,7 @@ function Ticket({ order, onOpen, onCancel }) {
 			{order.admin_notes && <div className="adm-staff-note">Staff: {order.admin_notes}</div>}
 
 			<div className="adm-ticket-pay">
+				<CateringBadge order={order} />
 				<PaymentBadge order={order} />
 				<span className="spacer" />
 				{due > 0 ? (

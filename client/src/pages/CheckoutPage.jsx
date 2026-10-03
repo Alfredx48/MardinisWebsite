@@ -11,7 +11,8 @@ import { useCart } from "../context/CartContext";
 import { useRestaurant } from "../context/RestaurantContext";
 import { LineNames, NamesSummary } from "../components/ItemNames";
 import { DishImage, EmptyState, QuantityStepper, Spinner } from "../components/ui";
-import { cents, dayLabel, formatTime, money, telHref } from "../format";
+import { cateringDays } from "../catering";
+import { cents, clock, dayLabel, formatDate, formatTime, money, telHref } from "../format";
 import { splitByName } from "../itemNames";
 import { modifierText } from "../modifiers";
 
@@ -57,7 +58,9 @@ export default function CheckoutPage() {
 	return (
 		<div className="container page checkout">
 			<div className="page-header">
-				<span className="eyebrow">{checkout?.eyebrow || "Pickup order"}</span>
+				<span className="eyebrow">
+					{checkout?.eyebrow || (items.some((l) => l.catering) ? "Catering order" : "Pickup order")}
+				</span>
 				<h1>{payment ? "Payment" : "Checkout"}</h1>
 			</div>
 			{payment ? (
@@ -84,6 +87,19 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 	const [notes, setNotes] = useState("");
 	const methods = restaurant.payments;
 	const [method, setMethod] = useState(methods.card ? "card" : "in_store");
+	// Any catering item makes it a catering order: picked up 24+ hours ahead, paid by card.
+	const catering = items.some((l) => l.catering);
+	const cateringDates = useMemo(() => (catering ? cateringDays(restaurant) : []), [catering, restaurant]);
+	const [cateringDay, setCateringDay] = useState("");
+	const [cateringTime, setCateringTime] = useState("");
+	const cateringTimes = useMemo(() => cateringDates.find((d) => d.date === cateringDay)?.times || [], [cateringDates, cateringDay]);
+	useEffect(() => {
+		if (catering && !cateringDates.some((d) => d.date === cateringDay)) setCateringDay(cateringDates[0]?.date || "");
+	}, [catering, cateringDates, cateringDay]);
+	useEffect(() => {
+		if (catering && !cateringTimes.includes(cateringTime)) setCateringTime(cateringTimes.find((t) => t >= "11:00") || cateringTimes[0] || "");
+	}, [catering, cateringTimes, cateringTime]);
+	const payWith = catering ? "card" : method;
 	const [submitting, setSubmitting] = useState(false);
 	const [errors, setErrors] = useState([]);
 
@@ -104,13 +120,15 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 	const tax = cents(subtotal * restaurant.tax_rate);
 	const total = cents(subtotal + tax + tip);
 
-	const canOrder = restaurant.accepting_orders && (restaurant.accepting_asap || slots.length > 0);
-	const noPayment = !methods.card && !methods.in_store;
+	const canOrder = catering
+		? restaurant.accepting_orders && cateringDates.length > 0 && methods.card
+		: restaurant.accepting_orders && (restaurant.accepting_asap || slots.length > 0);
+	const noPayment = catering ? !methods.card : !methods.card && !methods.in_store;
 
 	const submit = async (e) => {
 		e.preventDefault();
 		setErrors([]);
-		if (when === "later" && !time) return setErrors(["Please choose a pickup time."]);
+		if (catering ? !cateringTime : when === "later" && !time) return setErrors(["Please choose a pickup time."]);
 		setSubmitting(true);
 		try {
 			const result = await api.post(checkout?.path || "/orders", {
@@ -127,10 +145,11 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 						label,
 					}))
 				),
-				pickup_at: when === "asap" ? "asap" : time,
+				// Catering times are "YYYY-MM-DD HH:MM", read in the restaurant's time zone.
+				pickup_at: catering ? `${cateringDay} ${cateringTime}` : when === "asap" ? "asap" : time,
 				tip: tip.toFixed(2),
 				custom_request: notes,
-				payment_method: method,
+				payment_method: payWith,
 			}, checkout?.headers);
 			if (result.client_secret) {
 				// Lets the order page empty the bag after a payment redirect (not for groups).
@@ -207,42 +226,55 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 					</Link>
 				</section>
 
-				<section className="card">
-					<h2 className="card-title">Pickup time</h2>
-					<div className="segmented">
-						<button type="button" aria-pressed={when === "asap"} disabled={!restaurant.accepting_asap} onClick={() => setWhen("asap")}>
-							ASAP{restaurant.accepting_asap ? ` · ~${restaurant.prep_time_minutes} min` : " (closed now)"}
-						</button>
-						<button type="button" aria-pressed={when === "later"} disabled={!slots.length} onClick={() => setWhen("later")}>
-							Schedule for later
-						</button>
-					</div>
-					{when === "later" && slots.length > 0 && (
-						<div className="grid-2 pickup-pickers">
-							<div className="field">
-								<label htmlFor="pickup-day">Day</label>
-								<select id="pickup-day" className="select" value={day} onChange={(e) => setDay(e.target.value)}>
-									{slots.map((s) => (
-										<option key={s.date} value={s.date}>
-											{dayLabel(s.date)}
-										</option>
-									))}
-								</select>
-							</div>
-							<div className="field">
-								<label htmlFor="pickup-time">Time</label>
-								<select id="pickup-time" className="select" value={time} onChange={(e) => setTime(e.target.value)}>
-									{times.map((t) => (
-										<option key={t} value={t}>
-											{formatTime(t)}
-										</option>
-									))}
-								</select>
-							</div>
+				{catering ? (
+					<CateringPickup
+						restaurant={restaurant}
+						dates={cateringDates}
+						day={cateringDay}
+						time={cateringTime}
+						times={cateringTimes}
+						onDay={setCateringDay}
+						onTime={setCateringTime}
+						mixed={items.some((l) => !l.catering)}
+					/>
+				) : (
+					<section className="card">
+						<h2 className="card-title">Pickup time</h2>
+						<div className="segmented">
+							<button type="button" aria-pressed={when === "asap"} disabled={!restaurant.accepting_asap} onClick={() => setWhen("asap")}>
+								ASAP{restaurant.accepting_asap ? ` · ~${restaurant.prep_time_minutes} min` : " (closed now)"}
+							</button>
+							<button type="button" aria-pressed={when === "later"} disabled={!slots.length} onClick={() => setWhen("later")}>
+								Schedule for later
+							</button>
 						</div>
-					)}
-					<p className="small muted pickup-address">Pickup at {restaurant.address}</p>
-				</section>
+						{when === "later" && slots.length > 0 && (
+							<div className="grid-2 pickup-pickers">
+								<div className="field">
+									<label htmlFor="pickup-day">Day</label>
+									<select id="pickup-day" className="select" value={day} onChange={(e) => setDay(e.target.value)}>
+										{slots.map((s) => (
+											<option key={s.date} value={s.date}>
+												{dayLabel(s.date)}
+											</option>
+										))}
+									</select>
+								</div>
+								<div className="field">
+									<label htmlFor="pickup-time">Time</label>
+									<select id="pickup-time" className="select" value={time} onChange={(e) => setTime(e.target.value)}>
+										{times.map((t) => (
+											<option key={t} value={t}>
+												{formatTime(t)}
+											</option>
+										))}
+									</select>
+								</div>
+							</div>
+						)}
+						<p className="small muted pickup-address">Pickup at {restaurant.address}</p>
+					</section>
+				)}
 
 				<section className="card">
 					<h2 className="card-title">Contact details</h2>
@@ -304,7 +336,24 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 				<section className="card">
 					<h2 className="card-title">Payment</h2>
 					{noPayment ? (
-						<div className="notice">Online payment is unavailable right now. Please call to order.</div>
+						<div className="notice">
+							{catering
+								? "Online catering orders are unavailable right now. Please call us to order catering."
+								: "Online payment is unavailable right now. Please call to order."}
+						</div>
+					) : catering ? (
+						<>
+							<div className="payment-choices">
+								<button type="button" className="choice payment-choice" aria-pressed="true">
+									<FontAwesomeIcon icon={faCreditCard} />
+									<span>
+										<strong>Pay now</strong>
+										<small>Card, Apple Pay or Google Pay</small>
+									</span>
+								</button>
+							</div>
+							<p className="small muted">Catering orders are paid online when you order.</p>
+						</>
 					) : (
 						<div className="payment-choices">
 							{methods.card && (
@@ -364,7 +413,7 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 						style={{ marginTop: 18 }}
 						disabled={submitting || !canOrder || noPayment || hasUnavailable || items.length === 0}
 					>
-						{submitting ? "Placing order…" : method === "card" ? "Continue to payment" : `Place order · ${money(total)}`}
+						{submitting ? "Placing order…" : payWith === "card" ? "Continue to payment" : `Place order · ${money(total)}`}
 					</button>
 					<p className="small muted summary-fine">
 						By placing your order, you agree to our <Link to="/policies">ordering &amp; refund policy</Link>. You can
@@ -376,6 +425,46 @@ function DetailsStep({ restaurant, onPaymentNeeded }) {
 				</div>
 			</aside>
 		</form>
+	);
+}
+
+// Catering pickup: any day from 24 hours out (up to 30 days), any time we're open.
+function CateringPickup({ restaurant, dates, day, time, times, onDay, onTime, mixed }) {
+	return (
+		<section className="card">
+			<h2 className="card-title">Catering pickup</h2>
+			<p className="small muted">
+				Catering needs at least {restaurant.catering.notice_hours} hours' notice.
+				{mixed && " Everything in this order will be ready at the same time."}
+			</p>
+			{dates.length === 0 ? (
+				<div className="notice">There are no pickup times available. Please call to order catering.</div>
+			) : (
+				<div className="grid-2 pickup-pickers">
+					<div className="field">
+						<label htmlFor="catering-day">Day</label>
+						<select id="catering-day" className="select" value={day} onChange={(e) => onDay(e.target.value)}>
+							{dates.map((d) => (
+								<option key={d.date} value={d.date}>
+									{formatDate(`${d.date}T12:00:00`, { timeZone: "UTC" })}
+								</option>
+							))}
+						</select>
+					</div>
+					<div className="field">
+						<label htmlFor="catering-time">Time</label>
+						<select id="catering-time" className="select" value={time} onChange={(e) => onTime(e.target.value)}>
+							{times.map((t) => (
+								<option key={t} value={t}>
+									{clock(t)}
+								</option>
+							))}
+						</select>
+					</div>
+				</div>
+			)}
+			<p className="small muted pickup-address">Pickup at {restaurant.address}</p>
+		</section>
 	);
 }
 

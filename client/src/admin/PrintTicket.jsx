@@ -15,6 +15,7 @@ export default function PrintTicket({ order, restaurantName }) {
 				<div className="adm-tp-restaurant">{restaurantName || "Mardini's"}</div>
 				<div className="adm-tp-number">#{order.number}</div>
 				<div className="adm-tp-name">{order.customer_name}</div>
+				{order.catering && <div className="adm-tp-pickup">** CATERING **</div>}
 				<div className="adm-tp-pickup">
 					{order.pickup_at
 						? `PICKUP ${scheduledDay ? formatDateTime(order.pickup_at) : formatTime(order.pickup_at)}`
