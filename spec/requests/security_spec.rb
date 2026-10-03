@@ -81,6 +81,23 @@ RSpec.describe "Access control", type: :request do
       order
     end
 
+    it "marks an order's reminders as seen, once, for every kitchen screen" do
+      order = place_order
+      post "/api/admin/orders/#{order.id}/reminder", params: { days: 3 }, as: :json
+      expect(response).to have_http_status(:ok)
+      seen = order.reload.reminder_3_days_seen_at
+      expect(seen).to be_present
+      expect(json.dig("reminders_seen", "3")).to be_present
+      expect(json.dig("reminders_seen", "1")).to be_nil
+
+      earlier = seen - 1.hour
+      order.update_columns(reminder_3_days_seen_at: earlier) # seen on another tablet first
+      post "/api/admin/orders/#{order.id}/reminder", params: { days: 3 }, as: :json
+      expect(order.reload.reminder_3_days_seen_at).to eq(earlier)
+      post "/api/admin/orders/#{order.id}/reminder", params: { days: 2 }, as: :json
+      expect(json["errors"]).to eq(["Unknown reminder"])
+    end
+
     it "sees the live board and moves orders along" do
       order = place_order
       get "/api/admin/orders", params: { scope: "active" }

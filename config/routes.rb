@@ -39,6 +39,7 @@ Rails.application.routes.draw do
       resource :restaurant, only: [:show, :update]
       resources :orders, only: [:index, :show, :update] do
         post :refund, on: :member
+        post :reminder, on: :member
       end
       resources :categories, only: [:index, :create, :update, :destroy] do
         patch :reorder, on: :collection

@@ -226,6 +226,57 @@
 	border-right: 1px solid var(--line-strong);
 }
 
+/* Upcoming: orders for later days, above the New / Preparing / Ready tabs. */
+.adm-k-upcoming {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 10px;
+	margin: 10px 10px 0;
+	padding: 10px 14px;
+	border: 1.5px solid var(--info);
+	border-radius: var(--radius-sm);
+	background: var(--info-tint);
+	color: var(--info);
+	font-family: var(--font-body);
+	text-align: left;
+	cursor: pointer;
+}
+
+.adm-k-upcoming-title {
+	font-size: 0.85rem;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.adm-k-upcoming-count {
+	font-size: 1.2rem;
+	font-weight: 800;
+	font-variant-numeric: tabular-nums;
+}
+
+.adm-k-upcoming-next {
+	margin-left: auto;
+	font-size: 0.85rem;
+	font-weight: 600;
+}
+
+.adm-k-upcoming.is-active {
+	background: var(--info);
+	color: #fff;
+}
+
+.adm-k-day {
+	margin: 8px 2px 0;
+	color: var(--info);
+	font-family: var(--font-body);
+	font-size: 0.8rem;
+	font-weight: 800;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+}
+
 .adm-k-tabs {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -396,6 +447,11 @@
 .adm-k-elapsed.is-ready {
 	background: var(--cream-deep);
 	color: var(--ink-soft);
+}
+
+.adm-k-elapsed.is-later {
+	background: var(--info-tint);
+	color: var(--info);
 }
 
 /* ------------------------------------------------------------ order panel */
@@ -715,6 +771,15 @@
 	font-size: 1.3rem;
 }
 
+.adm-k-popup-foot.is-single {
+	grid-template-columns: 1fr;
+}
+
+/* Reminders are blue, so they don't read as a new order. */
+.adm-k-reminder .adm-k-popup-head {
+	background: var(--info);
+}
+
 /* -------------------------------------------------------------- phones */
 @media (max-width: 699px) {
 	.adm-k-orders {
@@ -744,6 +809,10 @@
 	}
 	.adm-k-popup-foot {
 		grid-template-columns: 1fr;
+	}
+	/* The list scrolls sideways here; each card already shows its date. */
+	.adm-k-day {
+		display: none;
 	}
 }
 

@@ -125,6 +125,7 @@ module Presenters
       customer_email: o.customer_email,
       user_id: o.user_id,
       admin_notes: o.admin_notes,
+      reminders_seen: { 3 => o.reminder_3_days_seen_at, 1 => o.reminder_1_day_seen_at },
       payment_intent_id: o.payment_intent_id,
       refundable_amount: money(o.refundable_amount),
       refunds: o.refunds.map { |r| refund(r) },

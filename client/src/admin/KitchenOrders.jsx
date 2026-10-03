@@ -1,7 +1,17 @@
-import { useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBan, faBell, faCircleInfo, faCommentDots, faPrint } from "@fortawesome/free-solid-svg-icons";
-import { minutesAgo, money } from "../format";
+import {
+	faBan,
+	faBell,
+	faCalendarDays,
+	faCircleInfo,
+	faClock,
+	faCommentDots,
+	faPrint,
+} from "@fortawesome/free-solid-svg-icons";
+import { api } from "../api";
+import { useRestaurant } from "../context/RestaurantContext";
+import { formatDate, formatTime, minutesAgo, money, todayInRestaurant } from "../format";
 import { groupByName, nameCounts } from "../itemNames";
 import { modifierGroups } from "../modifiers";
 import { EmptyState, Spinner } from "../components/ui";
@@ -9,11 +19,13 @@ import { useAdmin } from "./AdminContext";
 import { PickupInfo, urgency, useAdvanceOrder } from "./LiveOrders";
 import OrderDetail, { CancelDialog, nextActionLabel } from "./OrderDetail";
 import { CateringBadge, OverflowMenu, PaymentBadge, useNow } from "./adminUi";
-import { NEXT_STATUS, amountDue, placedAt } from "./adminUtils";
+import { NEXT_STATUS, amountDue, placedAt, playChime, restaurantDate } from "./adminUtils";
+import { daysUntil, dueReminders, isUpcoming } from "./upcoming";
 
 // The kitchen screen's orders, laid out like the DoorDash and Uber Eats tablets: a list
 // of one status at a time on the left, the selected order large on the right, and a
-// full-screen popup for each new order.
+// full-screen popup for each new order. Orders for later days wait in Upcoming
+// (above the tabs) until their pickup day, with reminders 3 days and 1 day before.
 const TABS = [
 	{ status: "new", title: "New", empty: "No new orders. They pop up here with a chime." },
 	{ status: "preparing", title: "Preparing", empty: "Nothing being made right now." },
@@ -24,6 +36,10 @@ const itemCount = (order) => order.items.reduce((n, i) => n + i.quantity, 0);
 const itemsLabel = (order) => `${itemCount(order)} ${itemCount(order) === 1 ? "item" : "items"}`;
 
 function Elapsed({ order }) {
+	if (isUpcoming(order)) {
+		const days = daysUntil(order);
+		return <span className="adm-k-elapsed is-later">{days === 1 ? "Tomorrow" : `In ${days} days`}</span>;
+	}
 	if (order.status === "ready" && order.ready_at) {
 		return <span className="adm-k-elapsed is-ready">Ready {Math.max(0, minutesAgo(order.ready_at))} min</span>;
 	}
@@ -169,14 +185,17 @@ function OrderPanel({ order, busy, onAdvance, onOpen, onCancel }) {
 	);
 }
 
-function NewOrderPopup({ order, more, busy, onStart, onLater }) {
+// `later`: the order is for a later day, so it goes to Upcoming instead of the line.
+function NewOrderPopup({ order, more, busy, later, onStart, onLater, onGotIt }) {
 	return (
 		<div className="adm-k-popup" role="alertdialog" aria-modal="true" aria-label={`New order ${order.number}`}>
 			<div className="adm-k-popup-card">
 				<header className="adm-k-popup-head">
 					<FontAwesomeIcon icon={faBell} className="adm-k-popup-bell" />
 					<div>
-						<div className="adm-k-popup-kicker">New order</div>
+						<div className="adm-k-popup-kicker">
+							{later ? `New order for ${formatDate(order.pickup_at, { weekday: "long" })}` : "New order"}
+						</div>
 						<div className="adm-k-popup-title">
 							#{order.number} · {order.customer_name}
 						</div>
@@ -195,27 +214,50 @@ function NewOrderPopup({ order, more, busy, onStart, onLater }) {
 					<OrderNotes order={order} />
 					<ItemList order={order} />
 				</div>
-				<footer className="adm-k-popup-foot">
-					<button type="button" className="btn btn-lg btn-secondary" onClick={onLater}>
-						Later
-					</button>
-					<button type="button" className="btn btn-lg adm-advance is-new" onClick={onStart} disabled={busy}>
-						Start preparing
-					</button>
-				</footer>
+				{later ? (
+					<footer className="adm-k-popup-foot is-single">
+						<button type="button" className="btn btn-lg adm-advance is-new" onClick={onGotIt}>
+							Got it · it's in Upcoming
+						</button>
+					</footer>
+				) : (
+					<footer className="adm-k-popup-foot">
+						<button type="button" className="btn btn-lg btn-secondary" onClick={onLater}>
+							Later
+						</button>
+						<button type="button" className="btn btn-lg adm-advance is-new" onClick={onStart} disabled={busy}>
+							Start preparing
+						</button>
+					</footer>
+				)}
 			</div>
 		</div>
 	);
 }
 
 export default function KitchenOrders() {
-	const { orders, ordersError, refreshOrders, newAlerts, acknowledgeAlerts } = useAdmin();
+	const { orders, ordersError, refreshOrders, newAlerts, acknowledgeAlerts, applyOrder, soundOn } = useAdmin();
+	const { restaurant } = useRestaurant();
 	const { advance, busyId } = useAdvanceOrder();
 	const [tab, setTab] = useState("preparing");
 	const [selectedId, setSelectedId] = useState(null);
 	const [detail, setDetail] = useState(null);
 	const [cancelling, setCancelling] = useState(null);
+	const [seenHere, setSeenHere] = useState([]); // reminders tapped here, hidden before the server answers
 	useNow(30000);
+
+	const today = todayInRestaurant();
+	// Reminders pop up once the restaurant opens, not at midnight on an empty kitchen.
+	const reminders = restaurant?.open_now && orders ? dueReminders(orders, today).filter((r) => !seenHere.includes(r.key)) : [];
+	const reminder = newAlerts.length === 0 ? reminders[0] : null;
+
+	// Chime once for each reminder as it comes up.
+	const chimed = useRef(new Set());
+	useEffect(() => {
+		if (!reminder || chimed.current.has(reminder.key)) return;
+		chimed.current.add(reminder.key);
+		if (soundOn) playChime({ loud: true });
+	}, [reminder, soundOn]);
 
 	if (!orders) {
 		return ordersError ? (
@@ -231,12 +273,27 @@ export default function KitchenOrders() {
 		);
 	}
 
-	const byStatus = (status) => orders.filter((o) => o.status === status);
-	const list = byStatus(tab);
+	const upcoming = orders
+		.filter((o) => isUpcoming(o, today))
+		.sort((a, b) => Date.parse(a.pickup_at) - Date.parse(b.pickup_at));
+	const byStatus = (status) => orders.filter((o) => o.status === status && !isUpcoming(o, today));
+	const list = tab === "upcoming" ? upcoming : byStatus(tab);
 	// Falls back to the oldest order, so finishing one opens the next.
 	const selected = list.find((o) => o.id === selectedId) || list[0] || null;
-	const current = TABS.find((t) => t.status === tab);
+	const current = tab === "upcoming" ? { empty: "No orders for later days." } : TABS.find((t) => t.status === tab);
 	const popup = newAlerts[0];
+	const popupLater = popup && isUpcoming(popup, today);
+
+	const seeReminder = async ({ order, days, key }) => {
+		setSeenHere((keys) => [...keys, key]);
+		setTab(isUpcoming(order, today) ? "upcoming" : order.status);
+		setSelectedId(order.id);
+		try {
+			applyOrder(await api.post(`/admin/orders/${order.id}/reminder`, { days }));
+		} catch {
+			// Shows again on the next visit; nothing else depends on it.
+		}
+	};
 
 	const startPopupOrder = async () => {
 		acknowledgeAlerts([popup.id]);
@@ -248,6 +305,17 @@ export default function KitchenOrders() {
 	return (
 		<div className="adm-k-orders">
 			<aside className="adm-k-side">
+				<button
+					type="button"
+					className={`adm-k-upcoming${tab === "upcoming" ? " is-active" : ""}`}
+					aria-pressed={tab === "upcoming"}
+					onClick={() => setTab("upcoming")}
+				>
+					<FontAwesomeIcon icon={faCalendarDays} />
+					<span className="adm-k-upcoming-title">Upcoming</span>
+					<span className="adm-k-upcoming-count">{upcoming.length}</span>
+					{upcoming[0] && <span className="adm-k-upcoming-next">Next: {formatDate(upcoming[0].pickup_at)}</span>}
+				</button>
 				<div className="adm-k-tabs" role="group" aria-label="Show orders">
 					{TABS.map((t) => {
 						const count = byStatus(t.status).length;
@@ -269,8 +337,14 @@ export default function KitchenOrders() {
 					<p className="adm-k-empty">{current.empty}</p>
 				) : (
 					<div className="adm-k-list">
-						{list.map((o) => (
-							<OrderCard key={o.id} order={o} selected={o.id === selected?.id} onSelect={setSelectedId} />
+						{list.map((o, i) => (
+							<Fragment key={o.id}>
+								{/* Upcoming orders are grouped under their pickup day. */}
+								{tab === "upcoming" && (i === 0 || restaurantDate(o.pickup_at) !== restaurantDate(list[i - 1].pickup_at)) && (
+									<h3 className="adm-k-day">{formatDate(o.pickup_at, { weekday: "long" })}</h3>
+								)}
+								<OrderCard order={o} selected={o.id === selected?.id} onSelect={setSelectedId} />
+							</Fragment>
 						))}
 					</div>
 				)}
@@ -295,12 +369,61 @@ export default function KitchenOrders() {
 					order={popup}
 					more={newAlerts.length - 1}
 					busy={busyId === popup.id}
+					later={popupLater}
 					onStart={startPopupOrder}
 					onLater={() => acknowledgeAlerts([popup.id])}
+					onGotIt={() => {
+						acknowledgeAlerts([popup.id]);
+						setTab("upcoming");
+						setSelectedId(popup.id);
+					}}
 				/>
 			)}
+			{reminder && <ReminderPopup reminder={reminder} today={today} more={reminders.length - 1} onSeen={() => seeReminder(reminder)} />}
 			{detail && <OrderDetail order={detail} onClose={() => setDetail(null)} />}
 			{cancelling && <CancelDialog order={cancelling} onClose={() => setCancelling(null)} />}
+		</div>
+	);
+}
+
+// "Coming up in 3 days": what's ordered and when, so the kitchen can plan and prep.
+function ReminderPopup({ reminder, today, more, onSeen }) {
+	const { order } = reminder;
+	const days = daysUntil(order, today);
+	return (
+		<div className="adm-k-popup" role="alertdialog" aria-modal="true" aria-label={`Reminder for order ${order.number}`}>
+			<div className="adm-k-popup-card adm-k-reminder">
+				<header className="adm-k-popup-head">
+					<FontAwesomeIcon icon={faClock} className="adm-k-popup-bell" />
+					<div>
+						<div className="adm-k-popup-kicker">Reminder · {days === 1 ? "tomorrow" : `in ${days} days`}</div>
+						<div className="adm-k-popup-title">
+							#{order.number} · {order.customer_name}
+						</div>
+					</div>
+					{more > 0 && <span className="adm-k-popup-more">+{more} more</span>}
+				</header>
+				<div className="adm-k-popup-meta">
+					<span>
+						Pickup{" "}
+						<strong>
+							{formatDate(order.pickup_at, { weekday: "long" })} at {formatTime(order.pickup_at)}
+						</strong>
+					</span>
+					<span>{itemsLabel(order)}</span>
+					<CateringBadge order={order} />
+					<PaymentBadge order={order} />
+				</div>
+				<div className="adm-k-popup-body">
+					<OrderNotes order={order} />
+					<ItemList order={order} />
+				</div>
+				<footer className="adm-k-popup-foot is-single">
+					<button type="button" className="btn btn-lg adm-advance is-new" onClick={onSeen}>
+						Got it
+					</button>
+				</footer>
+			</div>
 		</div>
 	);
 }

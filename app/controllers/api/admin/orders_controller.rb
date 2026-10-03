@@ -1,5 +1,6 @@
 class Api::Admin::OrdersController < Api::Admin::BaseController
   PER_PAGE = 30
+  REMINDER_COLUMNS = { 3 => :reminder_3_days_seen_at, 1 => :reminder_1_day_seen_at }.freeze
 
   # Kitchen staff may use the live board: see active orders and move them along.
   # Order history, refunds and cancelling orders paid online stay admin-only.
@@ -66,6 +67,16 @@ class Api::Admin::OrdersController < Api::Admin::BaseController
     render json: Presenters.admin_order(order)
   rescue ArgumentError => e
     render_errors e.message
+  end
+
+  # POST { days: 3 } or { days: 1 }: kitchen staff saw the reminder for a
+  # future order, so it stops showing on every kitchen screen.
+  def reminder
+    column = REMINDER_COLUMNS[params[:days].to_i]
+    return render_errors "Unknown reminder" unless column
+
+    order.update!(column => Time.current) unless order[column]
+    render json: Presenters.admin_order(order)
   end
 
   # POST { amount: "4.25", reason: "Missing item", note: "...", cancel: false }
