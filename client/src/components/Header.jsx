@@ -65,15 +65,16 @@ export default function Header() {
 						<div className="nav-account">
 							{user ? (
 								<>
+									{/* Plain links: a full page load keeps analytics off staff pages. */}
 									{user.admin && (
-										<Link to="/admin" className="nav-link nav-admin">
+										<a href="/admin" className="nav-link nav-admin">
 											Admin
-										</Link>
+										</a>
 									)}
 									{user.kitchen && !user.admin && (
-										<Link to="/kitchen" className="nav-link nav-admin">
+										<a href="/kitchen" className="nav-link nav-admin">
 											Kitchen
-										</Link>
+										</a>
 									)}
 									<NavLink to="/account" className="nav-link">
 										<FontAwesomeIcon icon={faUser} /> {user.name.split(" ")[0]}

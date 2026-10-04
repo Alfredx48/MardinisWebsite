@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { api } from "../api";
 import { useAuth } from "../context/AuthContext";
 import { PasswordInput, Spinner } from "../components/ui";
+import { goAfterSignIn } from "../staffPages";
 
 export default function ResetPasswordPage() {
 	const [params] = useSearchParams();
@@ -34,7 +35,7 @@ export default function ResetPasswordPage() {
 		try {
 			const user = await resetPassword(token, password, confirmation);
 			toast.success("Password updated. You're signed in.");
-			navigate(user.admin ? "/admin" : user.kitchen ? "/kitchen" : "/", { replace: true });
+			goAfterSignIn(navigate, user.admin ? "/admin" : user.kitchen ? "/kitchen" : "/");
 		} catch (err) {
 			setErrors(err.errors?.length ? err.errors : [err.message]);
 			setBusy(false);

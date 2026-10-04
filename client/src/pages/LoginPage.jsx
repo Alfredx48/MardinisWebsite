@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { PasswordInput } from "../components/ui";
+import { goAfterSignIn } from "../staffPages";
 import { useAuth } from "../context/AuthContext";
 
 const EMPTY = { name: "", email: "", phone: "", password: "", password_confirmation: "" };
@@ -36,7 +37,7 @@ export default function LoginPage() {
 			let home = destination;
 			if (destination === "/" && u.admin) home = "/admin";
 			else if (destination === "/" && u.kitchen) home = "/kitchen";
-			navigate(home, { replace: true });
+			goAfterSignIn(navigate, home);
 		} catch (err) {
 			setErrors(err.errors?.length ? err.errors : [err.message]);
 			setBusy(false);
