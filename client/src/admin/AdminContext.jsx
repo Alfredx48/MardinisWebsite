@@ -3,8 +3,9 @@ import { createPortal } from "react-dom";
 import { toast } from "react-toastify";
 import { api } from "../api";
 import { useRestaurant } from "../context/RestaurantContext";
+import { nativeAlarm } from "../native";
 import { usePolling } from "./adminUi";
-import { getAudioContext, playChime, readPref, unlockAudio, writePref } from "./adminUtils";
+import { audioIsReady, getAudioContext, playChime, readPref, stopChime, unlockAudio, writePref } from "./adminUtils";
 import PrintTicket from "./PrintTicket";
 
 const AdminContext = createContext(null);
@@ -30,7 +31,7 @@ export function AdminProvider({ children, kitchen = false, title }) {
 	const [unackedIds, setUnackedIds] = useState([]);
 	const [newCatering, setNewCatering] = useState(0);
 	const [soundOn, setSoundOnState] = useState(() => readPref("sound", true));
-	const [audioReady, setAudioReady] = useState(() => getAudioContext()?.state === "running");
+	const [audioReady, setAudioReady] = useState(audioIsReady);
 	const [printing, setPrinting] = useState(null);
 	// Orders cancelled while they were on the board (e.g. by the customer), shown
 	// in a banner until someone in the kitchen acknowledges them.
@@ -217,6 +218,8 @@ export function AdminProvider({ children, kitchen = false, title }) {
 	useEffect(() => {
 		// Any click/tap/keypress in the admin unlocks audio for later chimes. iPads
 		// suspend audio again when the app goes to the background, so keep listening.
+		// The Android app's native alarm needs none of this.
+		if (nativeAlarm()) return undefined;
 		const ctx = getAudioContext();
 		const unlock = () => {
 			if (ctx?.state !== "running") unlockAudio();
@@ -239,6 +242,8 @@ export function AdminProvider({ children, kitchen = false, title }) {
 			const ready = await unlockAudio();
 			setAudioReady(ready);
 			if (ready) playChime({ loud: kitchen });
+		} else {
+			stopChime();
 		}
 	}, [kitchen]);
 

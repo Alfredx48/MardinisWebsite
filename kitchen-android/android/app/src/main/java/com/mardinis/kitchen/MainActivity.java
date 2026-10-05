@@ -17,6 +17,7 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        registerPlugin(KitchenAlarmPlugin.class);
         super.onCreate(savedInstanceState);
 
         // The tablet sits on the counter all day: never let the screen sleep while the app is open.

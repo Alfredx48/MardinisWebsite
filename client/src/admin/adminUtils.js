@@ -1,5 +1,6 @@
 // Helpers shared by the admin screens (no React components here).
 import { money } from "../format";
+import { nativeAlarm } from "../native";
 
 const TIME_ZONE = "America/Los_Angeles";
 
@@ -174,8 +175,14 @@ export function getAudioContext() {
 	return audioContext;
 }
 
+// Whether chimes can play now. The Android app's native alarm always can.
+export function audioIsReady() {
+	return nativeAlarm() ? true : getAudioContext()?.state === "running";
+}
+
 // Browsers only allow audio after a user gesture; call this from a click handler.
 export async function unlockAudio() {
+	if (nativeAlarm()) return true;
 	const ctx = getAudioContext();
 	if (!ctx) return false;
 	// iPhone/iPad: play through the speaker even when the device is set to silent.
@@ -199,7 +206,15 @@ export async function unlockAudio() {
 
 // A bright two-note "ding-dong", repeated twice so it's hard to miss over a busy counter.
 // `loud` is the kitchen screen's alarm instead (see playKitchenAlarm).
+// The Android app plays recordings of both sounds: after changing either, re-run
+// kitchen-android/sounds/render-sounds.mjs and ship a new APK.
 export function playChime({ loud = false } = {}) {
+	const alarm = nativeAlarm();
+	if (alarm) {
+		// The same sounds, recorded (kitchen-android/sounds/render-sounds.mjs).
+		alarm.play({ sound: loud ? "alarm" : "chime" }).catch(() => {});
+		return;
+	}
 	const ctx = getAudioContext();
 	if (!ctx || ctx.state !== "running") return;
 	if (loud) return playKitchenAlarm(ctx);
@@ -222,6 +237,13 @@ export function playChime({ loud = false } = {}) {
 		osc.start(start);
 		osc.stop(start + 0.55);
 	});
+}
+
+// Cuts off a native chime that's still playing (Web Audio chimes are too short to bother).
+export function stopChime() {
+	nativeAlarm()
+		?.stop()
+		.catch(() => {});
 }
 
 // As loud as a tablet can play: square waves held near full volume instead of

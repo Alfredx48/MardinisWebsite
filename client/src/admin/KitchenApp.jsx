@@ -14,7 +14,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { Modal, PasswordInput, Spinner } from "../components/ui";
 import { useAuth } from "../context/AuthContext";
-import { isKitchenApp } from "../native";
+import { isKitchenApp, nativeAlarm } from "../native";
 import { AdminProvider, useAdmin } from "./AdminContext";
 import { CancelledBanner } from "./AdminLayout";
 import KitchenOrders from "./KitchenOrders";
@@ -288,7 +288,8 @@ function InstallHelp({ installPrompt, onClose }) {
 function KitchenScreen() {
 	const { user, logout } = useAuth();
 	const { newAlerts, refreshOrders, soundOn, setSoundOn, audioReady, enableAudio } = useAdmin();
-	const [started, setStarted] = useState(false);
+	// The Android app's native alarm plays without a tap, so there's no "Tap to start" there.
+	const [started, setStarted] = useState(() => Boolean(nativeAlarm()));
 	// This browser refused sound even after a tap; don't keep covering the board.
 	const [audioBlocked, setAudioBlocked] = useState(false);
 	const [showInstall, setShowInstall] = useState(false);
