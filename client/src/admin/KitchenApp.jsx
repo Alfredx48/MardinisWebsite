@@ -152,10 +152,22 @@ function mainScript(doc) {
 	return doc.querySelector('script[type="module"][src^="/assets/"]')?.getAttribute("src") || null;
 }
 
+// The live site's main script, or null if the site can't be reached right now.
+async function liveScript() {
+	try {
+		const res = await fetch("/kitchen", { cache: "no-store", headers: { Accept: "text/html" } });
+		if (!res.ok) return null;
+		return mainScript(new DOMParser().parseFromString(await res.text(), "text/html"));
+	} catch {
+		return null;
+	}
+}
+
 // The Android app stays open all day, so it reloads itself after a deploy instead of running
 // old code until someone restarts it. It waits until no order popup, dialog or banner is up
-// and the screen has been left alone for a while. Only in the app with the native alarm:
-// after a reload a browser needs another tap before it can play sound.
+// and the screen has been left alone for a while, and checks the site is reachable right
+// before reloading. The sign-in cookie survives the reload. Only in the app with the native
+// alarm: after a reload a browser needs another tap before it can play sound.
 function useReloadOnDeploy(enabled, busy) {
 	const busyRef = useRef(busy);
 	busyRef.current = busy;
@@ -168,22 +180,18 @@ function useReloadOnDeploy(enabled, busy) {
 		const touched = () => {
 			lastTouch = Date.now();
 		};
+		const canReload = () =>
+			Date.now() - lastTouch >= IDLE_BEFORE_RELOAD_MS && !busyRef.current && !document.querySelector(BUSY_SELECTOR);
 		const tick = async () => {
 			if (!updateReady && Date.now() - lastCheck >= VERSION_CHECK_MS) {
 				lastCheck = Date.now();
-				try {
-					const res = await fetch("/kitchen", { cache: "no-store", headers: { Accept: "text/html" } });
-					if (!res.ok) return;
-					const latest = mainScript(new DOMParser().parseFromString(await res.text(), "text/html"));
-					updateReady = Boolean(latest) && latest !== running;
-				} catch {
-					return; // Offline; try again next time.
-				}
+				const latest = await liveScript();
+				updateReady = Boolean(latest) && latest !== running;
 			}
-			const idle = Date.now() - lastTouch >= IDLE_BEFORE_RELOAD_MS;
-			if (updateReady && idle && !busyRef.current && !document.querySelector(BUSY_SELECTOR)) {
-				window.location.reload();
-			}
+			if (!updateReady || !canReload()) return;
+			// Only reload while the site answers, so a Wi-Fi drop never leaves an error page.
+			const latest = await liveScript();
+			if (latest && latest !== running && canReload()) window.location.reload();
 		};
 		document.addEventListener("pointerdown", touched, { capture: true });
 		document.addEventListener("keydown", touched, { capture: true });
