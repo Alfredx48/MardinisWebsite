@@ -14,6 +14,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { Modal, PasswordInput, Spinner } from "../components/ui";
 import { useAuth } from "../context/AuthContext";
+import { isKitchenApp } from "../native";
 import { AdminProvider, useAdmin } from "./AdminContext";
 import { CancelledBanner } from "./AdminLayout";
 import KitchenOrders from "./KitchenOrders";
@@ -27,8 +28,9 @@ const STALE_SECONDS = 35;
 const isIos = () =>
 	/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
-// True when opened from the home-screen icon rather than a browser tab.
+// True when opened from the home-screen icon or the Android app rather than a browser tab.
 const isInstalled = () =>
+	isKitchenApp() ||
 	window.matchMedia("(display-mode: standalone)").matches ||
 	window.matchMedia("(display-mode: fullscreen)").matches ||
 	navigator.standalone === true;
@@ -293,7 +295,9 @@ function KitchenScreen() {
 	const [confirmLogout, setConfirmLogout] = useState(false);
 	const navigate = useNavigate();
 	const installPrompt = useInstallPrompt();
-	const awake = useWakeLock(started);
+	// The Android app keeps the screen on by itself.
+	const inApp = isKitchenApp();
+	const awake = useWakeLock(started && !inApp);
 
 	const start = useCallback(async () => {
 		setStarted(true);
@@ -323,7 +327,7 @@ function KitchenScreen() {
 				<Clock />
 				<ConnectionPill />
 				<span className="spacer" />
-				{started && !awake && (
+				{started && !awake && !inApp && (
 					<span className="adm-k-hint" title="Set the tablet's screen timeout to Never">
 						Screen may sleep
 					</span>

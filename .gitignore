@@ -38,3 +38,9 @@
 
 # Local copy of the Supabase connection string (contains the DB password)
 /.env.supabase
+
+# Android kitchen app: signing secrets and Firebase config never go in git
+*.jks
+*.keystore
+keystore.properties
+google-services.json

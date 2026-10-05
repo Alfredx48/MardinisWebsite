@@ -1,0 +1,20 @@
+{
+  "name": "mardinis-kitchen-android",
+  "private": true,
+  "description": "Android app for the Mardini's kitchen screen: a Capacitor shell that loads the live /kitchen page.",
+  "scripts": {
+    "sync": "cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/core": "^8.5.2"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.2",
+    "typescript": "^5.9.3"
+  },
+  "allowScripts": {
+    "sharp@0.32.6": true
+  }
+}
