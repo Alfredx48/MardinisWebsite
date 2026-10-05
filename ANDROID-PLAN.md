@@ -176,7 +176,28 @@ Phase 1 done on 2026-10-04 (commits `3a29942`, `b78bca9` and the notes commit; n
 - [ ] No "Tap to start" in the app. The browser and iPad still show it and still sound the same.
 
 ### Notes for the next session
-_(Phase 2 session fills this in.)_
+
+Phase 2 was done in the same session as Phase 1, on 2026-10-04 (commit `6845737`; nothing pushed). App version is now **1.1 (versionCode 2)**. Bump both for every APK with native changes.
+
+**Owner's choice:** raise the Alarm volume to max while the alarm plays, then put it back.
+
+**What was built:**
+- `kitchen-android/sounds/render-sounds.mjs` renders `res/raw/kitchen_alarm.wav` (2.0s, band-limited square waves at 0.9, like Web Audio's) and `kitchen_chime.wav` (1.38s sine) from the same notes and timings as `playKitchenAlarm` / `playChime`. A comment in `adminUtils.js` says to re-run it after changing either.
+- `KitchenAlarmPlugin.java` (`@CapacitorPlugin(name = "KitchenAlarm")`, registered in `MainActivity` before `super.onCreate`): `play({ sound: "alarm" | "chime" })` and `stop()`. MediaPlayer with `USAGE_ALARM` + `CONTENT_TYPE_SONIFICATION` and transient audio focus. Only `"alarm"` raises the Alarm volume to max. The old level is restored afterwards, unless someone changed the volume during the sound, and it's kept in SharedPreferences so `load()` restores it if the app died mid-sound.
+- `client/src/native.js` `nativeAlarm()`: `{ play, stop }` via **`window.Capacitor.nativePromise("KitchenAlarm", …)`**. The injected bridge has **no `registerPlugin`**, which comes from `@capacitor/core`, not bundled here. A first version called it, threw inside `useState`, and blanked the whole kitchen. `nativeAlarm()` now never throws, and returns null in browsers and in older APKs without the plugin (`isPluginAvailable`), so those keep Web Audio.
+- `adminUtils.js`: `playChime()` goes native when `nativeAlarm()` exists. `unlockAudio()` returns true there, and the new `audioIsReady()` is used for `audioReady`. `stopChime()` runs when Sound is turned off. `AdminContext` skips the Web Audio unlock listeners in the app. `KitchenApp` starts with `started = true` when the native alarm exists, so there's no Tap to start or "Tap to turn sound back on".
+
+**Checked on the tablet (Kitchen Dev, local + ngrok):**
+- Media 0, Alarm 3: Test sound played on the Alarm stream (`dumpsys audio`: `usage=USAGE_ALARM`, 2.3s), Alarm volume 3 → 15 → back to 3.
+- Order #0049: 3 alarm plays in 55s (first poll, then every 20s); after "Got it", none in 45s.
+- No Tap to start in the app (screenshot).
+- Headless Chrome: desktop, iPad, an "old app" without the plugin and a "broken bridge" all keep Tap to start and Web Audio with no page errors; a "new app" mock skips Tap to start and Test sound calls `nativePromise("KitchenAlarm", "play", {sound: "alarm"})`.
+
+**Not yet checked on the tablet:** Sound off (an attempt was invalid because the owner was using the tablet and the screen went off), the review fixes (installed but not re-run: chime doesn't raise the volume; restore-after-kill), and reminders. Reminders only show while the restaurant is open, and they use the same `playChime({ loud: true })` as new orders. **The dev app's Sound setting was left Off**; turn it back on.
+
+**Debugging the app's WebView from WSL:** `adb.exe forward tcp:9229 localabstract:webview_devtools_remote_<pid>` (pid from `adb.exe shell pidof com.mardinis.kitchen.dev`; debug builds only). WSL can't reach Windows' localhost, so talk to it from PowerShell: scripts in `C:\Users\Alfred\AppData\Local\Temp\kcdp\` (`eval.ps1 "<js>"` runs Runtime.evaluate; `logs.ps1` dumps buffered console errors). Don't `pkill -f kcdp`: it kills your own shell.
+
+**Seen on the tablet:** a Chrome-installed "Kitchen" PWA icon sits next to the native "Kitchen" and "Kitchen Dev". The owner may want to remove the PWA once the native app is in use (Phase 4 checklist).
 
 ---
 
