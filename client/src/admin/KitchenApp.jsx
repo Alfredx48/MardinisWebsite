@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -26,6 +26,12 @@ import "./kitchen.css";
 
 // Orders older than this are shown as possibly out of date (polling runs every 10s).
 const STALE_SECONDS = 35;
+// The Android app checks this often for a new deploy of the site...
+const VERSION_CHECK_MS = 5 * 60 * 1000;
+// ...and reloads once nobody has touched the screen for this long.
+const IDLE_BEFORE_RELOAD_MS = 2 * 60 * 1000;
+// Never reload while one of these is open: popups, dialogs, menus, the cancelled-order banner.
+const BUSY_SELECTOR = '[role="alertdialog"], [role="dialog"], [role="menu"], .adm-cancelled';
 
 const isIos = () =>
 	/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -138,6 +144,56 @@ function useWakeLock(enabled) {
 		};
 	}, [enabled]);
 	return active;
+}
+
+// The built page's main script ("/assets/index-<hash>.js"); it changes with every deploy.
+// The Vite dev server has none, so this is off in development.
+function mainScript(doc) {
+	return doc.querySelector('script[type="module"][src^="/assets/"]')?.getAttribute("src") || null;
+}
+
+// The Android app stays open all day, so it reloads itself after a deploy instead of running
+// old code until someone restarts it. It waits until no order popup, dialog or banner is up
+// and the screen has been left alone for a while. Only in the app with the native alarm:
+// after a reload a browser needs another tap before it can play sound.
+function useReloadOnDeploy(enabled, busy) {
+	const busyRef = useRef(busy);
+	busyRef.current = busy;
+	useEffect(() => {
+		const running = mainScript(document);
+		if (!enabled || !running) return undefined;
+		let lastTouch = Date.now();
+		let lastCheck = Date.now();
+		let updateReady = false;
+		const touched = () => {
+			lastTouch = Date.now();
+		};
+		const tick = async () => {
+			if (!updateReady && Date.now() - lastCheck >= VERSION_CHECK_MS) {
+				lastCheck = Date.now();
+				try {
+					const res = await fetch("/kitchen", { cache: "no-store", headers: { Accept: "text/html" } });
+					if (!res.ok) return;
+					const latest = mainScript(new DOMParser().parseFromString(await res.text(), "text/html"));
+					updateReady = Boolean(latest) && latest !== running;
+				} catch {
+					return; // Offline; try again next time.
+				}
+			}
+			const idle = Date.now() - lastTouch >= IDLE_BEFORE_RELOAD_MS;
+			if (updateReady && idle && !busyRef.current && !document.querySelector(BUSY_SELECTOR)) {
+				window.location.reload();
+			}
+		};
+		document.addEventListener("pointerdown", touched, { capture: true });
+		document.addEventListener("keydown", touched, { capture: true });
+		const id = setInterval(tick, 30000);
+		return () => {
+			clearInterval(id);
+			document.removeEventListener("pointerdown", touched, { capture: true });
+			document.removeEventListener("keydown", touched, { capture: true });
+		};
+	}, [enabled]);
 }
 
 const subscribeOnline = (cb) => {
@@ -342,6 +398,7 @@ function KitchenScreen() {
 	// The Android app keeps the screen on by itself.
 	const inApp = isKitchenApp();
 	const awake = useWakeLock(started && !inApp);
+	useReloadOnDeploy(Boolean(nativeAlarm()), newAlerts.length > 0);
 
 	const start = useCallback(async () => {
 		setStarted(true);
