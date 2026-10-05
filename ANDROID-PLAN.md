@@ -103,14 +103,49 @@ A 4-phase plan to wrap the kitchen screen (`/kitchen`) in an Android app with Ca
    - Write a script (e.g. `kitchen-android/build-apk.sh`) that rebuilds the signed APK in one command.
 
 ### Checks
-- [ ] The app opens straight into the kitchen screen. Sign-in works, and the cook stays signed in after the app is force-stopped and the tablet restarts.
-- [ ] The screen never sleeps while the app is open (leave it for 15+ minutes).
-- [ ] The back button doesn't leave the kitchen or exit the app.
-- [ ] A test order shows up and chimes (dev APK against local + ngrok, or production if the owner agrees).
-- [ ] The browser `/kitchen` (desktop and iPad) is unchanged: Install app, wake lock and "Tap to start" all still there.
+- [x] The app opens straight into the kitchen screen. Sign-in works, and the cook stays signed in after the app is force-stopped and the tablet restarts. (Kitchen Dev, 2026-10-04.)
+- [x] The screen never sleeps while the app is open (leave it for 15+ minutes). (Tablet timeout is 30s; awake for 16 min.)
+- [x] The back button doesn't leave the kitchen or exit the app.
+- [x] A test order shows up and chimes (dev APK against local + ngrok, or production if the owner agrees). (Local order #0048. The WebView played audio; the owner turned Media volume to 0 ten seconds later, which is the Phase 2 problem.)
+- [x] The browser `/kitchen` (desktop and iPad) is unchanged: Install app, wake lock and "Tap to start" all still there. (Headless Chrome at desktop and iPad sizes.)
 
 ### Notes for the next session
-_(Phase 1 session fills this in: build setup steps, app id, where the keystore is, how to build and install, the dev-APK trick, problems hit, anything the owner still has to do.)_
+
+Phase 1 done on 2026-10-04 (commits `3a29942`, `b78bca9` and the notes commit; nothing pushed yet). `/code-review` (high) was run; its fixes are in `b78bca9`. Back closing a dialog was checked on the tablet after reinstalling.
+
+**Owner's choices:** build in WSL + Windows adb; app id `com.mardinis.kitchen`; landscape only (`sensorLandscape`); keystore in `~/keys/`.
+
+**Build setup (all user-local, no sudo):**
+- JDK: Temurin 21 unpacked to `~/.local/share/jdk/jdk-21.0.12.1+1` (Adoptium tarball). Capacitor 8 needs AGP 8.13 / Gradle 8.14.3, so JDK 17+; 21 is what Android Studio bundles.
+- Android SDK: command-line tools in `~/.local/share/android-sdk/cmdline-tools/latest` (`commandlinetools-linux-16111833_latest.zip`), then `sdkmanager --licenses` and `sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"`. Gradle pulled build-tools 35 by itself.
+- Windows adb: `platform-tools-latest-windows.zip` unpacked to `C:\Users\Alfred\AppData\Local\Android\platform-tools` (`/mnt/c/...` from WSL). USB debugging is on, and this PC is authorized on the tablet.
+- Nothing was added to `~/.bashrc`; `build-apk.sh` finds JAVA_HOME / ANDROID_HOME / ADB itself (env vars override).
+
+**Project (`kitchen-android/`):**
+- Capacitor 8.5 (`@capacitor/core`, `android`, `cli`), plus `@capacitor/assets` for icons. TypeScript pinned to 5 (TS 7 is the Go port; the Capacitor CLI uses the TS JS API to read `capacitor.config.ts`). `sharp`'s install script is approved in `package.json` `allowScripts`.
+- `capacitor.config.ts`: `server.url` = `$KITCHEN_URL` or `https://mardinismenlopark.com/kitchen`. `www/` is a placeholder.
+- `MainActivity.java`: `FLAG_KEEP_SCREEN_ON`, immersive (bars hidden again on focus), media without a gesture, `CookieManager.flush()` on pause. Back on `/kitchen` sends Escape to the page, which closes a dialog or menu; the new-order and reminder popups ignore Escape. On another page Back goes back, or loads the kitchen URL. `android:allowBackup="false"`, so the session cookie isn't backed up.
+- Build types: release = "Kitchen" (`com.mardinis.kitchen`); debug = "Kitchen Dev" (`com.mardinis.kitchen.dev`), which installs next to it. The name comes from `manifestPlaceholders` `appLabel` in `app/build.gradle`, not `strings.xml`.
+- `app/build.gradle` refuses a release build unless the synced `capacitor.config.json` loads the production URL. `cap sync` keeps the last URL, so a release built right after a dev build would otherwise ship ngrok.
+- Icons: `assets/` (sources made from `client/public/kitchen-icon-512.png` on `#1c1814`); regenerate with `npx capacitor-assets generate --android --iconBackgroundColor '#1c1814' --iconBackgroundColorDark '#1c1814' --splashBackgroundColor '#1c1814' --splashBackgroundColorDark '#1c1814'`. Android 12+ uses the system splash (`windowSplashScreenBackground` in `styles.xml`).
+
+**Signing:** `~/keys/mardinis-kitchen.jks` (PKCS12, alias `kitchen`) and `~/keys/mardinis-kitchen.properties` (passwords + path, mode 600). `app/build.gradle` reads that file (or `$KITCHEN_KEYSTORE_PROPERTIES`). The owner was told to back up `~/keys/`. Cert SHA-256: `86fa3aab…ba01263`.
+
+**Build and install:**
+- `kitchen-android/build-apk.sh [--install]`: signed release APK to `dist/kitchen.apk`.
+- `KITCHEN_URL=https://<id>.ngrok-free.app/kitchen kitchen-android/build-apk.sh --dev --install`: the dev APK (`bin/dev` + `ngrok http 4000` first). ngrok shows its "Visit Site" page once per tunnel; tap it.
+- Tablet driving from WSL: `adb.exe shell input tap X Y` (screen is 1340x800 landscape), `adb.exe exec-out screencap -p > x.png`. Typing: `input text`; use keyevent 61 (Tab) between fields, because the on-screen keyboard shifts the layout.
+
+**Web side:** `client/src/native.js` `isKitchenApp()`; `KitchenApp.jsx`: `isInstalled()` is true in the app (hides Install app and Full screen), and the browser wake lock and "Screen may sleep" are skipped in the app. **These web changes are only on production after a push**; until then the release app still shows Install app (harmless).
+
+**Findings:**
+- Tablet: SM-T220, Android 14 (One UI 6.1), WebView 153, 800x1340 @ 213dpi; screen timeout 30s. Android 16's large-screen orientation override doesn't apply to it.
+- Capacitor with a remote `server.url` proxies **HTML GETs** through native `HttpURLConnection` to inject `window.Capacitor` (`WebViewLocalServer.handleProxyRequest`); API calls go straight from the WebView. Service-worker requests are routed through it too (`resolveServiceWorkerRequests`), so `window.Capacitor` exists after SW navigations. The bridge is only injected on the app's own host.
+- With no `server.errorPath`, an offline launch fails inside `handleProxyRequest` (Phase 4).
+- **Samsung has a pending system update** (One UI 6.1, security patch) set to auto-install and restart the tablet on **Mon 2026-10-05 at 4:09 AM**; its screen opened by itself after a reboot. Phase 4 should cover auto-updates and restarts in the tablet checklist.
+- The release "Kitchen" app is installed and shows the live sign-in, but **nobody has signed in on it yet** (it needs a real kitchen account).
+
+**Left for the owner:** back up `~/keys/`; say when to push (deploys the `isKitchenApp()` change); sign the real "Kitchen" app in with the kitchen account; decide on the pending Samsung update. Phase 1 stopped the owner's Portfolio Vite server on :3000 (with their OK); restart it when needed.
 
 ---
 
