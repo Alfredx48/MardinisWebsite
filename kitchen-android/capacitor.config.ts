@@ -12,7 +12,6 @@ const config: CapacitorConfig = {
 	backgroundColor: "#1c1814",
 	server: {
 		url,
-		cleartext: false,
 	},
 };
 

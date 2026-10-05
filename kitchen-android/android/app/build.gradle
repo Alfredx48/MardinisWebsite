@@ -50,6 +50,18 @@ android {
     }
 }
 
+// A release must load the live site. capacitor.config.json is written by `cap sync` and keeps the
+// last URL synced, so a release built right after a dev build would otherwise ship the ngrok URL.
+tasks.matching { it.name == "preReleaseBuild" }.configureEach {
+    doFirst {
+        def config = file("src/main/assets/capacitor.config.json")
+        def url = config.exists() ? new groovy.json.JsonSlurper().parse(config).server?.url : null
+        if (url != "https://mardinismenlopark.com/kitchen") {
+            throw new GradleException("Release builds must load https://mardinismenlopark.com/kitchen, not ${url}. Use ./build-apk.sh.")
+        }
+    }
+}
+
 repositories {
     flatDir{
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'

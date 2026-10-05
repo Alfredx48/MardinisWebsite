@@ -2,6 +2,7 @@ package com.mardinis.kitchen;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.WebView;
@@ -26,14 +27,19 @@ public class MainActivity extends BridgeActivity {
         // The new-order alarm has to play without anyone tapping the screen first.
         webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
 
-        // Back never closes the app or leaves the kitchen. On another page (Change password,
-        // Admin), it goes back towards the kitchen.
+        // Back never closes the app or leaves the kitchen. On the kitchen it acts as Escape, which
+        // closes an open dialog or menu (never the new-order popup); on another page (Change
+        // password, Admin), it goes back towards the kitchen.
         getOnBackPressedDispatcher().addCallback(
             this,
             new OnBackPressedCallback(true) {
                 @Override
                 public void handleOnBackPressed() {
-                    if (isKitchenPage(webView.getUrl())) return;
+                    if (isKitchenPage(webView.getUrl())) {
+                        webView.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ESCAPE));
+                        webView.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ESCAPE));
+                        return;
+                    }
                     if (webView.canGoBack()) {
                         webView.goBack();
                     } else {

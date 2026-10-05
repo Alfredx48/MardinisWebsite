@@ -12,7 +12,10 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-export JAVA_HOME="${JAVA_HOME:-$HOME/.local/share/jdk/jdk-21.0.12.1+1}"
+if [[ -z "${JAVA_HOME:-}" ]]; then
+	JAVA_HOME=$(ls -d "$HOME"/.local/share/jdk/jdk-21* 2>/dev/null | sort -V | tail -1)
+fi
+export JAVA_HOME
 export ANDROID_HOME="${ANDROID_HOME:-$HOME/.local/share/android-sdk}"
 export PATH="$JAVA_HOME/bin:$PATH"
 ADB="${ADB:-/mnt/c/Users/Alfred/AppData/Local/Android/platform-tools/adb.exe}"
@@ -30,6 +33,10 @@ done
 if $dev; then
 	if [[ -z "${KITCHEN_URL:-}" ]]; then
 		echo "--dev needs KITCHEN_URL, e.g. KITCHEN_URL=https://abc123.ngrok-free.app/kitchen" >&2
+		exit 1
+	fi
+	if [[ "$KITCHEN_URL" != https://*/kitchen ]]; then
+		echo "KITCHEN_URL must be an https URL ending in /kitchen" >&2
 		exit 1
 	fi
 	task=assembleDebug
