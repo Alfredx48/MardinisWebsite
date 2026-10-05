@@ -164,6 +164,18 @@ export function writePref(key, value) {
 }
 
 /* -------------------------------------------------------------------- chime */
+// How loud the kitchen alarm is, chosen per device (kitchen ⋮ → Alarm loudness). `native` is
+// the share of the tablet's max Alarm volume in the Android app; `gain` scales the Web Audio alarm.
+export const ALARM_LEVELS = [
+	{ id: "loud", label: "Loud", native: 1, gain: 1 },
+	{ id: "medium", label: "Medium", native: 0.6, gain: 0.4 },
+	{ id: "quiet", label: "Quiet", native: 0.25, gain: 0.12 },
+];
+
+export function alarmLevel(id = readPref("alarmLevel", "loud")) {
+	return ALARM_LEVELS.find((level) => level.id === id) || ALARM_LEVELS[0];
+}
+
 let audioContext = null;
 
 export function getAudioContext() {
@@ -208,16 +220,17 @@ export async function unlockAudio() {
 // `loud` is the kitchen screen's alarm instead (see playKitchenAlarm).
 // The Android app plays recordings of both sounds: after changing either, re-run
 // kitchen-android/sounds/render-sounds.mjs and ship a new APK.
-export function playChime({ loud = false } = {}) {
+// `level` overrides the saved Alarm loudness (an ALARM_LEVELS id).
+export function playChime({ loud = false, level } = {}) {
 	const alarm = nativeAlarm();
 	if (alarm) {
 		// The same sounds, recorded (kitchen-android/sounds/render-sounds.mjs).
-		alarm.play({ sound: loud ? "alarm" : "chime" }).catch(() => {});
+		alarm.play(loud ? { sound: "alarm", volume: alarmLevel(level).native } : { sound: "chime" }).catch(() => {});
 		return;
 	}
 	const ctx = getAudioContext();
 	if (!ctx || ctx.state !== "running") return;
-	if (loud) return playKitchenAlarm(ctx);
+	if (loud) return playKitchenAlarm(ctx, alarmLevel(level).gain);
 	const notes = [
 		[0, 880],
 		[0.18, 1318.5],
@@ -249,8 +262,8 @@ export function stopChime() {
 // As loud as a tablet can play: square waves held near full volume instead of
 // fading out, pitched where small tablet speakers and ears are most sensitive,
 // three ding-dongs long. Notes never overlap, so the sound doesn't distort.
-function playKitchenAlarm(ctx) {
-	const PEAK = 0.9;
+function playKitchenAlarm(ctx, gain = 1) {
+	const PEAK = 0.9 * gain;
 	const NOTE = 0.2;
 	const pairs = 3;
 	for (let i = 0; i < pairs * 2; i++) {

@@ -187,7 +187,9 @@ Phase 2 was done in the same session as Phase 1, on 2026-10-04 (commit `6845737`
 - `client/src/native.js` `nativeAlarm()`: `{ play, stop }` via **`window.Capacitor.nativePromise("KitchenAlarm", …)`**. The injected bridge has **no `registerPlugin`**, which comes from `@capacitor/core`, not bundled here. A first version called it, threw inside `useState`, and blanked the whole kitchen. `nativeAlarm()` now never throws, and returns null in browsers and in older APKs without the plugin (`isPluginAvailable`), so those keep Web Audio.
 - `adminUtils.js`: `playChime()` goes native when `nativeAlarm()` exists. `unlockAudio()` returns true there, and the new `audioIsReady()` is used for `audioReady`. `stopChime()` runs when Sound is turned off. `AdminContext` skips the Web Audio unlock listeners in the app. `KitchenApp` starts with `started = true` when the native alarm exists, so there's no Tap to start or "Tap to turn sound back on".
 
-**Checked on the tablet (Kitchen Dev, local + ngrok):**
+**Alarm loudness (added at the owner's request after the first tablet tests):** kitchen ⋮ → **Alarm loudness**: Loud / Medium / Quiet / Off, saved per device (`localStorage` `mardinis.admin.alarmLevel`; Off = the existing Sound off). `ALARM_LEVELS` in `adminUtils.js`: the app sets the Alarm volume to 100% / 60% / 25% of max (`play({ sound: "alarm", volume })`, and the plugin restores the old level afterwards). Browsers scale the Web Audio alarm's gain 1 / 0.4 / 0.12. Loud is the default, so nothing changes until someone picks a level. The Sound button reads "Sound on · Quiet" when the level isn't Loud. Checked in headless Chrome (browser + app mock); on the tablet, only with Quiet: the owner asked for very quiet test beeps that night.
+
+**Checked on the tablet (Kitchen Dev, local + ngrok), before Alarm loudness existed:**
 - Media 0, Alarm 3: Test sound played on the Alarm stream (`dumpsys audio`: `usage=USAGE_ALARM`, 2.3s), Alarm volume 3 → 15 → back to 3.
 - Order #0049: 3 alarm plays in 55s (first poll, then every 20s); after "Got it", none in 45s.
 - No Tap to start in the app (screenshot).

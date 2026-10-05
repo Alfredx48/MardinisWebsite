@@ -9,6 +9,7 @@ import {
 	faRightFromBracket,
 	faRotate,
 	faVolumeHigh,
+	faVolumeLow,
 	faVolumeXmark,
 	faWifi,
 } from "@fortawesome/free-solid-svg-icons";
@@ -19,6 +20,7 @@ import { AdminProvider, useAdmin } from "./AdminContext";
 import { CancelledBanner } from "./AdminLayout";
 import KitchenOrders from "./KitchenOrders";
 import { ConfirmDialog, OverflowMenu, useNow } from "./adminUi";
+import { ALARM_LEVELS, alarmLevel, writePref } from "./adminUtils";
 import "./admin.css";
 import "./kitchen.css";
 
@@ -285,6 +287,45 @@ function InstallHelp({ installPrompt, onClose }) {
 	);
 }
 
+// Alarm loudness for this device: Loud / Medium / Quiet, or Off (the same as Sound off).
+// Picking a level plays the alarm once at that level.
+function LoudnessDialog({ level, onLevel, onClose }) {
+	const { soundOn, setSoundOn, enableAudio } = useAdmin();
+	const choose = (id) => {
+		if (id === "off") {
+			setSoundOn(false);
+			return;
+		}
+		writePref("alarmLevel", id);
+		onLevel(id);
+		// Both play the alarm at the level just saved.
+		if (soundOn) enableAudio();
+		else setSoundOn(true);
+	};
+	const current = soundOn ? level : "off";
+	return (
+		<Modal onClose={onClose} label="Alarm loudness" className="adm-modal-md">
+			<div className="modal-body adm-k-help">
+				<h2 className="adm-modal-title">Alarm loudness</h2>
+				<p>How loud new orders and reminders ring on this device.</p>
+				<div className="segmented">
+					{[...ALARM_LEVELS, { id: "off", label: "Off" }].map(({ id, label }) => (
+						<button key={id} type="button" aria-pressed={current === id} onClick={() => choose(id)}>
+							{label}
+						</button>
+					))}
+				</div>
+			</div>
+			<div className="modal-footer">
+				<span className="spacer" />
+				<button type="button" className="btn btn-primary" onClick={onClose}>
+					Done
+				</button>
+			</div>
+		</Modal>
+	);
+}
+
 function KitchenScreen() {
 	const { user, logout } = useAuth();
 	const { newAlerts, refreshOrders, soundOn, setSoundOn, audioReady, enableAudio } = useAdmin();
@@ -293,6 +334,8 @@ function KitchenScreen() {
 	// This browser refused sound even after a tap; don't keep covering the board.
 	const [audioBlocked, setAudioBlocked] = useState(false);
 	const [showInstall, setShowInstall] = useState(false);
+	const [showLoudness, setShowLoudness] = useState(false);
+	const [level, setLevel] = useState(() => alarmLevel().id);
 	const [confirmLogout, setConfirmLogout] = useState(false);
 	const navigate = useNavigate();
 	const installPrompt = useInstallPrompt();
@@ -311,6 +354,7 @@ function KitchenScreen() {
 	const menuItems = [
 		{ label: "Refresh now", icon: faRotate, onClick: refreshOrders },
 		{ label: "Test sound", icon: faVolumeHigh, onClick: enableAudio },
+		{ label: "Alarm loudness", icon: faVolumeLow, onClick: () => setShowLoudness(true) },
 		...(user.admin ? [{ label: "Open admin", icon: faGaugeHigh, onClick: () => navigate("/admin/orders") }] : []),
 		...(canFullscreen() ? [{ label: "Full screen", icon: faExpand, onClick: toggleFullscreen }] : []),
 		...(installed ? [] : [{ label: "Install app", icon: faDownload, onClick: () => setShowInstall(true) }]),
@@ -346,7 +390,7 @@ function KitchenScreen() {
 						aria-pressed={soundOn}
 					>
 						<FontAwesomeIcon icon={soundOn ? faVolumeHigh : faVolumeXmark} />
-						<span>{soundOn ? "Sound on" : "Sound off"}</span>
+						<span>{soundOn ? `Sound on${level === "loud" ? "" : ` · ${alarmLevel(level).label}`}` : "Sound off"}</span>
 					</button>
 				)}
 				{!installed && (
@@ -373,6 +417,7 @@ function KitchenScreen() {
 
 			{needsTap && <StartOverlay resuming={started} onStart={start} />}
 			{showInstall && <InstallHelp installPrompt={installPrompt} onClose={() => setShowInstall(false)} />}
+			{showLoudness && <LoudnessDialog level={level} onLevel={setLevel} onClose={() => setShowLoudness(false)} />}
 			{confirmLogout && (
 				<ConfirmDialog
 					title="Log out of the kitchen screen?"
