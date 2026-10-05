@@ -1,6 +1,6 @@
 # Handoff: Mardini's Deli Cafe website
 
-Context for a new Claude Code session picking up this project. Last updated 2026-10-02. Nothing in here is secret; real secrets live only in Render, Supabase and the gitignored `.env.supabase` / `.env.local`.
+Context for a new Claude Code session picking up this project. Last updated 2026-10-04. Nothing in here is secret; real secrets live only in Render, Supabase and the gitignored `.env.supabase` / `.env.local`.
 
 ## TL;DR
 
@@ -9,6 +9,12 @@ Context for a new Claude Code session picking up this project. Last updated 2026
 - **Stack:** Ruby 3.4.10 / Rails 8.1.4 API + React 18 SPA built with **Vite**, Postgres on Supabase, photos in Supabase Storage, hosted on Render.
 - **State:** menu photos, sizes and options, refunds and customer cancellation, password resets and order confirmation emails, and (new on 2026-10-02) per-item names, **group orders**, **catering ordering** and the kitchen's **Upcoming** list with reminders are all live. 124 RSpec specs pass.
 - **Kitchen screen (`/kitchen`) + Kitchen role: live since 2026-09-27**, running on the restaurant's **Samsung Galaxy Tab A7 Lite** (Android, Chrome). The owner tests on their own iPad, so both must keep working. See "Kitchen screen" below.
+
+## Changes on 2026-10-03 (all pushed and live)
+
+Commits `e8ea2b5`..`bf60534`.
+- **Show/Hide password:** every password box (sign in, create account, reset password, change password, kitchen sign-in) has a Show / Hide button inside it (`PasswordInput` in `components/ui.jsx`). Shown passwords don't autocapitalize or autocorrect.
+- **Cloudflare Web Analytics** on customer pages only. See "Production setup".
 
 ## Changes on 2026-10-02 (all pushed and live)
 
@@ -34,7 +40,7 @@ Commits `bd5a2e5`..`f83cf61`. Details are in the sections linked.
 ## Repo & git
 
 - Path: `~/projects/MardinisWebsite` (WSL Ubuntu on Windows). Remote: `https://github.com/Alfredx48/MardinisWebsite.git`.
-- `main` = deployed = `origin/main` (HEAD `f83cf61` on 2026-10-02). Old remote branches (`alfred`, `dev`, `stripe`, `style`) are from the 2023 bootcamp version.
+- `main` = deployed = `origin/main` (HEAD `bf60534` on 2026-10-03). Old remote branches (`alfred`, `dev`, `stripe`, `style`) are from the 2023 bootcamp version.
 - `Mardinis Menus/` at the repo root is the owner's untracked folder (printed-menu PDFs, `Price Changes.csv`); don't commit it. Their newest menu files live on Windows in `C:\Users\Alfred\Documents\Mardinis Menus\6 - Original (Enhanced)` (`/mnt/c/...` from WSL).
 - Leftover junk the owner may delete: two empty SQLite files at repo root, `react_rails_api_project_template_development` and `..._test` (tracked, unused).
 
@@ -44,7 +50,7 @@ Commits `bd5a2e5`..`f83cf61`. Details are in the sections linked.
 - Node 24 locally (nvm), Node 22 on Render (`.node-version`). Vite 8 needs Node ≥ 22.12. Local Postgres is running (WSL).
 - Local DBs (names kept from the bootcamp template): `react_rails_api_project_template_development` / `_test`. Dev data includes a dev-only admin `admin@example.com` / `password123`, a couple of test orders, and the imported menu. Local item ids for items added after the original seed **don't match production ids**, and item 18 is misspelled "Lam Kabob Plate" locally. The local DB **doesn't** have the 2026-10-02 price changes (e.g. Add Extra lamb is still $7.00 locally), but it does have the catering menu (added through the local admin API) and a few test catering/group orders. Pay at pickup is off locally, so local checkout needs Stripe's test card 4242 4242 4242 4242.
 - Writing to the local DB with `bin/rails runner` (even non-production) was blocked once by the permission classifier; changing local data through the local admin API (`POST /api/login` as the dev admin, then `/api/admin/...`) works.
-- `bin/dev` runs Rails on :3000 + the Vite dev server on :4000 (open http://localhost:4000; Vite proxies `/api` to :3000). Stop them by port (`ss -ltnp`), not `pkill -f`, which can match your own shell. Started as a Claude background task, they stop when the task's timeout runs out (default 30 min; pass a long one). If a page says "Can't reach the server", check they're still up.
+- `bin/dev` runs Rails on :3000 + the Vite dev server on :4000 (open http://localhost:4000; Vite proxies `/api` to :3000). Stop them by port (`ss -ltnp`), not `pkill -f`, which can match your own shell. Started as a Claude background task, they stop when the task's timeout runs out (default 30 min; pass a long one). If a page says "Can't reach the server", check they're still up. **Port 3000 clash:** the owner's other project (`~/projects/Portfolio`, a Vite server started with `--port 3000 --strictPort`) may be holding :3000, and then Rails can't start while Vite on :4000 forwards `/api` to the wrong app (logins 404). Check `ss -ltnp`; don't kill the Portfolio server without asking.
 - **Phone/tablet testing via ngrok:** `ngrok http 4000`. Vite already allows ngrok hosts (`client/vite.config.js`) and so does Rails dev (`config/environments/development.rb`).
 - Tests: `bundle exec rspec` (124 examples). Frontend: `npm run lint --prefix client` and `npm run build --prefix client`. Running the root `npm run build` (what Render runs) rewrites `public/`; restore with `git checkout public && git clean -fq public`.
 - `.env.local` (gitignored) holds local secrets, including `SUPABASE_URL` and `SUPABASE_SECRET_KEY`, and dotenv loads it in development. **Never print it.**
@@ -58,6 +64,11 @@ Commits `bd5a2e5`..`f83cf61`. Details are in the sections linked.
 - Env vars set in Render: `DATABASE_URL`, `RAILS_ENV=production`, `BUNDLE_WITHOUT=development:test`, `NODE_VERSION=22`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `RAILS_MASTER_KEY` (unused 2023 leftover), a secret-key var, and for photo uploads `SUPABASE_URL` + `SUPABASE_SECRET_KEY` (the owner was asked to add these two; confirm by trying an upload in Admin → Menu).
 - **Caching** (`config/environments/production.rb`, `lib/middleware/immutable_assets.rb`): `/` and every page go through `FallbackController` and always revalidate; Vite's hashed `/assets/*` are cached a year (`immutable`); other public files (icons, manifest) an hour. Keep the page shell uncached: it names the current asset files, and each deploy deletes the old ones.
 - Custom domain: `mardinismenlopark.com` + `www` (www redirects to the root). TLS by Render.
+
+**Cloudflare Web Analytics** (added 2026-10-03; the owner's Cloudflare account; no cookies, so no cookie banner needed)
+- The beacon (`static.cloudflareinsights.com/beacon.min.js`, token `b2de88a9d44c4dd49ceee50403c4da26`, which is public by design) is added by a small inline script at the end of `client/index.html`, **only when the page isn't under `/admin` or `/kitchen`**, so staff screens aren't counted.
+- Because the beacon follows in-app page changes, links from the public site into staff pages do a **full page load**: the header's Admin/Kitchen links are plain `<a href>`, and sign-in / password-reset redirects use `goAfterSignIn` (`client/src/staffPages.js`). Keep that for any new link into `/admin` or `/kitchen`.
+- There's no content security policy; if one is added, allow `static.cloudflareinsights.com` (script) and `cloudflareinsights.com` (beacon requests).
 
 **GoDaddy DNS**: `A @ 216.24.57.1`, `CNAME www mardinis.onrender.com`. Leave the `CNAME pay` and `_domainconnect` records alone. No domain forwarding; it would break Render.
 
@@ -100,7 +111,7 @@ Commits `bd5a2e5`..`f83cf61`. Details are in the sections linked.
 - `context/`: `AuthContext`, `RestaurantContext` (restaurant + menu, refreshed every 5 min; split into `menu`, `cateringMenu` and `fullMenu`), `CartContext` (localStorage cart `mardinis-cart-v1`; lines keyed by item + size + options + request, each with `labels` (one name per unit) and `catering`; `quantityLimit()` = 50, or 200 for catering). `CartContext` is exported so group orders can swap in their own cart.
 - `modifiers.js`: option helpers shared by the menu dialog, cart and order displays (`picksProblem`, `picksTotal`, `modifierText`...). `itemNames.js`: per-item name helpers (`fitNames`, `splitByName`, `groupByName`, `namesText`). `groupOrder.js`: group order keys, pricing for display, invite `mailto:`. `catering.js`: catering pickup days/times.
 - `pages/`: Home, Menu (the ordering page at `/menu`, item dialog with size and option pickers), MenuView (`/our-menu`, a read-only menu styled like the printed dine-in menu, built from live data; the PDF it links to is `client/public/menus/mardinis-menu.pdf`), Checkout (Stripe Payment Element via `@stripe/stripe-js/pure`; also runs group checkout through an optional `checkout` object on the cart, and catering pickup/payment rules), OrderStatus (customer cancel), About, Catering (orderable catering menu + message form), GroupStart / GroupOrder / GroupCheckout, Policy, Login, Account, NotFound. `MenuPage` takes `hero`, `menu`, `after` and `hideFloatingCart` props, which the catering and group pages use.
-- `components/ui.jsx`: `DishImage` (gradient + initials placeholder when a photo is missing or fails), `Modal`, `QuantityStepper` (the number can be typed), `Switch`. `components/ItemNames.jsx` (name boxes, cart name editor), `components/GroupOrderPromo.jsx`. `format.js`: `money`, `priceLabel` ("from $X" for sized items).
+- `components/ui.jsx`: `DishImage` (gradient + initials placeholder when a photo is missing or fails), `Modal`, `QuantityStepper` (the number can be typed), `PasswordInput` (Show/Hide), `Switch`. `components/ItemNames.jsx` (name boxes, cart name editor), `components/GroupOrderPromo.jsx`. `format.js`: `money`, `priceLabel` ("from $X" for sized items).
 - `styles/base.css` holds design tokens (cream/terracotta/olive; Fraunces + DM Sans); `styles/site.css` the public site.
 - `admin/`: lazy-loaded bundle at `/admin/*` (`AdminApp.jsx` routes: `/admin`, `/admin/orders` = Live Orders, `/admin/history`, `/admin/menu`, `/admin/catering`, `/admin/users`, `/admin/settings`).
   - `AdminLayout` (sidebar; top bar under 900px), `Dashboard`, `LiveOrders`, `OrderDetail` (refunds), `PrintTicket`, `OrderHistory`, `MenuManager` (sizes editor, photo upload, option groups per item), `OptionsManager` (`/admin/options`, edit option groups), `CateringInbox`, `Customers`, `Settings`.
