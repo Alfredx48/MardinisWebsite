@@ -199,7 +199,7 @@ Phase 2 was done in the same session as Phase 1, on 2026-10-04 (commit `6845737`
 
 **Debugging the app's WebView from WSL:** `adb.exe forward tcp:9229 localabstract:webview_devtools_remote_<pid>` (pid from `adb.exe shell pidof com.mardinis.kitchen.dev`; debug builds only). WSL can't reach Windows' localhost, so talk to it from PowerShell: scripts in `C:\Users\Alfred\AppData\Local\Temp\kcdp\` (`eval.ps1 "<js>"` runs Runtime.evaluate; `logs.ps1` dumps buffered console errors). Don't `pkill -f kcdp`: it kills your own shell.
 
-**Seen on the tablet:** a Chrome-installed "Kitchen" PWA icon sits next to the native "Kitchen" and "Kitchen Dev". The owner may want to remove the PWA once the native app is in use (Phase 4 checklist).
+**Tablet state at the end of 2026-10-04 (owner asked for one app):** only the native **Kitchen 1.1** (release, production URL) is installed, on the main home screen where the old shortcut was. Removed: Kitchen Dev (`adb.exe uninstall com.mardinis.kitchen.dev`; reinstall with `build-apk.sh --dev --install` for testing, then uninstall again), the Chrome kitchen PWA (`org.chromium.webapk.a19eeb1fc8f3489a7_v2`) and a "Mardini's Kitchen" Chrome home-screen shortcut. **Kitchen needs to be signed in with the kitchen account before service.** Until the web changes are pushed, it runs today's production kitchen (Tap to start, Web Audio, Install app button), plus the native screen-on and full screen. The native alarm and Alarm loudness switch on with the push, because the 1.1 APK already has the plugin.
 
 ---
 
