@@ -19,6 +19,7 @@ import { isKitchenApp, nativeAlarm } from "../native";
 import { AdminProvider, useAdmin } from "./AdminContext";
 import { CancelledBanner } from "./AdminLayout";
 import KitchenOrders from "./KitchenOrders";
+import { PushStatusBanner, useKitchenPush } from "./kitchenPush";
 import { ConfirmDialog, OverflowMenu, useNow } from "./adminUi";
 import { ALARM_LEVELS, alarmLevel, writePref } from "./adminUtils";
 import "./admin.css";
@@ -407,6 +408,11 @@ function KitchenScreen() {
 	const inApp = isKitchenApp();
 	const awake = useWakeLock(started && !inApp);
 	useReloadOnDeploy(Boolean(nativeAlarm()), newAlerts.length > 0);
+	const unregisterPush = useKitchenPush(level);
+	const signOut = useCallback(async () => {
+		await unregisterPush(); // while still signed in
+		await logout();
+	}, [unregisterPush, logout]);
 
 	const start = useCallback(async () => {
 		setStarted(true);
@@ -475,6 +481,7 @@ function KitchenScreen() {
 
 			<CancelledBanner />
 			<OfflineBanner />
+			<PushStatusBanner />
 
 			<main className="adm-k-main">
 				<KitchenOrders />
@@ -487,7 +494,7 @@ function KitchenScreen() {
 				<ConfirmDialog
 					title="Log out of the kitchen screen?"
 					confirmLabel="Log out"
-					onConfirm={logout}
+					onConfirm={signOut}
 					onClose={() => setConfirmLogout(false)}
 				>
 					<p>New orders won't show up here until someone signs in again.</p>

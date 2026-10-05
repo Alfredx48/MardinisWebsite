@@ -29,6 +29,12 @@ export function AdminProvider({ children, kitchen = false, title }) {
 	const [ordersUpdatedAt, setOrdersUpdatedAt] = useState(null);
 	// New orders nobody has acknowledged yet (kitchen screen only).
 	const [unackedIds, setUnackedIds] = useState([]);
+	// Same list, readable right away (alertOrders checks it just after loadOrders may have added some).
+	const unackedRef = useRef([]);
+	const setUnacked = useCallback((update) => {
+		unackedRef.current = update(unackedRef.current);
+		setUnackedIds(unackedRef.current);
+	}, []);
 	const [newCatering, setNewCatering] = useState(0);
 	const [soundOn, setSoundOnState] = useState(() => readPref("sound", true));
 	const [audioReady, setAudioReady] = useState(audioIsReady);
@@ -83,7 +89,7 @@ export function AdminProvider({ children, kitchen = false, title }) {
 	const announce = useCallback((fresh) => {
 		if (soundOnRef.current) playChime({ loud: kitchen });
 		if (kitchen) {
-			setUnackedIds((ids) => [...ids, ...fresh.map((o) => o.id)]);
+			setUnacked((ids) => [...ids, ...fresh.map((o) => o.id).filter((id) => !ids.includes(id))]);
 		} else if (fresh.length > 3) {
 			toast.info(`${fresh.length} new orders just came in`, { autoClose: 8000 });
 		} else {
@@ -91,7 +97,7 @@ export function AdminProvider({ children, kitchen = false, title }) {
 				toast.info(`New order #${o.number} from ${o.customer_name}`, { autoClose: 8000 })
 			);
 		}
-	}, [kitchen]);
+	}, [kitchen, setUnacked]);
 
 	const loadOrders = useCallback(async () => {
 		const version = mutationVersion.current;
@@ -123,6 +129,21 @@ export function AdminProvider({ children, kitchen = false, title }) {
 	}, [announce, checkVanished]);
 
 	const refreshOrders = usePolling(loadOrders, ORDER_POLL_MS);
+
+	// Orders pushed to the Android app (useKitchenPush): pop them up and ring like new arrivals,
+	// even right after the page loaded, when loadOrders doesn't announce orders already there.
+	const alertOrders = useCallback(
+		async (ids) => {
+			await loadOrders();
+			const pending = ids
+				.map(Number)
+				.filter((id) => lastSeen.current.get(id)?.status === "new" && !unackedRef.current.includes(id));
+			if (!pending.length) return;
+			if (soundOnRef.current) playChime({ loud: kitchen });
+			setUnacked((list) => [...list, ...pending.filter((id) => !list.includes(id))]);
+		},
+		[loadOrders, kitchen, setUnacked]
+	);
 
 	// Put a server (or optimistic) copy of an order into the active list.
 	const applyOrder = useCallback((order) => {
@@ -177,8 +198,8 @@ export function AdminProvider({ children, kitchen = false, title }) {
 	);
 	// Acknowledge some alerts (by order id), or all of them.
 	const acknowledgeAlerts = useCallback(
-		(ids) => setUnackedIds((list) => (ids ? list.filter((id) => !ids.includes(id)) : [])),
-		[]
+		(ids) => setUnacked((list) => (ids ? list.filter((id) => !ids.includes(id)) : [])),
+		[setUnacked]
 	);
 
 	useEffect(() => {
@@ -284,6 +305,7 @@ export function AdminProvider({ children, kitchen = false, title }) {
 			ordersError,
 			ordersUpdatedAt,
 			refreshOrders,
+			alertOrders,
 			updateOrder,
 			refundOrder,
 			applyOrder,
@@ -307,6 +329,7 @@ export function AdminProvider({ children, kitchen = false, title }) {
 			ordersError,
 			ordersUpdatedAt,
 			refreshOrders,
+			alertOrders,
 			updateOrder,
 			refundOrder,
 			applyOrder,

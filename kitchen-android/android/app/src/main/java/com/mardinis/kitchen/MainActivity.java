@@ -1,24 +1,46 @@
 package com.mardinis.kitchen;
 
+import android.Manifest;
+import android.app.KeyguardManager;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.WebView;
 import androidx.activity.OnBackPressedCallback;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import com.getcapacitor.BridgeActivity;
+import org.json.JSONObject;
 
 // The kitchen screen in a full-screen WebView (the live site, see capacitor.config.ts).
 public class MainActivity extends BridgeActivity {
 
+    // Set on the intent of a push alert's notification (OrderNotifications).
+    static final String EXTRA_ALARM = "kitchenAlarm";
+
+    // The running kitchen screen, and whether it's on screen, for KitchenMessagingService.
+    private static volatile MainActivity current;
+    private static volatile boolean visible;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         registerPlugin(KitchenAlarmPlugin.class);
+        registerPlugin(KitchenPushPlugin.class);
         super.onCreate(savedInstanceState);
+        current = this;
+        OrderNotifications.createChannels(this);
+        // Android 13+: push alerts need the notification permission.
+        if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.POST_NOTIFICATIONS }, 1);
+        }
 
         // The tablet sits on the counter all day: never let the screen sleep while the app is open.
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -59,10 +81,61 @@ public class MainActivity extends BridgeActivity {
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if (intent != null && intent.getBooleanExtra(EXTRA_ALARM, false)) wakeUp();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        visible = true;
+        // The kitchen is on screen: stop ringing and let the page pop up the pushed orders.
+        AlarmService.stop(this);
+        if (PendingOrders.count(this) > 0) sendToPage("kitchenpushpending", new JSONObject());
+    }
+
+    @Override
     public void onPause() {
         super.onPause();
+        visible = false;
         // Save the sign-in cookie to disk now, so it survives the app being killed.
         CookieManager.getInstance().flush();
+    }
+
+    @Override
+    public void onDestroy() {
+        if (current == this) {
+            current = null;
+            visible = false;
+        }
+        super.onDestroy();
+    }
+
+    // Opened by a push alert: show over the lock screen and turn the screen on, like an alarm clock.
+    @SuppressWarnings("deprecation")
+    private void wakeUp() {
+        if (Build.VERSION.SDK_INT >= 27) {
+            setShowWhenLocked(true);
+            setTurnScreenOn(true);
+            getSystemService(KeyguardManager.class).requestDismissKeyguard(this, null);
+        } else {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+        }
+    }
+
+    // A window event for the kitchen page (data becomes properties of the event); false if the
+    // page isn't running.
+    static boolean sendToPage(String event, JSONObject data) {
+        MainActivity activity = current;
+        if (activity == null || activity.getBridge() == null) return false;
+        activity.runOnUiThread(() -> activity.getBridge().triggerWindowJSEvent(event, data.toString()));
+        return true;
+    }
+
+    // Like sendToPage, but only while the kitchen is on screen.
+    static boolean sendToVisiblePage(String event, JSONObject data) {
+        return visible && sendToPage(event, data);
     }
 
     private void hideSystemBars() {

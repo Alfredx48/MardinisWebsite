@@ -189,6 +189,26 @@
 	flex-shrink: 0;
 }
 
+/* Android app: Android is holding back push alerts (kitchenPush.jsx). */
+.adm-k-pushwarn {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 8px clamp(12px, 2vw, 20px);
+	background: var(--warning);
+	color: #fff;
+	font-size: 1rem;
+}
+
+.adm-k-pushwarn > span {
+	flex: 1;
+}
+
+.adm-k-pushwarn svg {
+	font-size: 1.2rem;
+	flex-shrink: 0;
+}
+
 /* ------------------------------------------------------------------- layout */
 .adm-k-main {
 	flex: 1;
