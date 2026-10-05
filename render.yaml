@@ -34,3 +34,7 @@ services:
         sync: false
       - key: ADMIN_PASSWORD
         sync: false
+      # Firebase service account key (the whole JSON file) for kitchen push alerts.
+      # Optional: without it the site works and the kitchen tablet just polls.
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false

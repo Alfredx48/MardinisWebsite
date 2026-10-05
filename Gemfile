@@ -8,6 +8,8 @@ gem "puma", ">= 6.0"
 gem "bcrypt", "~> 3.1.20"
 gem "bootsnap", require: false
 gem "stripe", "~> 19.6"
+# OAuth tokens for Firebase Cloud Messaging (KitchenPush rings the kitchen tablets).
+gem "googleauth", "~> 1.17"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[windows jruby]

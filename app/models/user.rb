@@ -1,5 +1,6 @@
 class User < ApplicationRecord
   has_many :orders, -> { order(created_at: :desc) }, dependent: :nullify
+  has_many :device_tokens, dependent: :destroy
 
   # Emailed "Forgot password?" links work for 30 minutes. Like every reset link,
   # they stop working once the password changes, so each can be used only once.

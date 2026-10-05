@@ -53,6 +53,9 @@ Rails.application.routes.draw do
         post :reset_link, on: :member
       end
       resources :catering_inquiries, only: [:index, :update, :destroy]
+      # The Kitchen app's push token (sent in the body, not the URL).
+      post "devices", to: "devices#create"
+      delete "devices", to: "devices#destroy"
     end
 
     match "*path", to: ->(_env) { [404, { "Content-Type" => "application/json" }, ['{"errors":["Not found"]}']] }, via: :all

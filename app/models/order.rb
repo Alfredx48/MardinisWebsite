@@ -30,6 +30,7 @@ class Order < ApplicationRecord
   # pickup, after Stripe confirms the payment for card orders. After commit, so a
   # rolled-back order never sends anything.
   after_commit :send_confirmation, if: -> { saved_change_to_placed_at? && placed_at.present? }
+  after_commit :ring_kitchen, if: -> { saved_change_to_placed_at? && placed_at.present? }
 
   scope :recent_first, -> { order(Arel.sql("COALESCE(placed_at, created_at) DESC")) }
   scope :placed, -> { where.not(status: "awaiting_payment") }
@@ -78,6 +79,12 @@ class Order < ApplicationRecord
 
   def send_confirmation
     OrderConfirmation.deliver(self)
+  end
+
+  # Wakes the kitchen tablets, even with the Kitchen app closed. Later-day orders ring too:
+  # they chime on the kitchen screen when they arrive.
+  def ring_kitchen
+    KitchenPush.new_order(self)
   end
 
   def advance_to!(new_status, reason: nil)

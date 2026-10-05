@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_02_000005) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_05_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_02_000005) do
     t.datetime "updated_at", null: false
     t.index ["restaurant_id"], name: "index_catering_inquiries_on_restaurant_id"
     t.index ["status"], name: "index_catering_inquiries_on_status"
+  end
+
+  create_table "device_tokens", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "token", null: false
+    t.string "platform", default: "android", null: false
+    t.datetime "last_seen_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["token"], name: "index_device_tokens_on_token", unique: true
+    t.index ["user_id"], name: "index_device_tokens_on_user_id"
   end
 
   create_table "group_order_items", force: :cascade do |t|
@@ -239,6 +250,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_02_000005) do
 
   add_foreign_key "categories", "restaurants"
   add_foreign_key "catering_inquiries", "restaurants"
+  add_foreign_key "device_tokens", "users"
   add_foreign_key "group_order_items", "group_order_participants"
   add_foreign_key "group_order_items", "menu_items"
   add_foreign_key "group_order_participants", "group_orders"
