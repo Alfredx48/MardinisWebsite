@@ -24,8 +24,8 @@ import { daysUntil, dueReminders, isUpcoming } from "./upcoming";
 
 // The kitchen screen's orders, laid out like the DoorDash and Uber Eats tablets: the orders
 // being made in a list on the left, the selected order large on the right, and a full-screen
-// popup for each new order. "Got it" on the popup starts it; "Ready" marks it done (picked up,
-// and paid if paying at pickup), with a few seconds to undo. Orders for later days wait in
+// popup for each new order. "Got it" on the popup starts it; "Ready" under the selected order
+// marks it done (picked up, and paid if paying at pickup), with a few seconds to undo. Orders for later days wait in
 // Upcoming until their pickup day, with reminders 3 days and 1 day before.
 const EMPTY = { orders: "Nothing being made right now. New orders pop up here with a chime.", upcoming: "No orders for later days." };
 
@@ -116,38 +116,24 @@ function OrderNotes({ order }) {
 	);
 }
 
-// `onDone`: the Ready button on the card's right (not for Upcoming orders).
-function OrderCard({ order, selected, onSelect, onDone, busy }) {
+function OrderCard({ order, selected, onSelect }) {
 	return (
-		<div className={`adm-k-card-row${selected ? " is-selected" : ""}`}>
-			<button
-				type="button"
-				className={`adm-k-card is-${order.status} is-urgency-${urgency(order)}${selected ? " is-selected" : ""}`}
-				aria-pressed={selected}
-				onClick={() => onSelect(order.id)}
-			>
-				<span className="adm-k-card-top">
-					<span className="adm-k-card-num">#{order.number}</span>
-					{order.status === "new" && <span className="adm-k-newtag">New</span>}
-					<Elapsed order={order} />
-				</span>
-				<span className="adm-k-card-name">{order.customer_name}</span>
-				<span className="adm-k-card-meta">
-					<CateringBadge order={order} /> {itemsLabel(order)} · <PickupInfo order={order} />
-				</span>
-			</button>
-			{onDone && (
-				<button
-					type="button"
-					className="adm-k-card-done adm-advance is-preparing"
-					onClick={() => onDone(order)}
-					disabled={busy}
-					aria-label={`${doneLabel(order)}: order ${order.number}`}
-				>
-					{doneLabel(order)}
-				</button>
-			)}
-		</div>
+		<button
+			type="button"
+			className={`adm-k-card is-${order.status} is-urgency-${urgency(order)}${selected ? " is-selected" : ""}`}
+			aria-pressed={selected}
+			onClick={() => onSelect(order.id)}
+		>
+			<span className="adm-k-card-top">
+				<span className="adm-k-card-num">#{order.number}</span>
+				{order.status === "new" && <span className="adm-k-newtag">New</span>}
+				<Elapsed order={order} />
+			</span>
+			<span className="adm-k-card-name">{order.customer_name}</span>
+			<span className="adm-k-card-meta">
+				<CateringBadge order={order} /> {itemsLabel(order)} · <PickupInfo order={order} />
+			</span>
+		</button>
 	);
 }
 
@@ -348,13 +334,7 @@ export default function KitchenOrders() {
 								{view === "upcoming" && (i === 0 || restaurantDate(o.pickup_at) !== restaurantDate(list[i - 1].pickup_at)) && (
 									<h3 className="adm-k-day">{formatDate(o.pickup_at, { weekday: "long" })}</h3>
 								)}
-								<OrderCard
-									order={o}
-									selected={o.id === selected?.id}
-									onSelect={setSelectedId}
-									onDone={done}
-									busy={busyId === o.id}
-								/>
+								<OrderCard order={o} selected={o.id === selected?.id} onSelect={setSelectedId} />
 							</Fragment>
 						))}
 					</div>

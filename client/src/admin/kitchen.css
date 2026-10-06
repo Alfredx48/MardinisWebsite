@@ -418,40 +418,6 @@
 	box-shadow: var(--shadow);
 }
 
-/* A card in the list with its Ready button on the right. */
-.adm-k-card-row {
-	display: flex;
-	align-items: stretch;
-	gap: 6px;
-}
-
-.adm-k-card-row .adm-k-card {
-	flex: 1;
-	min-width: 0;
-}
-
-.adm-k-card-done {
-	flex: 0 0 auto;
-	min-width: 96px;
-	padding: 0 12px;
-	border: none;
-	border-radius: var(--radius-sm);
-	background: var(--btn-bg);
-	color: var(--btn-fg);
-	font: 800 1.05rem var(--font-body);
-	box-shadow: var(--shadow-sm);
-	cursor: pointer;
-}
-
-.adm-k-card-done:hover {
-	background: var(--btn-bg);
-}
-
-.adm-k-card-done:disabled {
-	opacity: 0.6;
-	cursor: default;
-}
-
 /* Not started yet (e.g. the screen reloaded before anyone tapped Got it). */
 .adm-k-newtag {
 	margin-right: auto;
@@ -869,8 +835,8 @@
 		overflow-y: hidden;
 		padding-bottom: 10px;
 	}
-	.adm-k-card-row {
-		flex: 0 0 300px;
+	.adm-k-card {
+		flex: 0 0 220px;
 	}
 	.adm-k-panel-foot {
 		position: sticky;
@@ -1027,7 +993,7 @@
 	}
 }
 
-/* Toasts (Undo after Ready) go under the top bar here, away from the big Ready buttons,
+/* Toasts (Undo after Ready) go under the top bar here, away from the big Ready button,
    so a quick second tap can't hit Undo by mistake. */
 body:has(.adm-kitchen) .Toastify__toast-container--bottom-center {
 	top: 88px;
