@@ -993,9 +993,8 @@
 	}
 }
 
-/* Toasts (Undo after Ready) go under the top bar here, away from the big Ready button,
-   so a quick second tap can't hit Undo by mistake. */
-body:has(.adm-kitchen) .Toastify__toast-container--bottom-center {
-	top: 88px;
-	bottom: auto;
+/* No toast pop-ups on the kitchen screen (the owner's call): the board itself shows what
+   happened, and dialogs show their own errors. */
+body:has(.adm-kitchen) .Toastify {
+	display: none;
 }

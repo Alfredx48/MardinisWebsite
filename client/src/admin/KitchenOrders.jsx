@@ -25,7 +25,8 @@ import { daysUntil, dueReminders, isUpcoming } from "./upcoming";
 // The kitchen screen's orders, laid out like the DoorDash and Uber Eats tablets: the orders
 // being made in a list on the left, the selected order large on the right, and a full-screen
 // popup for each new order. "Got it" on the popup starts it; "Ready" under the selected order
-// marks it done (picked up, and paid if paying at pickup), with a few seconds to undo. Orders for later days wait in
+// marks it done (picked up, and paid if paying at pickup). No toasts on this screen; a manager
+// can reopen an order marked done by mistake from Admin → History. Orders for later days wait in
 // Upcoming until their pickup day, with reminders 3 days and 1 day before.
 const EMPTY = { orders: "Nothing being made right now. New orders pop up here with a chime.", upcoming: "No orders for later days." };
 
@@ -238,7 +239,7 @@ function NewOrderPopup({ order, more, busy, later, onStart, onGotIt }) {
 export default function KitchenOrders() {
 	const { orders, ordersError, refreshOrders, newAlerts, acknowledgeAlerts, applyOrder, soundOn } = useAdmin();
 	const { restaurant } = useRestaurant();
-	const { advance, busyId } = useAdvanceOrder();
+	const { advance, busyId } = useAdvanceOrder({ quiet: true });
 	const [view, setView] = useState("orders"); // or "upcoming"
 	const [selectedId, setSelectedId] = useState(null);
 	const [detail, setDetail] = useState(null);

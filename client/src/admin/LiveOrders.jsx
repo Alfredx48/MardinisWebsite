@@ -73,7 +73,8 @@ export function PickupInfo({ order }) {
 
 // Moves an order to its next kitchen status with an Undo toast. `busyId` is the order
 // being moved, so its button can be disabled.
-export function useAdvanceOrder() {
+// `quiet`: no success/Undo toast (the kitchen screen shows no toasts).
+export function useAdvanceOrder({ quiet = false } = {}) {
 	const { updateOrder } = useAdmin();
 	const [busyId, setBusyId] = useState(null);
 
@@ -96,6 +97,7 @@ export function useAdvanceOrder() {
 			setBusyId(order.id);
 			try {
 				const updated = await updateOrder(order, { status: next });
+				if (quiet) return;
 				toast.success(
 					({ closeToast }) => (
 						<span className="adm-toast-undo">
@@ -120,7 +122,7 @@ export function useAdvanceOrder() {
 				setBusyId(null);
 			}
 		},
-		[updateOrder]
+		[updateOrder, quiet]
 	);
 
 	return { advance, busyId };
