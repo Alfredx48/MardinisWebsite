@@ -16,8 +16,9 @@ public class KitchenMessagingService extends FirebaseMessagingService {
         if (!"new_order".equals(data.get("type")) || orderId == null) return;
 
         PendingOrders.add(this, orderId);
-        // On screen: the kitchen page pops it up and rings itself, no need to wait for its next poll.
-        if (MainActivity.sendToVisiblePage("kitchenpushorder", new JSONObject())) return;
+        // The kitchen page is on screen: it pops the order up and rings itself, without waiting
+        // for its next poll. Anything else (asleep, another app, another page): ring here.
+        if (MainActivity.sendToVisibleKitchen("kitchenpushorder", new JSONObject())) return;
         AlarmService.start(this, data.get("number"));
     }
 

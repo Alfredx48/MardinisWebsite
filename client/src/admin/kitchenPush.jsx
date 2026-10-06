@@ -45,6 +45,8 @@ export function useKitchenPush(level) {
 			}
 		};
 		const onToken = (e) => register(e.token);
+		// Pushes now come here; on any other page the app rings by itself.
+		push.setKitchenOpen({ open: true }).catch(() => {});
 		register();
 		takePending();
 		window.addEventListener("kitchenpushtoken", onToken);
@@ -52,6 +54,7 @@ export function useKitchenPush(level) {
 		window.addEventListener("kitchenpushpending", takePending);
 		return () => {
 			stopped = true;
+			push.setKitchenOpen({ open: false }).catch(() => {});
 			window.removeEventListener("kitchenpushtoken", onToken);
 			window.removeEventListener("kitchenpushorder", takePending);
 			window.removeEventListener("kitchenpushpending", takePending);

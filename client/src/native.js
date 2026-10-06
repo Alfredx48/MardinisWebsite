@@ -44,6 +44,6 @@ export function nativeAlarm() {
 // wasn't showing, and whether Android lets alerts through. See useKitchenPush.
 let pushPlugin;
 export function nativePush() {
-	if (pushPlugin === undefined) pushPlugin = bridgePlugin("KitchenPush", ["getToken", "takePendingOrders", "status", "openSettings"]);
+	if (pushPlugin === undefined) pushPlugin = bridgePlugin("KitchenPush", ["getToken", "takePendingOrders", "status", "openSettings", "setKitchenOpen"]);
 	return pushPlugin;
 }

@@ -18,6 +18,7 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.WebViewListener;
 import org.json.JSONObject;
 
 // The kitchen screen in a full-screen WebView (the live site, see capacitor.config.ts).
@@ -26,9 +27,11 @@ public class MainActivity extends BridgeActivity {
     // Set on the intent of a push alert's notification (OrderNotifications).
     static final String EXTRA_ALARM = "kitchenAlarm";
 
-    // The running kitchen screen, and whether it's on screen, for KitchenMessagingService.
+    // The running kitchen screen, whether it's on screen, and whether the page showing is the
+    // kitchen (set by the page through KitchenPushPlugin.setKitchenOpen), for KitchenMessagingService.
     private static volatile MainActivity current;
     private static volatile boolean visible;
+    static volatile boolean kitchenOpen;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +50,15 @@ public class MainActivity extends BridgeActivity {
         hideSystemBars();
 
         WebView webView = getBridge().getWebView();
+        // A new page load (reload, or leaving the kitchen) until the kitchen page says it's open again.
+        getBridge().addWebViewListener(
+            new WebViewListener() {
+                @Override
+                public void onPageStarted(WebView view) {
+                    kitchenOpen = false;
+                }
+            }
+        );
         // The new-order alarm has to play without anyone tapping the screen first.
         webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
 
@@ -133,9 +145,9 @@ public class MainActivity extends BridgeActivity {
         return true;
     }
 
-    // Like sendToPage, but only while the kitchen is on screen.
-    static boolean sendToVisiblePage(String event, JSONObject data) {
-        return visible && sendToPage(event, data);
+    // Like sendToPage, but only while the kitchen page itself is on screen.
+    static boolean sendToVisibleKitchen(String event, JSONObject data) {
+        return visible && kitchenOpen && sendToPage(event, data);
     }
 
     private void hideSystemBars() {

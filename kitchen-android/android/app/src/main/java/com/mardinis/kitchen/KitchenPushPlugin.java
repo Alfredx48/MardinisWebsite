@@ -40,6 +40,14 @@ public class KitchenPushPlugin extends Plugin {
         });
     }
 
+    // setKitchenOpen({ open }): the kitchen page is (no longer) showing, so pushes either go to
+    // it or ring natively.
+    @PluginMethod
+    public void setKitchenOpen(PluginCall call) {
+        MainActivity.kitchenOpen = call.getBoolean("open", false);
+        call.resolve();
+    }
+
     // takePendingOrders() → { orderIds }: orders pushed since the page last asked. Stops the
     // ringing, since the page now shows them.
     @PluginMethod
