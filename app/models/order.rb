@@ -92,10 +92,16 @@ class Order < ApplicationRecord
     raise ArgumentError, "Unpaid card orders can't be sent to the kitchen" if !placed? && new_status != "cancelled"
 
     attrs = { status: new_status }
-    attrs[:ready_at] = Time.current if new_status == "ready"
+    # The kitchen screen's Ready goes straight to picked up; keep a Ready time for the history.
+    attrs[:ready_at] = Time.current if new_status == "ready" || (new_status == "completed" && ready_at.nil?)
     attrs[:completed_at] = Time.current if new_status == "completed"
     if new_status == "completed" && payment_method == "in_store"
       attrs[:payment_status] = "paid"
+    end
+    # Undoing a pickup tapped by mistake: a pay-at-pickup order isn't paid after all.
+    if status == "completed" && new_status != "completed" && payment_method == "in_store" && payment_status == "paid"
+      attrs[:payment_status] = "unpaid"
+      attrs[:completed_at] = nil
     end
     attrs[:cancel_reason] = reason if new_status == "cancelled"
     update!(attrs)

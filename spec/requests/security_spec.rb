@@ -110,6 +110,23 @@ RSpec.describe "Access control", type: :request do
       expect(order.reload.status).to eq("preparing")
     end
 
+    it "marks an order done straight from preparing, and undoes it" do
+      order = place_order(status: "preparing")
+      patch "/api/admin/orders/#{order.id}", params: { status: "completed" }, as: :json
+      order.reload
+      expect(order.status).to eq("completed")
+      expect(order.ready_at).to be_present # the history still shows when it was ready
+      expect(order.completed_at).to be_present
+      expect(order.payment_status).to eq("paid") # pay at pickup: paid when picked up
+
+      # Undo: back on the board, and not paid after all.
+      patch "/api/admin/orders/#{order.id}", params: { status: "preparing" }, as: :json
+      order.reload
+      expect(order.status).to eq("preparing")
+      expect(order.payment_status).to eq("unpaid")
+      expect(order.completed_at).to be_nil
+    end
+
     it "can cancel pay-at-pickup orders but not orders paid online" do
       in_store = place_order
       patch "/api/admin/orders/#{in_store.id}", params: { status: "cancelled", cancel_reason: "Sold out" }, as: :json

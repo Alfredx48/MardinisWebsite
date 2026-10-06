@@ -78,11 +78,12 @@ export function useAdvanceOrder() {
 	const [busyId, setBusyId] = useState(null);
 
 	const advance = useCallback(
-		async (order) => {
+		// `to` skips ahead (the kitchen screen's Ready goes straight to completed).
+		async (order, to) => {
 			if (Date.now() - lastAdvanceAt < 700) return;
 			lastAdvanceAt = Date.now();
 			const previous = order.status;
-			const next = NEXT_STATUS[previous];
+			const next = to || NEXT_STATUS[previous];
 			if (!next) return;
 			const undo = async (updated) => {
 				try {
