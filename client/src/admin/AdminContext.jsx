@@ -134,7 +134,12 @@ export function AdminProvider({ children, kitchen = false, title }) {
 	// even right after the page loaded, when loadOrders doesn't announce orders already there.
 	const alertOrders = useCallback(
 		async (ids) => {
-			await loadOrders();
+			// loadOrders skips its result when a status change raced it; try again rather than lose the order.
+			for (let attempt = 0; attempt < 3; attempt++) {
+				if (attempt) await new Promise((resolve) => setTimeout(resolve, 1500));
+				await loadOrders();
+				if (ids.every((id) => lastSeen.current.has(Number(id)))) break;
+			}
 			const pending = ids
 				.map(Number)
 				.filter((id) => lastSeen.current.get(id)?.status === "new" && !unackedRef.current.includes(id));

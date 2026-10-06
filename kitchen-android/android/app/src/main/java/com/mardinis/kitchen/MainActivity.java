@@ -116,6 +116,16 @@ public class MainActivity extends BridgeActivity {
     }
 
     @Override
+    public void onStop() {
+        super.onStop();
+        // Only an alert shows the kitchen over the lock screen, not every time after one.
+        if (Build.VERSION.SDK_INT >= 27) {
+            setShowWhenLocked(false);
+            setTurnScreenOn(false);
+        }
+    }
+
+    @Override
     public void onDestroy() {
         if (current == this) {
             current = null;

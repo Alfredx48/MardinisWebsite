@@ -57,6 +57,19 @@ else
 	out=dist/kitchen.apk
 fi
 
+# Push alerts need the Firebase config (gitignored; Firebase console → Project settings →
+# Your apps → google-services.json). Without it the APK builds but never rings when closed.
+services=android/app/google-services.json
+package=com.mardinis.kitchen$($dev && echo .dev || true)
+if [[ ! -f "$services" ]]; then
+	echo "Missing $services (download it from the Firebase console)." >&2
+	exit 1
+fi
+if ! grep -q "\"$package\"" "$services"; then
+	echo "$services has no Android app $package. Add it in the Firebase console and download the file again." >&2
+	exit 1
+fi
+
 [[ -d node_modules ]] || npm ci
 # Writes capacitor.config.json (with the URL to load) into the Android project.
 npx cap sync android
