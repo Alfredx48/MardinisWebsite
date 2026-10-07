@@ -58,8 +58,9 @@ public class KitchenPushPlugin extends Plugin {
         call.resolve(result);
     }
 
-    // status() → { notifications, fullScreen, battery }: false means alerts may not get through
-    // while the app is closed.
+    // status() → { notifications, fullScreen, battery, overlay }: false means alerts may not get
+    // through while the app is closed, or (overlay, "Appear on top") that the kitchen can't open
+    // itself after a restart (BootReceiver).
     @PluginMethod
     public void status(PluginCall call) {
         JSObject result = new JSObject();
@@ -71,10 +72,11 @@ public class KitchenPushPlugin extends Plugin {
         result.put("fullScreen", fullScreen);
         PowerManager power = getContext().getSystemService(PowerManager.class);
         result.put("battery", power.isIgnoringBatteryOptimizations(getContext().getPackageName()));
+        result.put("overlay", Settings.canDrawOverlays(getContext()));
         call.resolve(result);
     }
 
-    // openSettings({ which: "notifications" | "fullScreen" | "battery" }): the Android screen
+    // openSettings({ which: "notifications" | "fullScreen" | "battery" | "overlay" }): the Android screen
     // that turns that one on.
     @PluginMethod
     public void openSettings(PluginCall call) {
@@ -83,6 +85,8 @@ public class KitchenPushPlugin extends Plugin {
         Intent intent;
         if ("fullScreen".equals(which) && Build.VERSION.SDK_INT >= 34) {
             intent = new Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, app);
+        } else if ("overlay".equals(which)) {
+            intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, app);
         } else if ("battery".equals(which)) {
             intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, app);
         } else {

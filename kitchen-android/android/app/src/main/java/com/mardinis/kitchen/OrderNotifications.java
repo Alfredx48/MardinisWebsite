@@ -20,8 +20,11 @@ final class OrderNotifications {
     static final String CHANNEL = "new_orders";
     // With the alarm as its sound, for when Android won't let AlarmService start.
     static final String BACKUP_CHANNEL = "new_orders_backup";
+    // Opens the kitchen after a restart when it can't open itself (BootReceiver).
+    static final String STARTUP_CHANNEL = "kitchen_startup";
     static final int SERVICE_ID = 1;
     static final int BACKUP_ID = 2;
+    static final int STARTUP_ID = 3;
     private static final long BACKUP_TIMEOUT_MS = 10 * 60_000;
 
     private OrderNotifications() {}
@@ -43,17 +46,25 @@ final class OrderNotifications {
         backup.enableVibration(true);
         backup.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
         manager.createNotificationChannel(backup);
+
+        // High importance, or Android won't use the full-screen intent.
+        NotificationChannel startup = new NotificationChannel(STARTUP_CHANNEL, "Kitchen restarted", NotificationManager.IMPORTANCE_HIGH);
+        startup.setDescription("Opens the kitchen after the tablet restarts.");
+        startup.setSound(null, null);
+        startup.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+        manager.createNotificationChannel(startup);
     }
 
     static Notification build(Context context, String channel, String number) {
         return builder(context, channel, number).build();
     }
 
+    private static PendingIntent openKitchen(Context context) {
+        return PendingIntent.getActivity(context, 0, MainActivity.wakeIntent(context), PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+    }
+
     private static NotificationCompat.Builder builder(Context context, String channel, String number) {
-        Intent open = new Intent(context, MainActivity.class)
-            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            .putExtra(MainActivity.EXTRA_ALARM, true);
-        PendingIntent pending = PendingIntent.getActivity(context, 0, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        PendingIntent pending = openKitchen(context);
         int count = PendingOrders.count(context);
         String title = count > 1 ? count + " new orders" : number != null ? "New order #" + number : "New order";
         return new NotificationCompat.Builder(context, channel)
@@ -82,5 +93,32 @@ final class OrderNotifications {
 
     static void cancelBackup(Context context) {
         NotificationManagerCompat.from(context).cancel(BACKUP_ID);
+    }
+
+    // After a restart: the lock screen is up, so the full-screen intent opens the kitchen right
+    // away; if someone is using the tablet, it's a banner to tap instead.
+    static void showStartup(Context context) {
+        PendingIntent pending = openKitchen(context);
+        Notification notification = new NotificationCompat.Builder(context, STARTUP_CHANNEL)
+            .setSmallIcon(R.drawable.ic_stat_order)
+            .setContentTitle("The tablet restarted")
+            .setContentText("Tap to open the kitchen.")
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setFullScreenIntent(pending, true)
+            .setContentIntent(pending)
+            .setAutoCancel(true)
+            .setOngoing(true)
+            .build();
+        try {
+            NotificationManagerCompat.from(context).notify(STARTUP_ID, notification);
+        } catch (SecurityException e) {
+            // Notifications are off for the app; someone has to open it.
+        }
+    }
+
+    static void cancelStartup(Context context) {
+        NotificationManagerCompat.from(context).cancel(STARTUP_ID);
     }
 }

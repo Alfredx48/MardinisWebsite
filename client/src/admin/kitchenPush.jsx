@@ -79,10 +79,13 @@ const PUSH_PROBLEMS = [
 	["notifications", "Notifications are off for this app, so new orders can't ring while it's closed."],
 	["fullScreen", "Full-screen alerts are off, so new orders can't wake the tablet."],
 	["battery", "Battery saving can delay new-order alerts while the app is closed."],
+	// App 1.3+; older apps don't report it.
+	["overlay", "Turn on “Appear on top” so the kitchen opens by itself after the tablet restarts."],
 ];
 const PUSH_CHECK_MS = 30000;
 
-// In the Android app: a bar under the top bar when Android would hold back push alerts.
+// In the Android app: a bar under the top bar when Android would hold back push alerts, or keep
+// the kitchen from opening after a restart.
 export function PushStatusBanner() {
 	const [problem, setProblem] = useState(null);
 

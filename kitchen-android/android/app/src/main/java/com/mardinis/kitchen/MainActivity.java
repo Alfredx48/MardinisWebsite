@@ -2,6 +2,7 @@ package com.mardinis.kitchen;
 
 import android.Manifest;
 import android.app.KeyguardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -24,8 +25,9 @@ import org.json.JSONObject;
 // The kitchen screen in a full-screen WebView (the live site, see capacitor.config.ts).
 public class MainActivity extends BridgeActivity {
 
-    // Set on the intent of a push alert's notification (OrderNotifications).
-    static final String EXTRA_ALARM = "kitchenAlarm";
+    // Set on the intent of a push alert's notification and of the restart notification
+    // (OrderNotifications, BootReceiver): show over the lock screen and turn the screen on.
+    static final String EXTRA_WAKE = "kitchenAlarm";
 
     // The running kitchen screen, whether it's on screen, and whether the page showing is the
     // kitchen (set by the page through KitchenPushPlugin.setKitchenOpen), for KitchenMessagingService.
@@ -37,8 +39,10 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         registerPlugin(KitchenAlarmPlugin.class);
         registerPlugin(KitchenPushPlugin.class);
+        registerPlugin(KitchenAppPlugin.class);
         super.onCreate(savedInstanceState);
         current = this;
+        if (getIntent() != null && getIntent().getBooleanExtra(EXTRA_WAKE, false)) wakeUp();
         OrderNotifications.createChannels(this);
         // Android 13+: push alerts need the notification permission.
         if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -50,6 +54,8 @@ public class MainActivity extends BridgeActivity {
         hideSystemBars();
 
         WebView webView = getBridge().getWebView();
+        // A local "No connection" page with automatic retry instead of the WebView's error page.
+        getBridge().setWebViewClient(new KitchenWebViewClient(getBridge()));
         // A new page load (reload, or leaving the kitchen) until the kitchen page says it's open again.
         getBridge().addWebViewListener(
             new WebViewListener() {
@@ -95,7 +101,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        if (intent != null && intent.getBooleanExtra(EXTRA_ALARM, false)) wakeUp();
+        if (intent != null && intent.getBooleanExtra(EXTRA_WAKE, false)) wakeUp();
     }
 
     @Override
@@ -104,6 +110,7 @@ public class MainActivity extends BridgeActivity {
         visible = true;
         // The kitchen is on screen: stop ringing and let the page pop up the pushed orders.
         AlarmService.stop(this);
+        OrderNotifications.cancelStartup(this);
         if (PendingOrders.count(this) > 0) sendToPage("kitchenpushpending", new JSONObject());
     }
 
@@ -134,7 +141,13 @@ public class MainActivity extends BridgeActivity {
         super.onDestroy();
     }
 
-    // Opened by a push alert: show over the lock screen and turn the screen on, like an alarm clock.
+    static Intent wakeIntent(Context context) {
+        return new Intent(context, MainActivity.class)
+            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            .putExtra(EXTRA_WAKE, true);
+    }
+
+    // Opened by a push alert or after a restart: show over the lock screen and turn the screen on, like an alarm clock.
     @SuppressWarnings("deprecation")
     private void wakeUp() {
         if (Build.VERSION.SDK_INT >= 27) {

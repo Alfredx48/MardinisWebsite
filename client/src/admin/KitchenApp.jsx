@@ -15,7 +15,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { Modal, PasswordInput, Spinner } from "../components/ui";
 import { useAuth } from "../context/AuthContext";
-import { isKitchenApp, nativeAlarm } from "../native";
+import { isKitchenApp, nativeAlarm, nativeApp } from "../native";
 import { AdminProvider, useAdmin } from "./AdminContext";
 import { CancelledBanner } from "./AdminLayout";
 import KitchenOrders from "./KitchenOrders";
@@ -33,6 +33,10 @@ const VERSION_CHECK_MS = 5 * 60 * 1000;
 const IDLE_BEFORE_RELOAD_MS = 2 * 60 * 1000;
 // Never reload while one of these is open: popups, dialogs, menus, the cancelled-order banner.
 const BUSY_SELECTOR = '[role="alertdialog"], [role="dialog"], [role="menu"], .adm-cancelled';
+// Web deploys reach the Android app by themselves, native changes need a new APK. The kitchen asks
+// for an update while the app's versionCode (kitchen-android/android/app/build.gradle) is lower.
+// Raise it when the web code starts relying on a new app's native code. 4 = app 1.3.
+const MIN_APP_VERSION = 4;
 
 const isIos = () =>
 	/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -227,7 +231,8 @@ function useConnection() {
 	const now = useNow(5000);
 	const age = ordersUpdatedAt ? Math.max(0, Math.round((now - ordersUpdatedAt) / 1000)) : null;
 	if (!online) return { ok: false, label: "No internet", age };
-	if (age === null) return { ok: false, label: ordersError ? "Can't connect" : "Connecting…", age };
+	if (age === null && !ordersError) return { ok: false, connecting: true, label: "Connecting…", age };
+	if (age === null) return { ok: false, label: "Can't connect", age };
 	if (ordersError || age > STALE_SECONDS) return { ok: false, label: "Reconnecting…", age };
 	return { ok: true, label: "Live", age };
 }
@@ -244,14 +249,52 @@ function ConnectionPill() {
 }
 
 function OfflineBanner() {
-	const { ok, age } = useConnection();
-	if (ok || age === null) return null;
+	const { ok, connecting, age } = useConnection();
+	if (ok || connecting) return null;
 	return (
 		<div className="adm-k-offline" role="alert">
 			<FontAwesomeIcon icon={faWifi} />
 			<span>
-				<strong>Can't reach the server.</strong> Orders on screen are from {secondsLabel(age)} ago and may be out
-				of date. Retrying every 10 seconds. Check the tablet's Wi-Fi.
+				<strong>Can't reach the server, so new orders may be missing.</strong>{" "}
+				{age === null ? "No orders have loaded yet." : `Orders on screen are from ${secondsLabel(age)} ago.`} Retrying
+				every 10 seconds. Check the tablet's Wi-Fi.
+			</span>
+		</div>
+	);
+}
+
+// In the Android app: the installed app's version, or versionCode 0 for apps from before 1.3,
+// which can't report it. Null until known, and in browsers.
+function useAppVersion() {
+	const [version, setVersion] = useState(null);
+	useEffect(() => {
+		if (!isKitchenApp()) return undefined;
+		const app = nativeApp();
+		if (!app) {
+			setVersion({ versionCode: 0, versionName: "1.2 or older" });
+			return undefined;
+		}
+		let stopped = false;
+		app
+			.info()
+			.then((info) => !stopped && setVersion(info))
+			.catch(() => {});
+		return () => {
+			stopped = true;
+		};
+	}, []);
+	return version;
+}
+
+function AppUpdateBanner() {
+	const version = useAppVersion();
+	if (!version || version.versionCode >= MIN_APP_VERSION) return null;
+	return (
+		<div className="adm-k-pushwarn" role="status">
+			<FontAwesomeIcon icon={faDownload} />
+			<span>
+				<strong>Update the Kitchen app.</strong> This tablet has version {version.versionName}, and the kitchen
+				needs a newer one. Ask the manager to install the update.
 			</span>
 		</div>
 	);
@@ -481,6 +524,7 @@ function KitchenScreen() {
 
 			<CancelledBanner />
 			<OfflineBanner />
+			<AppUpdateBanner />
 			<PushStatusBanner />
 
 			<main className="adm-k-main">

@@ -1,0 +1,110 @@
+<!doctype html>
+<!-- Shown by KitchenWebViewClient when the kitchen can't load. It runs as the page that failed
+     (same origin), checks the site every 5 seconds and loads that page again once it answers. -->
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>No connection · Kitchen</title>
+		<style>
+			html,
+			body {
+				height: 100%;
+				margin: 0;
+			}
+			body {
+				display: grid;
+				place-items: center;
+				padding: 24px;
+				box-sizing: border-box;
+				background: #1c1814;
+				color: #fbf7f0;
+				text-align: center;
+				font: 18px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+			}
+			h1 {
+				margin: 0 0 8px;
+				font: 700 2rem Georgia, serif;
+			}
+			p {
+				margin: 0 0 24px;
+				color: #d8cfc2;
+			}
+			strong {
+				color: #fbf7f0;
+			}
+			button {
+				min-height: 56px;
+				padding: 0 32px;
+				border: 0;
+				border-radius: 999px;
+				background: #b4452c;
+				color: #fff;
+				font: 700 1.1rem system-ui, sans-serif;
+				cursor: pointer;
+			}
+			button:disabled {
+				opacity: 0.6;
+			}
+			#status {
+				margin: 16px 0 0;
+				font-size: 0.95rem;
+			}
+		</style>
+	</head>
+	<body>
+		<main>
+			<h1>No connection</h1>
+			<p>
+				The kitchen can't reach the internet, so <strong>new orders won't show up here</strong>.<br />
+				Check the tablet's Wi-Fi. The kitchen comes back by itself once it's connected.
+			</p>
+			<button type="button" id="retry">Try again</button>
+			<p id="status" role="status">Checking every 5 seconds…</p>
+		</main>
+		<script>
+			(function () {
+				var url = "__RETRY_URL__";
+				var button = document.getElementById("retry");
+				var status = document.getElementById("status");
+				var checking = false;
+				var leaving = false;
+
+				function time() {
+					return new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit" });
+				}
+
+				// Rails' health check: answers 200 once the site is reachable again.
+				function check() {
+					if (checking || leaving) return;
+					checking = true;
+					button.disabled = true;
+					// A Wi-Fi with no internet can leave a request hanging; give up on it.
+					var abort = new AbortController();
+					var timer = setTimeout(function () {
+						abort.abort();
+					}, 8000);
+					fetch("/up", { cache: "no-store", signal: abort.signal })
+						.then(function (res) {
+							if (!res.ok) throw new Error(res.status);
+							leaving = true;
+							status.textContent = "Connected. Loading the kitchen…";
+							location.replace(url);
+						})
+						.catch(function () {
+							status.textContent = "Still no connection (last checked " + time() + "). Checking every 5 seconds…";
+						})
+						.then(function () {
+							clearTimeout(timer);
+							checking = false;
+							button.disabled = leaving;
+						});
+				}
+
+				button.addEventListener("click", check);
+				window.addEventListener("online", check);
+				setInterval(check, 5000);
+			})();
+		</script>
+	</body>
+</html>

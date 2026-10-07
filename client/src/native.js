@@ -47,3 +47,11 @@ export function nativePush() {
 	if (pushPlugin === undefined) pushPlugin = bridgePlugin("KitchenPush", ["getToken", "takePendingOrders", "status", "openSettings", "setKitchenOpen"]);
 	return pushPlugin;
 }
+
+// The installed app's version (KitchenApp, app 1.3+): info() → { versionCode, versionName }.
+// Null in browsers and in older apps, which the update banner treats as out of date.
+let appPlugin;
+export function nativeApp() {
+	if (appPlugin === undefined) appPlugin = bridgePlugin("KitchenApp", ["info"]);
+	return appPlugin;
+}

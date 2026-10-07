@@ -14,9 +14,11 @@ android {
         applicationId "com.mardinis.kitchen"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        // Bump both for every APK with native changes (1.1: the KitchenAlarm plugin; 1.2: push alerts).
-        versionCode 3
-        versionName "1.2"
+        // Bump both for every APK with native changes (1.1: the KitchenAlarm plugin; 1.2: push alerts;
+        // 1.3: opens after a restart, offline page, KitchenApp plugin). Raise MIN_APP_VERSION in
+        // client/src/admin/KitchenApp.jsx when the web code needs the new native code.
+        versionCode 4
+        versionName "1.3"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
