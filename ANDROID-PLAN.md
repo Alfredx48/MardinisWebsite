@@ -353,10 +353,19 @@ Phase 2 was done in the same session as Phase 1, on 2026-10-04 (commit `6845737`
 7. **Ask the owner** before deleting `ANDROID-PLAN.md`, then delete it in the final commit. Push only when the owner says so.
 
 ### Checks
-- [ ] After a tablet reboot, the kitchen comes back as the owner chose.
-- [ ] Wi-Fi off shows the banner and the offline screen. Wi-Fi back on recovers without anyone touching it.
-- [ ] `HANDOFF.md` alone is enough for a new session to rebuild, re-sign and reinstall the app.
+- [x] After a tablet reboot, the kitchen comes back as the owner chose. (Auto-open; three restarts on 2026-10-06: notification path, Appear-on-top path, and again after the review fixes.)
+- [x] Wi-Fi off shows the banner and the offline screen. Wi-Fi back on recovers without anyone touching it. (On the tablet with 1.3; the banner shown was the live web version.)
+- [x] `HANDOFF.md` alone is enough for a new session to rebuild, re-sign and reinstall the app. (New "Android Kitchen app" section.)
 - [ ] `ANDROID-PLAN.md` is deleted, with the owner's OK.
 
 ### Notes
-_(Phase 4 session: list anything left over for the owner.)_
+
+Phase 4 done on 2026-10-06 (commits `6ad1227` code, `7b842ce` review fixes, then the HANDOFF commit). **Not pushed.** Everything is now in `HANDOFF.md`; this file only waits for the owner's OK to delete it.
+
+- **Owner's choice:** auto-open after a restart. `BootReceiver` always posts a full-screen "The tablet restarted" notification and, with Appear on top, also opens the kitchen directly. BOOT_COMPLETED arrives about 80 s after boot on this tablet.
+- **App 1.3 (versionCode 4)** installed over USB with the owner's OK: restart auto-open, native offline page (`KitchenWebViewClient` + `res/raw/kitchen_offline.html`, retry via `/up` every 5 s), `KitchenApp.info()`. Appear on top was turned on for Kitchen in Settings.
+- **Web side (not live until pushed):** "Update the Kitchen app" banner (`MIN_APP_VERSION = 4`), "Appear on top" in `PushStatusBanner`, offline bar wording. Headless Chrome: browser, app 1.2 mock, 1.3 mock (ok / overlay off / versionCode 3), orders never load, orders fail later; no page errors.
+- `/code-review` (high) over `3a29942^..HEAD`: fixed the boot fallback, wake on activity recreation, and the device-registration race (new spec, 140 total). Not changed, documented in HANDOFF: a signed-out device keeps ringing; Samsung's Appear on top opens the full app list.
+- **Seen on the tablet tonight:** Sound was **off** (not changed), and orders #0023 and #0024 ("Admin", pay at pickup, 9:15 AM, NEW) were on the board. The tablet's uptime suggests the Samsung update ran and restarted it on 2026-10-05 around 4 AM.
+
+**Left for the owner:** say when to push (the tablet already has 1.3, so the update banner won't show); turn Sound back on if it should be; deal with orders #0023/#0024 if they're tests; check "Never sleeping apps"; place one test order with Kitchen swiped away to re-check push on 1.3; OK deleting this file.
