@@ -49,7 +49,7 @@ else
 	fi
 	props="${KITCHEN_KEYSTORE_PROPERTIES:-$HOME/keys/mardinis-kitchen.properties}"
 	if [[ ! -f "$props" ]]; then
-		echo "Missing $props (the signing keystore details). See ANDROID-PLAN.md / HANDOFF.md." >&2
+		echo "Missing $props (the signing keystore details). See HANDOFF.md ("Android Kitchen app")." >&2
 		exit 1
 	fi
 	task=assembleRelease

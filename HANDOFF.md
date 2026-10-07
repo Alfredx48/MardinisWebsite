@@ -10,14 +10,14 @@ Context for a new Claude Code session picking up this project. Last updated 2026
 - **State:** menu photos, sizes and options, refunds and customer cancellation, password resets and order confirmation emails, per-item names, **group orders**, **catering ordering** and the kitchen's **Upcoming** list with reminders are all live, and (2026-10-04..06) the **Android Kitchen app** with **push alerts** and a simpler kitchen screen. 140 RSpec specs pass.
 - **Kitchen screen (`/kitchen`) + Kitchen role: live since 2026-09-27.** The restaurant's **Samsung Galaxy Tab A7 Lite** runs it in the native **Kitchen** Android app (`kitchen-android/`), which loads the live page. The owner tests in a browser on their own iPad, so both must keep working. See "Kitchen screen" and "Android Kitchen app" below.
 
-## Changes on 2026-10-04 to 2026-10-06
+## Changes on 2026-10-04 to 2026-10-06 (all pushed and live)
 
-Commits `3a29942`..`7b842ce`. Everything up to `bd4b088` is pushed and live. **`6ad1227` and `7b842ce` (app 1.3's web side and review fixes) are committed but not pushed yet**; Kitchen 1.3 itself is already installed on the tablet.
+Commits `3a29942` and later, up to the commit that deleted the temporary `ANDROID-PLAN.md` (pushed 2026-10-06). Kitchen app 1.3 is installed on the tablet.
 - **Android Kitchen app** (`kitchen-android/`, Capacitor 8): a full-screen shell that loads the live `/kitchen`. It keeps the screen on, plays the alarm on Android's **Alarm** volume with no "Tap to start", rings for **push alerts** even when closed or asleep, reopens itself after a restart, shows an offline page with automatic retry, and reloads itself after a web deploy. See "Android Kitchen app".
 - **Push alerts:** every new order is pushed through Firebase Cloud Messaging to the devices of kitchen staff and admins (`device_tokens`, `KitchenPush`, `FIREBASE_SERVICE_ACCOUNT_JSON`). The 10-second polling stays as the backup.
 - **Kitchen screen redesign:** one "Being made" list instead of New / Preparing / Ready tabs, **Got it** on the new-order popup, **Ready** marks an order picked up, and no toasts on /kitchen. See "Kitchen screen".
 - **Alarm loudness** (kitchen ⋮): Loud / Medium / Quiet / Off per device.
-- **Offline banner** wording (app 1.3 web side, not pushed yet): "Can't reach the server, so new orders may be missing", now also when orders never loaded.
+- **Offline banner** wording: "Can't reach the server, so new orders may be missing", now also when orders never loaded.
 
 ## Changes on 2026-10-03 (all pushed and live)
 
@@ -49,7 +49,7 @@ Commits `bd5a2e5`..`f83cf61`. Details are in the sections linked.
 ## Repo & git
 
 - Path: `~/projects/MardinisWebsite` (WSL Ubuntu on Windows). Remote: `https://github.com/Alfredx48/MardinisWebsite.git`.
-- `main` = deployed = `origin/main` (`bd4b088` on 2026-10-06; local `main` is two commits ahead, see "Changes on 2026-10-04 to 2026-10-06"). Old remote branches (`alfred`, `dev`, `stripe`, `style`) are from the 2023 bootcamp version.
+- `main` = deployed = `origin/main` (pushed 2026-10-06 with the Android app's Phase 4). Old remote branches (`alfred`, `dev`, `stripe`, `style`) are from the 2023 bootcamp version.
 - `Mardinis Menus/` at the repo root is the owner's untracked folder (printed-menu PDFs, `Price Changes.csv`); don't commit it. Their newest menu files live on Windows in `C:\Users\Alfred\Documents\Mardinis Menus\6 - Original (Enhanced)` (`/mnt/c/...` from WSL).
 - Leftover junk the owner may delete: two empty SQLite files at repo root, `react_rails_api_project_template_development` and `..._test` (tracked, unused).
 
@@ -282,6 +282,8 @@ Earlier status (2026-09-25):
 - Unused photos in the bucket (owner may want them): catering spread (suggested home banner: `https://jyazfpwyxwqpkbjkengj.supabase.co/storage/v1/object/public/menu-photos/items/20260925-13fdad5aadd568e8.jpg`), two storefront shots, mujadara, and extra combo-kabob / garlic-sauce shots. The home banner, logo and Catering page photos were moved from imgur to the bucket on 2026-09-25 (code in the "Host the home banner, logo and catering photos on Supabase" commit; the two settings via an owner-run script).
 
 ## Open items
+
+- **Kitchen tablet (2026-10-06):** Sound was **off** on the tablet (left as is; turn it on in the kitchen if it should ring). Orders #0023 and #0024 ("Admin", pay at pickup, 9:15 AM) were still NEW on the board; if they're tests, cancel them. Check Samsung's "Never sleeping apps" (tablet checklist step 4). Place one test order with Kitchen swiped away to re-check push on app 1.3.
 
 - Confirm `SECRET_KEY_BASE` is spelled right in Render (a screenshot once showed `SECRETE_KEY_BASE`).
 - Confirm Stripe mode (live vs test); Card payments are on (checked 2026-10-02, and catering needs them). Decide on the refund-fee question for customer cancellations.
