@@ -16,6 +16,18 @@ A 4-phase plan to wrap the kitchen screen (`/kitchen`) in an Android app with Ca
 
 ---
 
+## Current state (2026-10-06, end of the Phase 1–3 session)
+
+- **Phases 1, 2 and 3 are done, tested on the tablet, and live.** Everything is pushed (last code commit `a034e89`; plan notes after it). 139 RSpec specs pass.
+- **Tablet (Tab A7 Lite, Android 14):** only the native **Kitchen 1.2** (release, versionCode 3) is installed, on the main home screen. The Chrome PWA, a Chrome shortcut and Kitchen Dev were removed. It's signed in **as an admin account** (the owner's choice so far), Sound on · **Quiet**, notifications allowed, battery unrestricted, full-screen alerts allowed. USB debugging is on and this PC is authorized; Windows adb is at `/mnt/c/Users/Alfred/AppData/Local/Android/platform-tools/adb.exe`. **The owner asked that web updates reach the tablet over Wi-Fi, not the cable** (the app reloads itself after a deploy). Native changes still need an APK install (USB, with the owner's OK, or copying the APK).
+- **Live since this session:** the native app with the Alarm-volume alarm and **Alarm loudness** (⋮ → Loud / Medium / Quiet / Off), **reload on deploy**, **push alerts** (Firebase project `mardinis`, `FIREBASE_SERVICE_ACCOUNT_JSON` set in Render), and the **kitchen redesign** (one "Being made" list, Got it → preparing, Ready = picked up, no toasts on /kitchen). Details are in each phase's notes.
+- **`HANDOFF.md` is out of date (last updated 2026-10-04)** and doesn't mention any of this. Phase 4 must cover: the Android app (build, sign, install, keystore in `~/keys/` with the encrypted backup at `C:\Users\Alfred\Documents\mardinis-kitchen-keys.tar.gz.gpg`, the dev APK + ngrok, plugins), push (server, env var, Firebase project, the owner's personal Google account), Alarm loudness, reload on deploy, the kitchen redesign (the Kitchen screen section still describes tabs, Later, the toast Undo and the wake lock), new specs (139), the `device_tokens` table, and the `googleauth` gem.
+- **Not yet seen live:** reminders on the native alarm (they only show while the restaurant is open; same code path as new orders), and a real day's use.
+- **Known limits to put in HANDOFF:** Force stop turns pushes off until Kitchen is opened again (swiping away is fine). FCM may demote high-priority pushes handled silently while the kitchen is open; watch for slow alerts. Samsung scheduled a system update (One UI 6.1) for 2026-10-05 4:09 AM; nobody checked whether it ran.
+- **Local machine:** JDK 21 + Android SDK under `~/.local/share/`, keystore + Firebase key in `~/keys/`, Firebase key also in `.env.local`. On 2026-10-06 the owner asked to stop all dev web servers (Mardini's 3000/4000 and their Portfolio servers on 3001–3004); restart them as needed.
+
+---
+
 ## Rules for every session
 
 1. **Read first:**
@@ -111,7 +123,7 @@ A 4-phase plan to wrap the kitchen screen (`/kitchen`) in an Android app with Ca
 
 ### Notes for the next session
 
-Phase 1 done on 2026-10-04 (commits `3a29942`, `b78bca9` and the notes commit; nothing pushed yet). `/code-review` (high) was run; its fixes are in `b78bca9`. Back closing a dialog was checked on the tablet after reinstalling.
+Phase 1 done on 2026-10-04 (commits `3a29942`, `b78bca9` and the notes commit; pushed 2026-10-04). `/code-review` (high) was run; its fixes are in `b78bca9`. Back closing a dialog was checked on the tablet after reinstalling.
 
 **Owner's choices:** build in WSL + Windows adb; app id `com.mardinis.kitchen`; landscape only (`sensorLandscape`); keystore in `~/keys/`.
 
@@ -170,14 +182,14 @@ Phase 1 done on 2026-10-04 (commits `3a29942`, `b78bca9` and the notes commit; n
 4. **Inside the app only**, skip the full-screen "Tap to start" and the "Tap to turn sound back on" prompts (`audioReady` counts as ready). The browser keeps them.
 
 ### Checks
-- [ ] With Media volume at 0, a new order alarm plays loudly (Alarm stream). Alarm volume goes back to its old level afterwards.
-- [ ] The alarm repeats every 20s until the order is acknowledged, then stops.
-- [ ] Test sound, reminders and Sound off all behave correctly.
-- [ ] No "Tap to start" in the app. The browser and iPad still show it and still sound the same.
+- [x] With Media volume at 0, a new order alarm plays loudly (Alarm stream). Alarm volume goes back to its old level afterwards. (Alarm 3 → 15 → 3; with Quiet, 11 → 4 → 11.)
+- [x] The alarm repeats every 20s until the order is acknowledged, then stops. (3 plays in 55s; none after Got it.)
+- [x] Test sound, reminders and Sound off all behave correctly. (Test sound and Sound off on the tablet; reminders not seen live, same code path.)
+- [x] No "Tap to start" in the app. The browser and iPad still show it and still sound the same. (Tablet screenshot; headless Chrome for browser/iPad.)
 
 ### Notes for the next session
 
-Phase 2 was done in the same session as Phase 1, on 2026-10-04 (commit `6845737`; nothing pushed). App version is now **1.1 (versionCode 2)**. Bump both for every APK with native changes.
+Phase 2 was done in the same session as Phase 1, on 2026-10-04 (commit `6845737`; pushed 2026-10-04 ~23:35). App version is now **1.1 (versionCode 2)**. Bump both for every APK with native changes.
 
 **Owner's choice:** raise the Alarm volume to max while the alarm plays, then put it back.
 
@@ -262,14 +274,14 @@ Phase 2 was done in the same session as Phase 1, on 2026-10-04 (commit `6845737`
 5. **Tapping the notification** opens the app on `/kitchen`, with that order selected if that's easy.
 
 ### Checks
-- [ ] App force-stopped, screen off: place a test order and the tablet wakes and rings loudly within a few seconds.
-- [ ] App open: the popup appears almost immediately, with no duplicate notification.
-- [ ] Signing out stops pushes. A customer account can't register a device.
-- [ ] Production deploy works before the Firebase variable is set (pushes off, nothing breaks). After the owner sets it, a real order rings.
+- [x] App force-stopped, screen off: place a test order and the tablet wakes and rings loudly within a few seconds. (Swiped away, not Force stop: Android blocks all pushes to force-stopped apps until they're opened. Passed twice on the live site.)
+- [x] App open: the popup appears almost immediately, with no duplicate notification. (About 2 s.)
+- [x] Signing out stops pushes. A customer account can't register a device. (Specs; sign-out DELETE checked in headless Chrome, not on the tablet.)
+- [x] Production deploy works before the Firebase variable is set (pushes off, nothing breaks). After the owner sets it, a real order rings. (The deploy went live before the variable was set; then real pay-at-pickup orders rang.)
 
 ### Notes for the next session
 
-**Status (2026-10-05, ~00:45):** code done and committed (`8b4e904` server, `35c89e3` app + web), **not pushed, not yet tested on the tablet**. Waiting for the owner's Firebase files. Server specs: 138 pass (14 in `spec/requests/kitchen_push_spec.rb`).
+**Status: done, live and tested on the tablet (2026-10-06).** Code: `8b4e904` server, `35c89e3` app + web, later fixes up to `a034e89`. 139 specs pass (14 in `spec/requests/kitchen_push_spec.rb`). The "Update 2026-10-05/06" part below supersedes the earlier parts where they differ.
 
 **Owner's choices:** Firebase project in the owner's **personal** Google account. Devices of users who are **kitchen or admin** right now ring (the tablet is signed in as an admin).
 
@@ -282,7 +294,7 @@ Phase 2 was done in the same session as Phase 1, on 2026-10-04 (commit `6845737`
 **App (1.2, versionCode 3):**
 - `KitchenMessagingService`: on `new_order` it saves the order id (`PendingOrders`, SharedPreferences). If the kitchen is on screen (`MainActivity` resumed) it fires window event `kitchenpushorder`; otherwise it starts `AlarmService`.
 - `AlarmService`: a `mediaPlayback` foreground service with a partial wake lock. Rings `AlarmPlayer` every 20s at the page's loudness (silent if Sound is off). Its notification (`OrderNotifications`, channel `new_orders`, silent, IMPORTANCE_HIGH, category alarm, full-screen intent → `MainActivity` with `EXTRA_ALARM`) wakes and opens the kitchen. Stops when `MainActivity` resumes, when the page takes the orders, or after 10 min. If Android refuses the service, it falls back to a notification on channel `new_orders_backup` (the alarm as its sound, `FLAG_INSISTENT`, 10-min timeout).
-- `MainActivity`: registers `KitchenPushPlugin`, creates the channels, asks for POST_NOTIFICATIONS (Android 13+). For `EXTRA_ALARM` it sets `setShowWhenLocked` / `setTurnScreenOn` / `requestDismissKeyguard` (these stay on for that activity instance afterwards). `onResume` stops the alarm and fires `kitchenpushpending` if orders are waiting. Static `sendToPage` / `sendToVisiblePage` → `bridge.triggerWindowJSEvent` (data becomes event properties).
+- `MainActivity`: registers `KitchenPushPlugin`, creates the channels, asks for POST_NOTIFICATIONS (Android 13+). For `EXTRA_ALARM` it sets `setShowWhenLocked` / `setTurnScreenOn` / `requestDismissKeyguard` (cleared again in `onStop`). `onResume` stops the alarm and fires `kitchenpushpending` if orders are waiting. Static `sendToPage` / `sendToVisibleKitchen` (on screen **and** the kitchen page has said it's open) → `bridge.triggerWindowJSEvent` (data becomes event properties).
 - `KitchenPushPlugin` ("KitchenPush"): `getToken` (rejects `NOT_CONFIGURED` without google-services.json), `takePendingOrders` (also stops the alarm), `status` → `{notifications, fullScreen, battery}`, `openSettings({which})`. `KitchenAlarmPlugin` gained `setSound({on, volume})`; `AlarmPlayer` now holds the player, volume save/restore and the mirrored sound settings for both.
 - Web: `native.js` `bridgePlugin()` builds `nativeAlarm()` / `nativePush()`. `kitchenPush.jsx` `useKitchenPush(level)` registers the token (each launch + `kitchenpushtoken`), takes pending orders on mount and on `kitchenpushorder` / `kitchenpushpending` → `AdminContext.alertOrders(ids)` (loads orders, pops up the ones still "new", one chime, no duplicates via `unackedRef`), mirrors Sound/loudness, and returns `unregister()`, which Log out calls first. `PushStatusBanner`: an amber bar with a "Turn on" button when status shows something off (checked every 30s and on visibilitychange).
 - Headless Chrome with a fake bridge (`push.mjs` in the scratchpad, dev and production builds): registration, sign-out DELETE, popup on fresh load with a pending order, on a push while on screen, none for a non-new order, banner + openSettings, and nothing in a browser. Fixed: React's double mount dropped taken orders.
@@ -294,7 +306,7 @@ Phase 2 was done in the same session as Phase 1, on 2026-10-04 (commit `6845737`
 - `/code-review` (high) on Phase 3, fixed: `build-apk.sh` requires google-services.json with the package being built; `alertOrders` retries when a racing mutation made `loadOrders` skip its result; show-when-locked/turn-screen-on cleared in `onStop`; the kitchen page reports itself via `KitchenPush.setKitchenOpen` (reset on page load), so pushes ring natively on other in-app pages. Not changed: FCM may demote high-priority pushes handled silently while the kitchen is open; watch for slow alerts.
 - **Kitchen screen redesign (owner's request, pushed 2026-10-06 `a034e89`):** no New/Preparing/Ready tabs. Upcoming + one **"Being made"** list (all of today's active orders, NEW tag on unstarted ones). The popup has one **Got it** (→ preparing; later-day orders still get "Got it · it's in Upcoming"). The big **Ready** under the selected order marks it **completed** directly (`useAdvanceOrder` takes a target status; "Picked up" for orders already marked ready elsewhere). **No toasts on /kitchen** (`useAdvanceOrder({ quiet: true })` + CSS hides `.Toastify` under `.adm-kitchen`), so there's no Undo; a manager reopens an order from Admin → History. Server: `advance_to!("completed")` sets `ready_at` if missing; moving a completed pay-at-pickup order back un-marks the payment and clears `completed_at` (spec in security_spec). The admin Live Orders board is unchanged. **HANDOFF's "Kitchen screen" section must be updated for this in Phase 4.**
 
-**Still to do:** owner's Firebase files → dev APK with google-services.json → tablet tests (app open; app in background; screen off; swiped away; Sound off) → release APK 1.2 over USB (the owner said not to update **the web** over the cable; a native change has to be installed over USB or by copying the APK) → `/code-review` → deploy (migration runs on deploy) → owner sets the Render env var → real order test. Also check that the deprecated `getToken` keeps working.
+**Still to do for Phase 3:** nothing. Leftovers are listed under "Current state" at the top.
 
 ---
 
