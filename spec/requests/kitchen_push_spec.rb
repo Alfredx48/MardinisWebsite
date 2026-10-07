@@ -59,6 +59,23 @@ RSpec.describe "Kitchen push alerts", type: :request do
       expect(DeviceToken.count).to eq(1)
     end
 
+    it "copes with two registrations of a new token at once" do
+      log_in(cook)
+      raced = false
+      allow_any_instance_of(DeviceToken).to receive(:save!).and_wrap_original do |original, *args|
+        unless raced
+          # The other request inserts the token between our lookup and our insert.
+          raced = true
+          DeviceToken.insert!({ token: "tablet", user_id: admin.id, platform: "android", last_seen_at: 1.hour.ago })
+          raise ActiveRecord::RecordNotUnique, "duplicate key value"
+        end
+        original.call(*args)
+      end
+      post "/api/admin/devices", params: { token: "tablet", platform: "android" }, as: :json
+      expect(response).to have_http_status(:ok)
+      expect(DeviceToken.sole.user).to eq(cook)
+    end
+
     it "only deletes your own token" do
       register(cook, "cook-tablet")
       register(admin, "admin-phone")

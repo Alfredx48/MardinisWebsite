@@ -42,7 +42,8 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(KitchenAppPlugin.class);
         super.onCreate(savedInstanceState);
         current = this;
-        if (getIntent() != null && getIntent().getBooleanExtra(EXTRA_WAKE, false)) wakeUp();
+        // Not when Android recreates the activity from the same old intent.
+        if (savedInstanceState == null && getIntent() != null && getIntent().getBooleanExtra(EXTRA_WAKE, false)) wakeUp();
         OrderNotifications.createChannels(this);
         // Android 13+: push alerts need the notification permission.
         if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {

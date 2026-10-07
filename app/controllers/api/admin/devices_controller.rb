@@ -9,9 +9,18 @@ class Api::Admin::DevicesController < Api::Admin::BaseController
 
   # POST { token, platform: "android" }. A token moves to whoever signed in last on that device.
   def create
-    device = DeviceToken.find_or_initialize_by(token: token_param)
-    device.assign_attributes(user: current_user, platform: params[:platform].presence || "android", last_seen_at: Time.current)
-    device.save!
+    retried = false
+    begin
+      device = DeviceToken.find_or_initialize_by(token: token_param)
+      device.assign_attributes(user: current_user, platform: params[:platform].presence || "android", last_seen_at: Time.current)
+      device.save!
+    rescue ActiveRecord::RecordNotUnique
+      # Two registrations of a new token at once (launch + token refresh): the other one won; update it.
+      raise if retried
+
+      retried = true
+      retry
+    end
     render json: { registered: true }
   end
 
